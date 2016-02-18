@@ -5,3 +5,4 @@
 # Eclipse project files
 .project
 /bin/
+.classpath

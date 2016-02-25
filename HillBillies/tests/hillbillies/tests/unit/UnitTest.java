@@ -98,6 +98,6 @@ public class UnitTest {
     	assertFalse(Unit.isValidOrientation((float)(5*Math.PI)));
     	assertTrue(Unit.isValidOrientation((float)(0)));
     	assertFalse(Unit.isValidOrientation(Unit.MAX_ORIENTATION));
-    	
+    	 
     }
 }

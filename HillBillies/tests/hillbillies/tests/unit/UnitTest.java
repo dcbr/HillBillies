@@ -91,4 +91,13 @@ public class UnitTest {
         assertTrue(Unit.isValidHitpoints(560,200,200));
         assertFalse(Unit.isValidHitpoints(100,25,25));
     }
+    
+    @Test
+    public void testIsValidOrientation(){
+    	assertFalse(Unit.isValidOrientation((float) -0.001));
+    	assertFalse(Unit.isValidOrientation((float)(5*Math.PI)));
+    	assertTrue(Unit.isValidOrientation((float)(0)));
+    	assertFalse(Unit.isValidOrientation(Unit.MAX_ORIENTATION));
+    	
+    }
 }

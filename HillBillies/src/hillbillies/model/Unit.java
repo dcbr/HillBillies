@@ -24,6 +24,24 @@ public class Unit {
     public static final double MAX_Z = CUBE_SIDE_LENGTH * 50;*/
     public static final double[] MIN_POSITION = new double[]{ CUBE_SIDE_LENGTH * 0, CUBE_SIDE_LENGTH * 0, CUBE_SIDE_LENGTH * 0};
     public static final double[] MAX_POSITION = new double[]{ CUBE_SIDE_LENGTH * 50, CUBE_SIDE_LENGTH * 50, CUBE_SIDE_LENGTH * 50};
+    
+    public static final int MIN_STRENGTH = 1;
+    public static final int MAX_STRENGTH = 200;
+    public static final int MIN_AGILITY = 1;
+    public static final int MAX_AGILITY = 200;
+    public static final int MIN_TOUGHNESS = 1;
+    public static final int MAX_TOUGHNESS = 200;
+    public static final int MIN_WEIGHT = 1;
+    public static final int MAX_WEIGTH = 200;
+    
+    public static final int INITIAL_MIN_STRENGTH = 25;
+    public static final int INITIAL_MAX_STRENGTH = 100;
+    public static final int INITIAL_MIN_AGILITY = 25;
+    public static final int INITIAL_MAX_AGILITY = 100;
+    public static final int INITIAL_MIN_TOUGHNESS = 25;
+    public static final int INITIAL_MAX_TOUGHNESS = 100;
+    public static final int INITIAL_MIN_WEIGHT = 25;
+    public static final int INITIAL_MAX_WEIGTH = 100;
 
     /**
      * Initialize this new Unit with given name.
@@ -148,4 +166,279 @@ public class Unit {
      * Variable registering the position of this Unit.
      */
     private double[] position;
+    
+    /**
+	 * @invar  The strength of each unit must be a valid strength for any
+	 *         unit.
+	 *       | isValidSrength(getSrength())
+	 */
+
+	/**
+	 * Initialize this new unit with given strength.
+	 * 
+	 * @param  strength
+	 *         The strength for this new unit.
+	 * @post   If the given strength is a valid strength for any unit,
+	 *         the strength of this new unit is equal to the given
+	 *         strength. Otherwise, the strength of this new unit is equal
+	 *         to INITIAL_MIN_STRENGTH.
+	 *       | if (isValidSrength(strength))
+	 *       |   then new.getSrength() == strength
+	 *       |   else new.getSrength() == DEFAULT_STRENGTH
+	 */
+	public Unit(int strength) {
+		if (! isValidSrength(strength))
+			strength = INITIAL_MIN_STRENGTH;
+		setSrength(strength);
+	}
+	
+	/**
+	 * Return the strength of this unit.
+	 */
+	@Basic @Raw
+	public int getSrength() {
+		return this.strength;
+	}
+	
+	/**
+	 * Check whether the given strength is a valid strength for
+	 * any unit.
+	 *  
+	 * @param  strength
+	 *         The strength to check.
+	 * @return is true if strength is between MIN_STRENGTH and MAX_STRENGTH
+	 *       | result == (MIN_STRENGTH <=strength<= MAX_STRENGTH)
+	*/
+	public static boolean isValidSrength(int strength) {
+		return (MIN_STRENGTH <= strength  && strength <= MAX_STRENGTH);
+	}
+	
+	/**
+	 * Set the strength of this unit to the given strength.
+	 * 
+	 * @param  strength
+	 *         The new strength for this unit.
+	 * @post   If the given strength is a valid strength for any unit,
+	 *         the strength of this new unit is equal to the given
+	 *         strength.
+	 *       | if (isValidSrength(strength))
+	 *       |   then new.getSrength() == strength
+	 */
+	@Raw
+	public void setSrength(int strength) {
+		if (isValidSrength(strength))
+			this.strength = strength;
+	}
+	
+	/**
+	 * Variable registering the strength of this unit.
+	 */
+	private int strength;
+	
+	/**
+	 * @invar  The agility of each unit must be a valid agility for any
+	 *         unit.
+	 *       | isValidAgility(getAgility())
+	 */
+
+	/**
+	 * Initialize this new unit with given agility.
+	 * 
+	 * @param  agility
+	 *         The agility for this new unit.
+	 * @post   If the given agility is a valid agility for any unit,
+	 *         the agility of this new unit is equal to the given
+	 *         agility. Otherwise, the agility of this new unit is equal
+	 *         to INITIAL_MIN_AGILITY.
+	 *       | if (isValidAgility(agility))
+	 *       |   then new.getAgility() == agility
+	 *       |   else new.getAgility() == INITIAL_MIN_AGILITY
+	 */
+	//public Unit(int agility) {
+	//	if (! isValidAgility(agility))
+	//		agility = INITIAL_MIN_AGILITY;
+	//	setAgility(agility);
+	//}
+	
+	/**
+	 * Return the agility of this unit.
+	 */
+	@Basic @Raw
+	public int getAgility() {
+		return this.agility;
+	}
+	
+	/**
+	 * Check whether the given agility is a valid agility for
+	 * any unit.
+	 *  
+	 * @param  agility
+	 *         The agility to check.
+	 * @return is true if strength is between MIN_AGILITY and MAX_AGILITY
+	 *       | result == (MIN_AGILITY <= agility <= MAX_AGILITY)
+	*/
+	public static boolean isValidAgility(int agility) {
+		return (MIN_AGILITY <= agility && agility <= MAX_AGILITY);
+	}
+	
+	/**
+	 * Set the agility of this unit to the given agility.
+	 * 
+	 * @param  agility
+	 *         The new agility for this unit.
+	 * @post   If the given agility is a valid agility for any unit,
+	 *         the agility of this new unit is equal to the given
+	 *         agility.
+	 *       | if (isValidAgility(agility))
+	 *       |   then new.getAgility() == agility
+	 */
+	@Raw
+	public void setAgility(int agility) {
+		if (isValidAgility(agility))
+			this.agility = agility;
+	}
+	
+	/**
+	 * Variable registering the agility of this unit.
+	 */
+	private int agility;
+	
+	/**
+	 * @invar  The toughness of each unit must be a valid toughness for any
+	 *         unit.
+	 *       | isValidToughness(getToughness())
+	 */
+
+	/**
+	 * Initialize this new unit with given toughness.
+	 * 
+	 * @param  toughness
+	 *         The toughness for this new unit.
+	 * @post   If the given toughness is a valid toughness for any unit,
+	 *         the toughness of this new unit is equal to the given
+	 *         toughness. Otherwise, the toughness of this new unit is equal
+	 *         to INITIAL_MIN_TOUGHNESS.
+	 *       | if (isValidToughness(toughness))
+	 *       |   then new.getToughness() == toughness
+	 *       |   else new.getToughness() == INITIAL_MIN_TOUGHNESS
+	 */
+	//public Unit(int toughness) {
+	//	if (! isValidToughness(toughness))
+	//		toughness = INITIAL_MIN_TOUGHNESS;
+	//	setToughness(toughness);
+	//}
+	
+	/**
+	 * Return the toughness of this unit.
+	 */
+	@Basic @Raw
+	public int getToughness() {
+		return this.toughness;
+	}
+	
+	/**
+	 * Check whether the given toughness is a valid toughness for
+	 * any unit.
+	 *  
+	 * @param  toughness
+	 *         The toughness to check.
+	 * @return is true if strength is between MIN_TOUGHNESS and MAX_TOUGHNESS
+	 *       | result == (MIN_TOUGHNESS <= toughness <= MAX_TOUGHNESS)
+	*/
+	public static boolean isValidToughness(int toughness) {
+		return (MIN_TOUGHNESS <= toughness && toughness <= MAX_TOUGHNESS);
+	}
+	
+	/**
+	 * Set the toughness of this unit to the given toughness.
+	 * 
+	 * @param  toughness
+	 *         The new toughness for this unit.
+	 * @post   If the given toughness is a valid toughness for any unit,
+	 *         the toughness of this new unit is equal to the given
+	 *         toughness.
+	 *       | if (isValidToughness(toughness))
+	 *       |   then new.getToughness() == toughness
+	 */
+	@Raw
+	public void setToughness(int toughness) {
+		if (isValidToughness(toughness))
+			this.toughness = toughness;
+	}
+	
+	/**
+	 * Variable registering the toughness of this unit.
+	 */
+	private int toughness;
+	
+	/**
+	 * @invar  The weight of each unit must be a valid weight for any
+	 *         unit.
+	 *       | isValidWeight(getWeight())
+	 */
+	
+	/**
+	 * Initialize this new unit with given weight.
+	 * 
+	 * @param  weight
+	 *         The weight for this new unit.
+	 * @post   If the given weight is a valid weight for any unit,
+	 *         the weight of this new unit is equal to the given
+	 *         weight. Otherwise, the weight of this new unit is equal
+	 *         to INITIAL_MINWEIGHT.
+	 *       | if (isValidWeight(weight))
+	 *       |   then new.getWeight() == weight
+	 *       |   else new.getWeight() == INITIAL_MINWEIGHT
+	 */
+	//public Unit(int weight) {
+	//	if (! isValidWeight(weight))
+	//		weight = INITIAL_MINWEIGHT;
+	//	setWeight(weight);
+	//}
+	
+	/**
+	 * Return the weight of this unit.
+	 */
+	@Basic @Raw
+	public int getWeight() {
+		return this.weight;
+	}
+	
+	/**
+	 * Check whether the given weight is a valid weight for
+	 * any unit.
+	 *  
+	 * @param  weight
+	 *         The weight to check.
+	 * @return is true if strength is between MIN_WEIGHT and MAX_WEIGHT 
+	 * 			and weight is at least the average between strength and agility
+	 *       | result == (MIN_WEIGHT <= weight <= MAX_WEIGHT && weight >= (strength + agility)/2)
+	*/
+	public static boolean isValidWeight(int weight, ) {
+		return false;
+	}
+	
+	/**
+	 * Set the weight of this unit to the given weight.
+	 * 
+	 * @param  weight
+	 *         The new weight for this unit.
+	 * @post   If the given weight is a valid weight for any unit,
+	 *         the weight of this new unit is equal to the given
+	 *         weight.
+	 *       | if (isValidWeight(weight))
+	 *       |   then new.getWeight() == weight
+	 */
+	@Raw
+	public void setWeight(int weight) {
+		if (isValidWeight(weight))
+			this.weight = weight;
+	}
+	
+	/**
+	 * Variable registering the weight of this unit.
+	 */
+	private int weight;
+
+
 }

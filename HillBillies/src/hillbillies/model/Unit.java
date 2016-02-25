@@ -10,9 +10,34 @@ import be.kuleuven.cs.som.annotate.*;
  * @invar The name of each Unit must be a valid name for any
  * Unit.
  * | isValidName(getName())
+ * @invar The position of each Unit must be a valid position for any
+ * Unit.
+ * | isValidPosition(getPosition())
+ * @invar  The strength of each unit must be a valid strength for any
+ *         unit.
+ *       | isValidStrength(getStrength())
+ * @invar  The agility of each unit must be a valid agility for any
+ *         unit.
+ *       | isValidAgility(getAgility())
+ * @invar  The toughness of each unit must be a valid toughness for any
+ *         unit.
+ *       | isValidToughness(getToughness())
+ * @invar  The weight of each unit must be a valid weight for any
+ *         unit.
+ *       | isValidWeight(getWeight())
+ * @invar  The stamina of each unit must be a valid stamina for any
+ *         unit.
+ *       | isValidStamina(getStamina())
+ * @invar  The hitpoints of each unit must be a valid hitpoints for any
+ *         unit.
+ *       | isValidHitpoints(getHitpoints())
+ * @invar The orientation of each Unit must be a valid orientation for any
+ * Unit.
+ * | isValidOrientation(getOrientation())
  */
 public class Unit {
 
+	//region Constants
     private static final String ALLOWED_NAME_PATTERN = "[a-zA-Z \"']+";
 
     public static final double CUBE_SIDE_LENGTH = 1;
@@ -47,19 +72,171 @@ public class Unit {
     public static final int INITIAL_MIN_WEIGHT = 25;
     public static final int INITIAL_MAX_WEIGHT = 100;
 	public static final float INITIAL_ORIENTATION = (float)Math.PI/2;
+	//endregion
 
-    /**
-     * Initialize this new Unit with given name.
-     *
-     * @param name
-     * The name for this new Unit.
-     * @effect The name of this new Unit is set to
-     * the given name.
-     * | this.setName(name)
-     */
-    public Unit(String name) throws IllegalArgumentException {
-        this.setName(name);
-    }
+	//region Private members
+
+	/**
+	 * Variable registering the name of this Unit.
+	 */
+	private String name;
+	/**
+	 * Variable registering the position of this Unit.
+	 */
+	private double[] position;
+	/**
+	 * Variable registering the strength of this unit.
+	 */
+	private int strength;
+	/**
+	 * Variable registering the agility of this unit.
+	 */
+	private int agility;
+	/**
+	 * Variable registering the toughness of this unit.
+	 */
+	private int toughness;
+	/**
+	 * Variable registering the weight of this unit.
+	 */
+	private int weight;
+	/**
+	 * Variable registering the stamina of this unit.
+	 */
+	private int stamina;
+	/**
+	 * Variable registering the hitpoints of this unit.
+	 */
+	private int hitpoints;
+
+	//endregion
+	//region Constructors
+
+	/**
+	 * Initialize this new Unit with given name.
+	 *
+	 * @param name
+	 * The name for this new Unit.
+	 * @effect The name of this new Unit is set to
+	 * the given name.
+	 * | this.setName(name)
+	 */
+	public Unit(String name) throws IllegalArgumentException {
+		this.setName(name);
+	}
+	/**
+	 * Initialize this new Unit with given position.
+	 *
+	 * @param position
+	 * The position for this new Unit.
+	 * @effect The position of this new Unit is set to
+	 * the given position.
+	 * | this.setPosition(position)
+	 */
+	public Unit(double[] position) throws IllegalArgumentException {
+		this.setPosition(position);
+	}
+	/**
+	 * Initialize this new unit with given strength.
+	 *
+	 * @param  strength
+	 *         The strength for this new unit.
+	 * @post   If the given strength is a valid strength for any unit,
+	 *         the strength of this new unit is equal to the given
+	 *         strength. Otherwise, the strength of this new unit is equal
+	 *         to INITIAL_MIN_STRENGTH.
+	 *       | if (isValidStrength(strength))
+	 *       |   then new.getStrength() == strength
+	 *       |   else new.getStrength() == DEFAULT_STRENGTH
+	 */
+	public Unit(int strength) {
+		if (! isValidStrength(strength))
+			strength = INITIAL_MIN_STRENGTH;
+		setStrength(strength);
+	}
+	/**
+	 * Initialize this new unit with given agility.
+	 *
+	 * @param  agility
+	 *         The agility for this new unit.
+	 * @post   If the given agility is a valid agility for any unit,
+	 *         the agility of this new unit is equal to the given
+	 *         agility. Otherwise, the agility of this new unit is equal
+	 *         to INITIAL_MIN_AGILITY.
+	 *       | if (isValidAgility(agility))
+	 *       |   then new.getAgility() == agility
+	 *       |   else new.getAgility() == INITIAL_MIN_AGILITY
+	 */
+	//public Unit(int agility) {
+	//	if (! isValidAgility(agility))
+	//		agility = INITIAL_MIN_AGILITY;
+	//	setAgility(agility);
+	//}
+	/**
+	 * Initialize this new unit with given toughness.
+	 *
+	 * @param  toughness
+	 *         The toughness for this new unit.
+	 * @post   If the given toughness is a valid toughness for any unit,
+	 *         the toughness of this new unit is equal to the given
+	 *         toughness. Otherwise, the toughness of this new unit is equal
+	 *         to INITIAL_MIN_TOUGHNESS.
+	 *       | if (isValidToughness(toughness))
+	 *       |   then new.getToughness() == toughness
+	 *       |   else new.getToughness() == INITIAL_MIN_TOUGHNESS
+	 */
+	//public Unit(int toughness) {
+	//	if (! isValidToughness(toughness))
+	//		toughness = INITIAL_MIN_TOUGHNESS;
+	//	setToughness(toughness);
+	//}
+	/**
+	 * Initialize this new unit with given weight.
+	 *
+	 * @param  weight
+	 *         The weight for this new unit.
+	 * @post   If the given weight is a valid weight for any unit,
+	 *         the weight of this new unit is equal to the given
+	 *         weight. Otherwise, the weight of this new unit is equal
+	 *         to INITIAL_MINWEIGHT.
+	 *       | if (isValidWeight(weight))
+	 *       |   then new.getWeight() == weight
+	 *       |   else new.getWeight() == INITIAL_MINWEIGHT
+	 */
+	//public Unit(int weight) {
+	//	if (! isValidWeight(weight))
+	//		weight = INITIAL_MINWEIGHT;
+	//	setWeight(weight);
+	//}
+	/**
+	 * Initialize this new unit with given stamina.
+	 *
+	 * @param  stamina
+	 *         The stamina for this new unit.
+	 * @pre    The given stamina must be a valid stamina for any unit.
+	 *       | isValidStamina(stamina)
+	 * @post   The stamina of this new unit is equal to the given
+	 *         stamina.
+	 *       | new.getStamina() == stamina
+	 */
+	public Unit(int stamina) {
+		this.setStamina(stamina);
+	}
+	/**
+	 * Initialize this new unit with given hitpoints.
+	 *
+	 * @param  hitpoints
+	 *         The hitpoints for this new unit.
+	 * @pre    The given hitpoints must be a valid hitpoints for any unit.
+	 *       | isValidHitpoints(hitpoints)
+	 * @post   The hitpoints of this new unit is equal to the given
+	 *         hitpoints.
+	 *       | new.getHitpoints() == hitpoints
+	 */
+	public Unit(int hitpoints) {
+		this.setHitpoints(hitpoints);
+	}
+	//endregion
     /**
      * Return the name of this Unit.
      */
@@ -98,28 +275,6 @@ public class Unit {
         if (! isValidName(name))
             throw new IllegalArgumentException();
         this.name = name;
-    }
-    /**
-     * Variable registering the name of this Unit.
-     */
-    private String name;
-
-    /** TO BE ADDED TO CLASS HEADING
-     * @invar The position of each Unit must be a valid position for any
-     * Unit.
-     * | isValidPosition(getPosition())
-     */
-    /**
-     * Initialize this new Unit with given position.
-     *
-     * @param position
-     * The position for this new Unit.
-     * @effect The position of this new Unit is set to
-     * the given position.
-     * | this.setPosition(position)
-     */
-    public Unit(double[] position) throws IllegalArgumentException {
-        this.setPosition(position);
     }
     /**
      * Return the position of this Unit.
@@ -167,35 +322,7 @@ public class Unit {
             throw new IllegalArgumentException();
         this.position = position;
     }
-    /**
-     * Variable registering the position of this Unit.
-     */
-    private double[] position;
-    
-    /**
-	 * @invar  The strength of each unit must be a valid strength for any
-	 *         unit.
-	 *       | isValidStrength(getStrength())
-	 */
 
-	/**
-	 * Initialize this new unit with given strength.
-	 * 
-	 * @param  strength
-	 *         The strength for this new unit.
-	 * @post   If the given strength is a valid strength for any unit,
-	 *         the strength of this new unit is equal to the given
-	 *         strength. Otherwise, the strength of this new unit is equal
-	 *         to INITIAL_MIN_STRENGTH.
-	 *       | if (isValidStrength(strength))
-	 *       |   then new.getStrength() == strength
-	 *       |   else new.getStrength() == DEFAULT_STRENGTH
-	 */
-	public Unit(int strength) {
-		if (! isValidStrength(strength))
-			strength = INITIAL_MIN_STRENGTH;
-		setStrength(strength);
-	}
 	
 	/**
 	 * Return the strength of this unit.
@@ -234,36 +361,7 @@ public class Unit {
 		if (isValidStrength(strength))
 			this.strength = strength;
 	}
-	
-	/**
-	 * Variable registering the strength of this unit.
-	 */
-	private int strength;
-	
-	/**
-	 * @invar  The agility of each unit must be a valid agility for any
-	 *         unit.
-	 *       | isValidAgility(getAgility())
-	 */
 
-	/**
-	 * Initialize this new unit with given agility.
-	 * 
-	 * @param  agility
-	 *         The agility for this new unit.
-	 * @post   If the given agility is a valid agility for any unit,
-	 *         the agility of this new unit is equal to the given
-	 *         agility. Otherwise, the agility of this new unit is equal
-	 *         to INITIAL_MIN_AGILITY.
-	 *       | if (isValidAgility(agility))
-	 *       |   then new.getAgility() == agility
-	 *       |   else new.getAgility() == INITIAL_MIN_AGILITY
-	 */
-	//public Unit(int agility) {
-	//	if (! isValidAgility(agility))
-	//		agility = INITIAL_MIN_AGILITY;
-	//	setAgility(agility);
-	//}
 	
 	/**
 	 * Return the agility of this unit.
@@ -302,36 +400,8 @@ public class Unit {
 		if (isValidAgility(agility))
 			this.agility = agility;
 	}
-	
-	/**
-	 * Variable registering the agility of this unit.
-	 */
-	private int agility;
-	
-	/**
-	 * @invar  The toughness of each unit must be a valid toughness for any
-	 *         unit.
-	 *       | isValidToughness(getToughness())
-	 */
 
-	/**
-	 * Initialize this new unit with given toughness.
-	 * 
-	 * @param  toughness
-	 *         The toughness for this new unit.
-	 * @post   If the given toughness is a valid toughness for any unit,
-	 *         the toughness of this new unit is equal to the given
-	 *         toughness. Otherwise, the toughness of this new unit is equal
-	 *         to INITIAL_MIN_TOUGHNESS.
-	 *       | if (isValidToughness(toughness))
-	 *       |   then new.getToughness() == toughness
-	 *       |   else new.getToughness() == INITIAL_MIN_TOUGHNESS
-	 */
-	//public Unit(int toughness) {
-	//	if (! isValidToughness(toughness))
-	//		toughness = INITIAL_MIN_TOUGHNESS;
-	//	setToughness(toughness);
-	//}
+
 	
 	/**
 	 * Return the toughness of this unit.
@@ -370,36 +440,7 @@ public class Unit {
 		if (isValidToughness(toughness))
 			this.toughness = toughness;
 	}
-	
-	/**
-	 * Variable registering the toughness of this unit.
-	 */
-	private int toughness;
-	
-	/**
-	 * @invar  The weight of each unit must be a valid weight for any
-	 *         unit.
-	 *       | isValidWeight(getWeight())
-	 */
-	
-	/**
-	 * Initialize this new unit with given weight.
-	 * 
-	 * @param  weight
-	 *         The weight for this new unit.
-	 * @post   If the given weight is a valid weight for any unit,
-	 *         the weight of this new unit is equal to the given
-	 *         weight. Otherwise, the weight of this new unit is equal
-	 *         to INITIAL_MINWEIGHT.
-	 *       | if (isValidWeight(weight))
-	 *       |   then new.getWeight() == weight
-	 *       |   else new.getWeight() == INITIAL_MINWEIGHT
-	 */
-	//public Unit(int weight) {
-	//	if (! isValidWeight(weight))
-	//		weight = INITIAL_MINWEIGHT;
-	//	setWeight(weight);
-	//}
+
 	
 	/**
 	 * Return the weight of this unit.
@@ -443,33 +484,8 @@ public class Unit {
 		if (isValidWeight(weight, this.getStrength(), this.getAgility()))
 			this.weight = weight;
 	}
-	
-	/**
-	 * Variable registering the weight of this unit.
-	 */
-	private int weight;
 
 
-	/**
-	 * @invar  The stamina of each unit must be a valid stamina for any
-	 *         unit.
-	 *       | isValidStamina(getStamina())
-	 */
-
-	/**
-	 * Initialize this new unit with given stamina.
-	 *
-	 * @param  stamina
-	 *         The stamina for this new unit.
-	 * @pre    The given stamina must be a valid stamina for any unit.
-	 *       | isValidStamina(stamina)
-	 * @post   The stamina of this new unit is equal to the given
-	 *         stamina.
-	 *       | new.getStamina() == stamina
-	 */
-	public Unit(int stamina) {
-		this.setStamina(stamina);
-	}
 
 	/**
 	 * Return the stamina of this unit.
@@ -532,31 +548,6 @@ public class Unit {
 		this.stamina = stamina;
 	}
 
-	/**
-	 * Variable registering the stamina of this unit.
-	 */
-	private int stamina;
-
-	/**
-	 * @invar  The hitpoints of each unit must be a valid hitpoints for any
-	 *         unit.
-	 *       | isValidHitpoints(getHitpoints())
-	 */
-
-	/**
-	 * Initialize this new unit with given hitpoints.
-	 *
-	 * @param  hitpoints
-	 *         The hitpoints for this new unit.
-	 * @pre    The given hitpoints must be a valid hitpoints for any unit.
-	 *       | isValidHitpoints(hitpoints)
-	 * @post   The hitpoints of this new unit is equal to the given
-	 *         hitpoints.
-	 *       | new.getHitpoints() == hitpoints
-	 */
-	public Unit(int hitpoints) {
-		this.setHitpoints(hitpoints);
-	}
 
 	/**
 	 * Return the hitpoints of this unit.
@@ -614,33 +605,7 @@ public class Unit {
 		this.hitpoints = hitpoints;
 	}
 
-	/**
-	 * Variable registering the hitpoints of this unit.
-	 */
-	private int hitpoints;
 
-	/**
-	 * @invar The orientation of each Unit must be a valid orientation for any
-	 * Unit.
-	 * | isValidOrientation(getOrientation())
-	 */
-	/**
-	 * Initialize this new Unit with given orientation.
-	 *
-	 * @param orientation The orientation for this new Unit.
-	 * @post If the given orientation is a valid orientation for any Unit,
-	 * the orientation of this new Unit is equal to the given
-	 * orientation. Otherwise, the orientation of this new Unit is equal
-	 * to INITIAL_ORIENTATION.
-	 * | if (isValidOrientation(orientation))
-	 * | then new.getOrientation() == orientation
-	 * | else new.getOrientation() == INITIAL_ORIENTATION
-	 */
-	public Unit(float orientation) {
-		if (! isValidOrientation(orientation))
-			orientation = INITIAL_ORIENTATION;
-			setOrientation(orientation);
-	}
 	/**
 	 * Return the orientation of this Unit.
 	 */

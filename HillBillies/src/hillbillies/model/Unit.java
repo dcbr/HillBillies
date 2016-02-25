@@ -33,6 +33,8 @@ public class Unit {
     public static final int MAX_TOUGHNESS = 200;
     public static final int MIN_WEIGHT = 1;
     public static final int MAX_WEIGHT = 200;
+    public static final int MIN_STAMINA = 0;
+    public static final int MIN_HITPOINTS = 0;
     
     public static final int INITIAL_MIN_STRENGTH = 25;
     public static final int INITIAL_MAX_STRENGTH = 100;
@@ -42,7 +44,7 @@ public class Unit {
     public static final int INITIAL_MAX_TOUGHNESS = 100;
     public static final int INITIAL_MIN_WEIGHT = 25;
     public static final int INITIAL_MAX_WEIGHT = 100;
-
+   
     /**
      * Initialize this new Unit with given name.
      *
@@ -444,5 +446,174 @@ public class Unit {
 	 */
 	private int weight;
 
+	
+	/**
+	 * @invar  The stamina of each unit must be a valid stamina for any
+	 *         unit.
+	 *       | isValidStamina(getStamina())
+	 */
 
+	/**
+	 * Initialize this new unit with given stamina.
+	 * 
+	 * @param  stamina
+	 *         The stamina for this new unit.
+	 * @pre    The given stamina must be a valid stamina for any unit.
+	 *       | isValidStamina(stamina)
+	 * @post   The stamina of this new unit is equal to the given
+	 *         stamina.
+	 *       | new.getStamina() == stamina
+	 */
+	public Unit(int stamina) {
+		this.setStamina(stamina);
+	}
+	
+	/**
+	 * Return the stamina of this unit.
+	 */
+	@Basic @Raw
+	public int getStamina() {
+		return this.stamina;
+	}
+	
+	/**
+	 * Check whether the given stamina is a valid stamina for
+	 * any unit.
+	 *  
+	 * @param  	stamina
+	 *         	The stamina to check.
+	 * @param	weight
+	 * 			The weight to check against.
+	 * @param	toughness
+	 * 			The toughness to check against.
+	 * @return 
+	 *       	| result == (MIN_STAMINA <= stamina <= getMaxStamina(weight, toughness) )
+	*/
+	public boolean isValidStamina(int stamina, int weight, int toughness) {
+		return (stamina <= getMaxStamina(weight, toughness) && stamina >= MIN_STAMINA);
+	}
+	
+	/**
+	 * Return the highest possible value for stamina of this unit.
+	 * @param	weight
+	 * 			The weight to check against.
+	 * @param	toughness
+	 * 			The toughness to check against
+	 * @return 	The highest possible value for stamina of all
+	 *         	units is not below the lowest possible value
+	 *         	for stamina of all units.
+	 *       	| result >= MIN_STAMINA
+	 */
+	@Basic
+	public static int getMaxStamina(int weight, int toughness) {
+		return ((int)Math.ceil(200*weight/100.0 * toughness/100.0));
+	}
+	
+	/**
+	 * Set the stamina of this unit to the given stamina.
+	 * 
+	 * @param  	stamina
+	 *         	The new stamina for this unit.
+	 * @pre    	The given stamina must be a valid stamina for any
+	 *         	unit.
+	 *       	| isValidStamina(stamina)
+	 * @pre		The units weight and toughness should already have been set.
+	 *       	| isValidWeight(this.getWeight()) && isValidToughness(this.getToughness())
+	 * @post   	The stamina of this unit is equal to the given
+	 *         	stamina.
+	 *       	| new.getStamina() == stamina
+	 */
+	@Raw
+	public void setStamina(int stamina) {
+		assert isValidStamina(stamina, this.getWeight(), this.getToughness());
+		this.stamina = stamina;
+	}
+	
+	/**
+	 * Variable registering the stamina of this unit.
+	 */
+	private int stamina;
+
+	/**
+	 * @invar  The hitpoints of each unit must be a valid hitpoints for any
+	 *         unit.
+	 *       | isValidHitpoints(getHitpoints())
+	 */
+
+	/**
+	 * Initialize this new unit with given hitpoints.
+	 * 
+	 * @param  hitpoints
+	 *         The hitpoints for this new unit.
+	 * @pre    The given hitpoints must be a valid hitpoints for any unit.
+	 *       | isValidHitpoints(hitpoints)
+	 * @post   The hitpoints of this new unit is equal to the given
+	 *         hitpoints.
+	 *       | new.getHitpoints() == hitpoints
+	 */
+	public Unit(int hitpoints) {
+		this.setHitpoints(hitpoints);
+	}
+	
+	/**
+	 * Return the hitpoints of this unit.
+	 */
+	@Basic @Raw
+	public int getHitpoints() {
+		return this.hitpoints;
+	}
+	
+	/**
+	 * Check whether the given hitpoints is a valid hitpoints for
+	 * any unit.
+	 *  
+	 * @param  	hitpoints
+	 *         	The hitpoints to check.
+	 * @return 
+	 *       	| result == (MIN_HITPOINTS <= hitpoints <= getMaxHitpoints(weight, toughness))
+	*/
+	public static boolean isValidHitpoints(int hitpoints, int weight, int toughness) {
+		return (MIN_HITPOINTS <= hitpoints && hitpoints <= getMaxHitpoints(weight, toughness));
+	}
+	
+	/**
+	 * Return the highest possible value for hitpoints of this unit.
+	 * @param	weight
+	 * 			The weight to check against.
+	 * @param	toughness
+	 * 			The toughness to check against
+	 * @return The highest possible value for hitpoints of all
+	 *         units is not below the lowest possible value
+	 *         for hitpoints of all units.
+	 *       | result >= MIN_HITPOINTS
+	 */
+	@Basic
+	public static int getMaxHitpoints(int weight, int toughness) {
+		return ((int)Math.ceil(200*weight/100.0 * toughness/100.0));
+	}
+	/**
+	 * Set the hitpoints of this unit to the given hitpoints.
+	 * 
+	 * @param	hitpoints
+	 *       	The new hitpoints for this unit.
+	 * @pre    	The given hitpoints must be a valid hitpoints for any
+	 *         	unit.
+	 *       	| isValidHitpoints(hitpoints)
+	 * @pre  	The units weight and toughness should already have been set.
+		      	| isValidWeight(this.getWeight()) && isValidToughness(this.getToughness())
+	 * @post   	The hitpoints of this unit is equal to the given
+	 *         	hitpoints.
+	 *       	| new.getHitpoints() == hitpoints
+	 */
+	@Raw
+	public void setHitpoints(int hitpoints) {
+		assert isValidHitpoints(hitpoints, this.getWeight(), this.getToughness());
+		this.hitpoints = hitpoints;
+	}
+	
+	/**
+	 * Variable registering the hitpoints of this unit.
+	 */
+	private int hitpoints;
+	
 }

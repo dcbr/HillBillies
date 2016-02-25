@@ -4,6 +4,7 @@ import static hillbillies.tests.util.PositionAsserts.assertDoublePositionEquals;
 import static hillbillies.tests.util.PositionAsserts.assertIntegerPositionEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -85,6 +86,17 @@ public class Part1TestPartial {
 		for (int i = 0; i < n; i++)
 			facade.advanceTime(unit, step);
 		facade.advanceTime(unit, time - n * step);
+	}
+
+	@Test
+	public void testIsValidName() {
+		assertTrue(Unit.isValidName("Blub"));
+		assertFalse(Unit.isValidName("blub"));
+		assertFalse(Unit.isValidName("B"));
+		assertTrue(Unit.isValidName("A '\""));
+		assertFalse(Unit.isValidName("B.' 5"));
+		assertFalse(Unit.isValidName(" blub"));
+		assertFalse(Unit.isValidName("'ABC"));
 	}
 
 }

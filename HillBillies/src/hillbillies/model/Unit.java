@@ -32,7 +32,7 @@ public class Unit {
     public static final int MIN_TOUGHNESS = 1;
     public static final int MAX_TOUGHNESS = 200;
     public static final int MIN_WEIGHT = 1;
-    public static final int MAX_WEIGTH = 200;
+    public static final int MAX_WEIGHT = 200;
     
     public static final int INITIAL_MIN_STRENGTH = 25;
     public static final int INITIAL_MAX_STRENGTH = 100;
@@ -408,14 +408,18 @@ public class Unit {
 	 * Check whether the given weight is a valid weight for
 	 * any unit.
 	 *  
-	 * @param  weight
-	 *         The weight to check.
-	 * @return is true if strength is between MIN_WEIGHT and MAX_WEIGHT 
+	 * @param  	weight
+	 *       	The weight to check.
+	 * @param	strength
+	 * 			The strength to check against.
+	 * @param	agility
+	 * 			The agility to check against.
+	 * @return 	is true if strength is between MIN_WEIGHT and MAX_WEIGHT 
 	 * 			and weight is at least the average between strength and agility
-	 *       | result == (MIN_WEIGHT <= weight <= MAX_WEIGHT && weight >= (strength + agility)/2)
+	 *       	| result == (MIN_WEIGHT <= weight <= MAX_WEIGHT && weight >= (strength + agility)/2)
 	*/
-	public static boolean isValidWeight(int weight, ) {
-		return false;
+	public static boolean isValidWeight(int weight, int strength, int agility) {
+		return (MIN_WEIGHT <= weight && weight <= MAX_WEIGHT && weight >= (strength + agility)/2);
 	}
 	
 	/**
@@ -431,7 +435,7 @@ public class Unit {
 	 */
 	@Raw
 	public void setWeight(int weight) {
-		if (isValidWeight(weight))
+		if (isValidWeight(weight, this.getStrength(), this.getAgility()))
 			this.weight = weight;
 	}
 	

@@ -67,10 +67,28 @@ public class UnitTest {
 
     @Test
     public void testIsValidWeight(){
-        assertFalse(Unit.isValidWeight(1,1,-1));
-        assertFalse(Unit.isValidWeight(1,1,0));
-        assertFalse(Unit.isValidWeight(1,1,201));
-        assertTrue(Unit.isValidWeight(1,1,150));
-        assertFalse(Unit.isValidWeight(100,100,50));
+        assertFalse(Unit.isValidWeight(-1,1,1));
+        assertFalse(Unit.isValidWeight(0,1,1));
+        assertFalse(Unit.isValidWeight(201,1,1));
+        assertTrue(Unit.isValidWeight(150,1,1));
+        assertFalse(Unit.isValidWeight(50,100,100));
+    }
+
+    @Test
+    public void testIsValidStamina(){
+        assertFalse(Unit.isValidStamina(-1,1,1));
+        assertFalse(Unit.isValidStamina(0,1,1));
+        assertFalse(Unit.isValidStamina(801,200,200));
+        assertTrue(Unit.isValidStamina(560,200,200));
+        assertFalse(Unit.isValidStamina(100,25,25));
+    }
+
+    @Test
+    public void testIsValidHitpoints(){
+        assertFalse(Unit.isValidHitpoints(-1,1,1));
+        assertFalse(Unit.isValidHitpoints(0,1,1));
+        assertFalse(Unit.isValidHitpoints(801,200,200));
+        assertTrue(Unit.isValidHitpoints(560,200,200));
+        assertFalse(Unit.isValidHitpoints(100,25,25));
     }
 }

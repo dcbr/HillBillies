@@ -35,7 +35,9 @@ public class Unit {
     public static final int MAX_WEIGHT = 200;
     public static final int MIN_STAMINA = 0;
     public static final int MIN_HITPOINTS = 0;
-    
+	public static final float MIN_ORIENTATION = 0;
+	public static final float MAX_ORIENTATION = 2*(float)Math.PI;
+
     public static final int INITIAL_MIN_STRENGTH = 25;
     public static final int INITIAL_MAX_STRENGTH = 100;
     public static final int INITIAL_MIN_AGILITY = 25;
@@ -44,7 +46,8 @@ public class Unit {
     public static final int INITIAL_MAX_TOUGHNESS = 100;
     public static final int INITIAL_MIN_WEIGHT = 25;
     public static final int INITIAL_MAX_WEIGHT = 100;
-   
+	public static final float INITIAL_ORIENTATION = (float)Math.PI/2;
+
     /**
      * Initialize this new Unit with given name.
      *
@@ -446,7 +449,7 @@ public class Unit {
 	 */
 	private int weight;
 
-	
+
 	/**
 	 * @invar  The stamina of each unit must be a valid stamina for any
 	 *         unit.
@@ -455,7 +458,7 @@ public class Unit {
 
 	/**
 	 * Initialize this new unit with given stamina.
-	 * 
+	 *
 	 * @param  stamina
 	 *         The stamina for this new unit.
 	 * @pre    The given stamina must be a valid stamina for any unit.
@@ -467,7 +470,7 @@ public class Unit {
 	public Unit(int stamina) {
 		this.setStamina(stamina);
 	}
-	
+
 	/**
 	 * Return the stamina of this unit.
 	 */
@@ -475,24 +478,24 @@ public class Unit {
 	public int getStamina() {
 		return this.stamina;
 	}
-	
+
 	/**
 	 * Check whether the given stamina is a valid stamina for
 	 * any unit.
-	 *  
+	 *
 	 * @param  	stamina
 	 *         	The stamina to check.
 	 * @param	weight
 	 * 			The weight to check against.
 	 * @param	toughness
 	 * 			The toughness to check against.
-	 * @return 
+	 * @return
 	 *       	| result == (MIN_STAMINA <= stamina <= getMaxStamina(weight, toughness) )
 	*/
-	public boolean isValidStamina(int stamina, int weight, int toughness) {
+	public static boolean isValidStamina(int stamina, int weight, int toughness) {
 		return (stamina <= getMaxStamina(weight, toughness) && stamina >= MIN_STAMINA);
 	}
-	
+
 	/**
 	 * Return the highest possible value for stamina of this unit.
 	 * @param	weight
@@ -508,10 +511,10 @@ public class Unit {
 	public static int getMaxStamina(int weight, int toughness) {
 		return ((int)Math.ceil(200*weight/100.0 * toughness/100.0));
 	}
-	
+
 	/**
 	 * Set the stamina of this unit to the given stamina.
-	 * 
+	 *
 	 * @param  	stamina
 	 *         	The new stamina for this unit.
 	 * @pre    	The given stamina must be a valid stamina for any
@@ -528,7 +531,7 @@ public class Unit {
 		assert isValidStamina(stamina, this.getWeight(), this.getToughness());
 		this.stamina = stamina;
 	}
-	
+
 	/**
 	 * Variable registering the stamina of this unit.
 	 */
@@ -542,7 +545,7 @@ public class Unit {
 
 	/**
 	 * Initialize this new unit with given hitpoints.
-	 * 
+	 *
 	 * @param  hitpoints
 	 *         The hitpoints for this new unit.
 	 * @pre    The given hitpoints must be a valid hitpoints for any unit.
@@ -554,7 +557,7 @@ public class Unit {
 	public Unit(int hitpoints) {
 		this.setHitpoints(hitpoints);
 	}
-	
+
 	/**
 	 * Return the hitpoints of this unit.
 	 */
@@ -562,20 +565,20 @@ public class Unit {
 	public int getHitpoints() {
 		return this.hitpoints;
 	}
-	
+
 	/**
 	 * Check whether the given hitpoints is a valid hitpoints for
 	 * any unit.
-	 *  
+	 *
 	 * @param  	hitpoints
 	 *         	The hitpoints to check.
-	 * @return 
+	 * @return
 	 *       	| result == (MIN_HITPOINTS <= hitpoints <= getMaxHitpoints(weight, toughness))
 	*/
 	public static boolean isValidHitpoints(int hitpoints, int weight, int toughness) {
 		return (MIN_HITPOINTS <= hitpoints && hitpoints <= getMaxHitpoints(weight, toughness));
 	}
-	
+
 	/**
 	 * Return the highest possible value for hitpoints of this unit.
 	 * @param	weight
@@ -593,7 +596,7 @@ public class Unit {
 	}
 	/**
 	 * Set the hitpoints of this unit to the given hitpoints.
-	 * 
+	 *
 	 * @param	hitpoints
 	 *       	The new hitpoints for this unit.
 	 * @pre    	The given hitpoints must be a valid hitpoints for any
@@ -610,10 +613,72 @@ public class Unit {
 		assert isValidHitpoints(hitpoints, this.getWeight(), this.getToughness());
 		this.hitpoints = hitpoints;
 	}
-	
+
 	/**
 	 * Variable registering the hitpoints of this unit.
 	 */
 	private int hitpoints;
-	
+
+	/**
+	 * @invar The orientation of each Unit must be a valid orientation for any
+	 * Unit.
+	 * | isValidOrientation(getOrientation())
+	 */
+	/**
+	 * Initialize this new Unit with given orientation.
+	 *
+	 * @param orientation The orientation for this new Unit.
+	 * @post If the given orientation is a valid orientation for any Unit,
+	 * the orientation of this new Unit is equal to the given
+	 * orientation. Otherwise, the orientation of this new Unit is equal
+	 * to INITIAL_ORIENTATION.
+	 * | if (isValidOrientation(orientation))
+	 * | then new.getOrientation() == orientation
+	 * | else new.getOrientation() == INITIAL_ORIENTATION
+	 */
+	public Unit(float orientation) {
+		if (! isValidOrientation(orientation))
+			orientation = INITIAL_ORIENTATION;
+			setOrientation(orientation);
+	}
+	/**
+	 * Return the orientation of this Unit.
+	 */
+	@Basic
+	@Raw
+	public float getOrientation() {
+		return this.orientation;
+	}
+	/**
+	 * Check whether the given orientation is a valid orientation for
+	 * any Unit.
+	 *
+	 * @param orientation
+	 * The orientation to check.
+	 * @return
+	 * | result == MIN_ORIENTATION <= orientation <= MAX_ORIENTATION
+	 */
+	public static boolean isValidOrientation(float orientation) {
+		return (orientation >= MIN_ORIENTATION && orientation <= MAX_ORIENTATION);
+	}
+	/**
+	 * Set the orientation of this Unit to the given orientation.
+	 * * @param orientation
+	 * The new orientation for this Unit.
+	 * @post If the given orientation is a valid orientation for any Unit,
+	 * the orientation of this new Unit is equal to the given
+	 * orientation. Otherwise the orientation is set to its default
+	 * | if (isValidOrientation(orientation))
+	 * | then new.getOrientation() == orientation}
+	 */
+	@Raw
+	public void setOrientation(float orientation) {
+		this.orientation = orientation%MAX_ORIENTATION;// Deal with too large orientations
+		if(this.orientation<0) this.orientation += MAX_ORIENTATION;// Deal with negative orientations
+	}
+	/**
+	 * Variable registering the orientation of this Unit.
+	 */
+	private float orientation;
+
 }

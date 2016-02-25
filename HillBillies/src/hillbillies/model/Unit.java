@@ -41,7 +41,7 @@ public class Unit {
     public static final int INITIAL_MIN_TOUGHNESS = 25;
     public static final int INITIAL_MAX_TOUGHNESS = 100;
     public static final int INITIAL_MIN_WEIGHT = 25;
-    public static final int INITIAL_MAX_WEIGTH = 100;
+    public static final int INITIAL_MAX_WEIGHT = 100;
 
     /**
      * Initialize this new Unit with given name.
@@ -170,7 +170,7 @@ public class Unit {
     /**
 	 * @invar  The strength of each unit must be a valid strength for any
 	 *         unit.
-	 *       | isValidSrength(getSrength())
+	 *       | isValidStrength(getStrength())
 	 */
 
 	/**
@@ -182,21 +182,21 @@ public class Unit {
 	 *         the strength of this new unit is equal to the given
 	 *         strength. Otherwise, the strength of this new unit is equal
 	 *         to INITIAL_MIN_STRENGTH.
-	 *       | if (isValidSrength(strength))
-	 *       |   then new.getSrength() == strength
-	 *       |   else new.getSrength() == DEFAULT_STRENGTH
+	 *       | if (isValidStrength(strength))
+	 *       |   then new.getStrength() == strength
+	 *       |   else new.getStrength() == DEFAULT_STRENGTH
 	 */
 	public Unit(int strength) {
-		if (! isValidSrength(strength))
+		if (! isValidStrength(strength))
 			strength = INITIAL_MIN_STRENGTH;
-		setSrength(strength);
+		setStrength(strength);
 	}
 	
 	/**
 	 * Return the strength of this unit.
 	 */
 	@Basic @Raw
-	public int getSrength() {
+	public int getStrength() {
 		return this.strength;
 	}
 	
@@ -209,7 +209,7 @@ public class Unit {
 	 * @return is true if strength is between MIN_STRENGTH and MAX_STRENGTH
 	 *       | result == (MIN_STRENGTH <=strength<= MAX_STRENGTH)
 	*/
-	public static boolean isValidSrength(int strength) {
+	public static boolean isValidStrength(int strength) {
 		return (MIN_STRENGTH <= strength  && strength <= MAX_STRENGTH);
 	}
 	
@@ -221,12 +221,12 @@ public class Unit {
 	 * @post   If the given strength is a valid strength for any unit,
 	 *         the strength of this new unit is equal to the given
 	 *         strength.
-	 *       | if (isValidSrength(strength))
-	 *       |   then new.getSrength() == strength
+	 *       | if (isValidStrength(strength))
+	 *       |   then new.getStrength() == strength
 	 */
 	@Raw
-	public void setSrength(int strength) {
-		if (isValidSrength(strength))
+	public void setStrength(int strength) {
+		if (isValidStrength(strength))
 			this.strength = strength;
 	}
 	

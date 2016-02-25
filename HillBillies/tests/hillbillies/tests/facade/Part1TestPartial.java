@@ -88,15 +88,4 @@ public class Part1TestPartial {
 		facade.advanceTime(unit, time - n * step);
 	}
 
-	@Test
-	public void testIsValidName() {
-		assertTrue(Unit.isValidName("Blub"));
-		assertFalse(Unit.isValidName("blub"));
-		assertFalse(Unit.isValidName("B"));
-		assertTrue(Unit.isValidName("A '\""));
-		assertFalse(Unit.isValidName("B.' 5"));
-		assertFalse(Unit.isValidName(" blub"));
-		assertFalse(Unit.isValidName("'ABC"));
-	}
-
 }

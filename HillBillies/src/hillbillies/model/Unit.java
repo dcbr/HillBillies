@@ -71,6 +71,8 @@ public class Unit {
     public static final int INITIAL_MAX_TOUGHNESS = 100;
     public static final int INITIAL_MIN_WEIGHT = 25;
     public static final int INITIAL_MAX_WEIGHT = 100;
+	public static final int INITIAL_MIN_STAMINA = 1;
+	public static final int INITIAL_MIN_HITPOINTS = 1;
 	public static final float INITIAL_ORIENTATION = (float)Math.PI/2;
 	//endregion
 
@@ -113,34 +115,36 @@ public class Unit {
 	//region Constructors
 
 	/**
-	 * Initialize this new Unit with given name.
+	 * Initialize this new Unit with given name, position, strength, agility, toughness, weight, stamina and hitpoints.
 	 *
 	 * @param name
 	 * The name for this new Unit.
+	 * @param position
+	 * The position for this new Unit.
+	 * @param  strength
+	 *         The strength for this new unit.
+	 * @param  agility
+	 *         The agility for this new unit.
+	 * @param  toughness
+	 *         The toughness for this new unit.
+	 * @param  weight
+	 *         The weight for this new unit.
+	 * @param  stamina
+	 *         The stamina for this new unit.
+	 * @param  hitpoints
+	 *         The hitpoints for this new unit.
+	 * @pre    The given stamina must be a valid stamina for any unit.
+	 *       | isValidStamina(stamina)
+	 * @pre    The given hitpoints must be a valid hitpoints for any unit.
+	 *       | isValidHitpoints(hitpoints)
 	 * @effect The name of this new Unit is set to
 	 * the given name.
 	 * | this.setName(name)
-	 */
-	public Unit(String name) throws IllegalArgumentException {
-		this.setName(name);
-	}
-	/**
-	 * Initialize this new Unit with given position.
-	 *
-	 * @param position
-	 * The position for this new Unit.
 	 * @effect The position of this new Unit is set to
 	 * the given position.
 	 * | this.setPosition(position)
-	 */
-	public Unit(double[] position) throws IllegalArgumentException {
-		this.setPosition(position);
-	}
-	/**
-	 * Initialize this new unit with given strength.
-	 *
-	 * @param  strength
-	 *         The strength for this new unit.
+	 * @effect The orientation of this new Unit is set to the default orientation.
+	 * 			| this.setOrientation(INITIAL_ORIENTATION)
 	 * @post   If the given strength is a valid strength for any unit,
 	 *         the strength of this new unit is equal to the given
 	 *         strength. Otherwise, the strength of this new unit is equal
@@ -148,17 +152,6 @@ public class Unit {
 	 *       | if (isValidStrength(strength))
 	 *       |   then new.getStrength() == strength
 	 *       |   else new.getStrength() == DEFAULT_STRENGTH
-	 */
-	public Unit(int strength) {
-		if (! isValidStrength(strength))
-			strength = INITIAL_MIN_STRENGTH;
-		setStrength(strength);
-	}
-	/**
-	 * Initialize this new unit with given agility.
-	 *
-	 * @param  agility
-	 *         The agility for this new unit.
 	 * @post   If the given agility is a valid agility for any unit,
 	 *         the agility of this new unit is equal to the given
 	 *         agility. Otherwise, the agility of this new unit is equal
@@ -166,17 +159,6 @@ public class Unit {
 	 *       | if (isValidAgility(agility))
 	 *       |   then new.getAgility() == agility
 	 *       |   else new.getAgility() == INITIAL_MIN_AGILITY
-	 */
-	//public Unit(int agility) {
-	//	if (! isValidAgility(agility))
-	//		agility = INITIAL_MIN_AGILITY;
-	//	setAgility(agility);
-	//}
-	/**
-	 * Initialize this new unit with given toughness.
-	 *
-	 * @param  toughness
-	 *         The toughness for this new unit.
 	 * @post   If the given toughness is a valid toughness for any unit,
 	 *         the toughness of this new unit is equal to the given
 	 *         toughness. Otherwise, the toughness of this new unit is equal
@@ -184,57 +166,53 @@ public class Unit {
 	 *       | if (isValidToughness(toughness))
 	 *       |   then new.getToughness() == toughness
 	 *       |   else new.getToughness() == INITIAL_MIN_TOUGHNESS
-	 */
-	//public Unit(int toughness) {
-	//	if (! isValidToughness(toughness))
-	//		toughness = INITIAL_MIN_TOUGHNESS;
-	//	setToughness(toughness);
-	//}
-	/**
-	 * Initialize this new unit with given weight.
-	 *
-	 * @param  weight
-	 *         The weight for this new unit.
 	 * @post   If the given weight is a valid weight for any unit,
 	 *         the weight of this new unit is equal to the given
 	 *         weight. Otherwise, the weight of this new unit is equal
-	 *         to INITIAL_MINWEIGHT.
+	 *         to INITIAL_MIN_WEIGHT.
 	 *       | if (isValidWeight(weight))
 	 *       |   then new.getWeight() == weight
-	 *       |   else new.getWeight() == INITIAL_MINWEIGHT
-	 */
-	//public Unit(int weight) {
-	//	if (! isValidWeight(weight))
-	//		weight = INITIAL_MINWEIGHT;
-	//	setWeight(weight);
-	//}
-	/**
-	 * Initialize this new unit with given stamina.
-	 *
-	 * @param  stamina
-	 *         The stamina for this new unit.
-	 * @pre    The given stamina must be a valid stamina for any unit.
-	 *       | isValidStamina(stamina)
+	 *       |   else new.getWeight() == INITIAL_MIN_WEIGHT
 	 * @post   The stamina of this new unit is equal to the given
 	 *         stamina.
 	 *       | new.getStamina() == stamina
-	 */
-	public Unit(int stamina) {
-		this.setStamina(stamina);
-	}
-	/**
-	 * Initialize this new unit with given hitpoints.
-	 *
-	 * @param  hitpoints
-	 *         The hitpoints for this new unit.
-	 * @pre    The given hitpoints must be a valid hitpoints for any unit.
-	 *       | isValidHitpoints(hitpoints)
 	 * @post   The hitpoints of this new unit is equal to the given
 	 *         hitpoints.
 	 *       | new.getHitpoints() == hitpoints
 	 */
-	public Unit(int hitpoints) {
+	public Unit(String name, double[] position, int strength, int agility, int toughness, int weight, int stamina, int hitpoints) throws IllegalArgumentException {
+		// Defensive
+		this.setName(name);
+		this.setPosition(position);
+		// Total
+		if (! isValidStrength(strength))
+			strength = INITIAL_MIN_STRENGTH;
+		setStrength(strength);
+		if (! isValidAgility(agility))
+			agility = INITIAL_MIN_AGILITY;
+		setAgility(agility);
+		if (! isValidToughness(toughness))
+			toughness = INITIAL_MIN_TOUGHNESS;
+		setToughness(toughness);
+		if (! isValidWeight(weight, strength, agility))
+			weight = INITIAL_MIN_WEIGHT;
+		setWeight(weight);
+		// Nominal
+		this.setStamina(stamina);
 		this.setHitpoints(hitpoints);
+		// Total
+		this.setOrientation(INITIAL_ORIENTATION);
+	}
+
+	/**
+	 * Initialize this new Unit with given name and position. All other properties are set to their default initial values.
+	 * @param name The name of this new Unit
+	 * @param position The position of this new Unit
+	 * @effect This Unit is initialized with the given name and position and the default initial values for its other properties
+	 * 			| this(name, position, INITIAL_MIN_STRENGTH, INITIAL_MIN_AGILITY, INITIAL_MIN_TOUGHNESS, INITIAL_MIN_WEIGHT, INITIAL_MIN_STAMINA, INITIAL_MIN_HITPOINTS)
+	 */
+	public Unit(String name, double[] position) throws IllegalArgumentException {
+		this(name, position, INITIAL_MIN_STRENGTH, INITIAL_MIN_AGILITY, INITIAL_MIN_TOUGHNESS, INITIAL_MIN_WEIGHT, INITIAL_MIN_STAMINA, INITIAL_MIN_HITPOINTS);
 	}
 	//endregion
     /**
@@ -646,4 +624,8 @@ public class Unit {
 	 */
 	private float orientation;
 
+
+	public void advanceTime(double dt){
+		// Defensively without documentation
+	}
 }

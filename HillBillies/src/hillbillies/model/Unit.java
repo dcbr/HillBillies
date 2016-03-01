@@ -512,12 +512,24 @@ public class Unit {
 	 * Return the time this unit shall be working.
 	 * @param	strength
 	 * 			The strength to check against.
-	 * @return 	The time a unit need to work is positive for all units
+	 * @return 	The time a unit need to work is positive for all units.
 	 *       	| result >= 0
 	 */
 	@Basic
 	public static int getWorkingTime(int strength) {
 		return (500/strength);
+	}
+	
+	/**
+	 * Return the probability a unit can dodge an attack.
+	 * @param	attacker
+	 * 			The attacker to check against.
+	 * @return 	The probability to dodge an attack is positive for all units.
+	 *       	| result >= 0.0
+	 */
+	@Basic
+	public double getDodgingProbability(Unit attacker) {
+		return (0.20*(this.getAgility())/(attacker.getAgility()));
 	}
 	
 	/**
@@ -700,7 +712,8 @@ public class Unit {
 	 * Variable registering the work Progress of this unit.
 	 */
 	private float workProgress = 0;
-
+	
+// COMMENT!
 	public void work(){
 		setCurrentActivity(Activity.WORK);
 		setWorkProgress(0);
@@ -734,5 +747,12 @@ public class Unit {
 	 */
 	private Activity activity;
 	
-	
+	public void defend(Unit attacker){
+		//dodging
+		if (Math.random() < this.getDodgingProbability(attacker)){
+			
+		}
+			
+		
+	}
 }

@@ -202,6 +202,8 @@ public class Unit {
 		this.setHitpoints(hitpoints);
 		// Total
 		this.setOrientation(INITIAL_ORIENTATION);
+		
+		this.setCurrentActivity(Activity.REST);
 	}
 
 	/**
@@ -505,7 +507,19 @@ public class Unit {
 	public static int getMaxStamina(int weight, int toughness) {
 		return ((int)Math.ceil(200*weight/100.0 * toughness/100.0));
 	}
-
+	
+	/**
+	 * Return the time this unit shall be working.
+	 * @param	strength
+	 * 			The strength to check against.
+	 * @return 	The time a unit need to work is positive for all units
+	 *       	| result >= 0
+	 */
+	@Basic
+	public static int getWorkingTime(int strength) {
+		return (500/strength);
+	}
+	
 	/**
 	 * Set the stamina of this unit to the given stamina.
 	 *
@@ -628,4 +642,97 @@ public class Unit {
 	public void advanceTime(double dt){
 		// Defensively without documentation
 	}
+	
+	
+	/**
+	 * Return the work duration of this unit.
+	 */
+	@Raw
+	public float getWorkDuration() {
+		return this.workDuration;
+	}
+	
+	/**
+	 * Set the work duration of this unit to the given work duration.
+	 * 
+	 * @param  workDuration
+	 *         The new work duration for this unit.
+	 * @post   The work duration of this new unit is equal to
+	 *         the given work duration.
+	 *       | new.getWorkDuration() == workDuration
+	 */
+	@Raw
+	private void setWorkDuration(float workDuration) {
+			
+		this.workDuration = workDuration;
+	}
+	
+	/**
+	 * Variable registering the work duration of this unit.
+	 */
+	private float workDuration = 0;
+	
+	
+	/**
+	 * Return the work progress of this unit.
+	 */
+	@Raw
+	public float getWorkProgress() {
+		return this.workProgress;
+	}
+	
+	/**
+	 * Set the work progress of this unit to the given work progress.
+	 * 
+	 * @param  workProgress
+	 *         The new work progress for this unit.
+	 * @post   The work progress of this new unit is equal to
+	 *         the given work progress.
+	 *       | new.getWorkProgress() == workProgress
+	 */
+	@Raw
+	private void setWorkProgress(float workProgress) {
+			
+		this.workProgress = workProgress;
+	}
+	
+	/**
+	 * Variable registering the work Progress of this unit.
+	 */
+	private float workProgress = 0;
+
+	public void work(){
+		setCurrentActivity(Activity.WORK);
+		setWorkProgress(0);
+		setWorkDuration(getWorkingTime(this.getStrength()));
+	}
+	
+	/**
+	 * Return the current Activity of this unit.
+	 */
+	 @Raw
+	public Activity getCurrentActivity() {
+		return this.activity;
+	}
+		
+	/**
+	 * Set the current Activity of this unit to the given current Activity.
+	 * 
+	 * @param  activity
+	 *         The new current Activity for this unit.
+	 * @post   The current Activity of this new unit is equal to
+	 *         the given current Activity.
+	 *       | new.getCurrentActivity() == activity
+	 */
+	@Raw
+	private void setCurrentActivity(Activity activity) {
+		this.activity = activity;
+	}
+	
+	/**
+	 * Variable registering the current Activity of this unit.
+	 */
+	private Activity activity;
+	
+	
 }

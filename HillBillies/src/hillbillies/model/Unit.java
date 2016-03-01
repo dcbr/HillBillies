@@ -1,6 +1,7 @@
 package hillbillies.model;
 
 import be.kuleuven.cs.som.annotate.*;
+import hillbillies.utils.Vector;
 
 /**
  * Class representing a Hillbilly unit
@@ -47,8 +48,8 @@ public class Unit {
     public static final double MAX_X = CUBE_SIDE_LENGTH * 50;
     public static final double MAX_Y = CUBE_SIDE_LENGTH * 50;
     public static final double MAX_Z = CUBE_SIDE_LENGTH * 50;*/
-    public static final double[] MIN_POSITION = new double[]{ CUBE_SIDE_LENGTH * 0, CUBE_SIDE_LENGTH * 0, CUBE_SIDE_LENGTH * 0};
-    public static final double[] MAX_POSITION = new double[]{ CUBE_SIDE_LENGTH * 50, CUBE_SIDE_LENGTH * 50, CUBE_SIDE_LENGTH * 50};
+    public static final Vector MIN_POSITION = new Vector(CUBE_SIDE_LENGTH * 0, CUBE_SIDE_LENGTH * 0, CUBE_SIDE_LENGTH * 0);
+    public static final Vector MAX_POSITION = new Vector(CUBE_SIDE_LENGTH * 50, CUBE_SIDE_LENGTH * 50, CUBE_SIDE_LENGTH * 50);
     
     public static final int MIN_STRENGTH = 1;
     public static final int MAX_STRENGTH = 200;
@@ -85,7 +86,7 @@ public class Unit {
 	/**
 	 * Variable registering the position of this Unit.
 	 */
-	private double[] position;
+	private Vector position;
 	/**
 	 * Variable registering the strength of this unit.
 	 */
@@ -180,13 +181,13 @@ public class Unit {
 	 *         hitpoints.
 	 *       | new.getHitpoints() == hitpoints
 	 */
-	public Unit(String name, double[] position, int strength, int agility, int toughness, int weight, int stamina, int hitpoints) throws IllegalArgumentException {
+	public Unit(String name, Vector position, int strength, int agility, int toughness, int weight, int stamina, int hitpoints) throws IllegalArgumentException {
 		// Defensive
 		this.setName(name);
 		this.setPosition(position);
 		// Total
 		if (! isValidStrength(strength))
-			strength = INITIAL_MIN_STRENGTH;
+			strength = INITIAL_MIN_STRENGTH;// TODO: make separate method isValidInitialStrength!
 		setStrength(strength);
 		if (! isValidAgility(agility))
 			agility = INITIAL_MIN_AGILITY;
@@ -202,7 +203,7 @@ public class Unit {
 		this.setHitpoints(hitpoints);
 		// Total
 		this.setOrientation(INITIAL_ORIENTATION);
-		
+
 		this.setCurrentActivity(Activity.REST);
 	}
 
@@ -213,7 +214,7 @@ public class Unit {
 	 * @effect This Unit is initialized with the given name and position and the default initial values for its other properties
 	 * 			| this(name, position, INITIAL_MIN_STRENGTH, INITIAL_MIN_AGILITY, INITIAL_MIN_TOUGHNESS, INITIAL_MIN_WEIGHT, INITIAL_MIN_STAMINA, INITIAL_MIN_HITPOINTS)
 	 */
-	public Unit(String name, double[] position) throws IllegalArgumentException {
+	public Unit(String name, Vector position) throws IllegalArgumentException {
 		this(name, position, INITIAL_MIN_STRENGTH, INITIAL_MIN_AGILITY, INITIAL_MIN_TOUGHNESS, INITIAL_MIN_WEIGHT, INITIAL_MIN_STAMINA, INITIAL_MIN_HITPOINTS);
 	}
 	//endregion
@@ -261,8 +262,8 @@ public class Unit {
      */
     @Basic
     @Raw
-    public double[] getPosition() {
-        return this.position;
+    public Vector getPosition() {
+        return this.position.clone();// TODO: return new position object instead of returning the real position's reference!
     }
     /**
      * Check whether the given position is a valid position for
@@ -277,12 +278,8 @@ public class Unit {
      * | }
      * | result == isValid
      */
-    public static boolean isValidPosition(double[] position) {
-        boolean isValid = true;
-        for(int i = 0; i<position.length ; i++){
-            isValid = isValid && position[i] >= MIN_POSITION[i] && position[i] <= MAX_POSITION[i];
-        }
-        return isValid;
+    public static boolean isValidPosition(Vector position) {
+        return position.isInBetween(MIN_POSITION, MAX_POSITION);
     }
     /**
      * Set the position of this Unit to the given position.
@@ -297,7 +294,7 @@ public class Unit {
      * | ! isValidPosition(getPosition())
      */
     @Raw
-    public void setPosition(double[] position) throws IllegalArgumentException {
+    public void setPosition(Vector position) throws IllegalArgumentException {
         if (! isValidPosition(position))
             throw new IllegalArgumentException();
         this.position = position;
@@ -507,7 +504,7 @@ public class Unit {
 	public static int getMaxStamina(int weight, int toughness) {
 		return ((int)Math.ceil(200*weight/100.0 * toughness/100.0));
 	}
-	
+
 	/**
 	 * Return the time this unit shall be working.
 	 * @param	strength
@@ -519,7 +516,7 @@ public class Unit {
 	public static int getWorkingTime(int strength) {
 		return (500/strength);
 	}
-	
+
 	/**
 	 * Return the probability a unit can dodge an attack.
 	 * @param	attacker
@@ -531,7 +528,7 @@ public class Unit {
 	public double getDodgingProbability(Unit attacker) {
 		return (0.20*(this.getAgility())/(attacker.getAgility()));
 	}
-	
+
 	/**
 	 * Set the stamina of this unit to the given stamina.
 	 *
@@ -653,9 +650,102 @@ public class Unit {
 
 	public void advanceTime(double dt){
 		// Defensively without documentation
+		switch(getCurrentActivity()){
+			case MOVE:
+				Vector cpos = getPosition();
+				if(targetPosition!=null){
+					if(targetPosition.equals(cpos))
+						setCurrentActivity(Activity.REST);
+					else{
+						int dx = 0, dy = 0, dz = 0;
+						if (targetPosition.X() < cpos.X())
+							dx = 1;
+						else if(targetPosition.X() > cpos.X())
+							dx = -1;
+						if (targetPosition.Y() < cpos.Y())
+							dx = 1;
+						else if(targetPosition.Y() > cpos.Y())
+							dx = -1;
+						if (targetPosition.Z() < cpos.Z())
+							dx = 1;
+						else if(targetPosition.Z() > cpos.Z())
+							dx = -1;
+						moveToAdjacent(new Vector(dx, dy, dz));
+					}
+				}
+				if(nextPosition!=null && !nextPosition.equals(cpos)){
+					Vector difference = nextPosition.difference(cpos);
+					double d = difference.length();
+					double v = getWalkingSpeed(difference);// TODO: get proper speed (walking or sprinting)
+					Vector dPos = difference.multiply(v/d*dt);
+					Vector velocity = difference.multiply(v/d);
+					Vector newPos = cpos.add(dPos);
+					if(newPos.equals(nextPosition) || nextPosition.isInBetween(cpos,newPos))
+						newPos = nextPosition;// Set correct position if newPos would surpass next position
+					setPosition(newPos);
+					setOrientation((float)Math.atan2(velocity.Y(),velocity.X()));
+				}
+				break;
+			case WORK:
+
+				break;
+			case ATTACK:
+
+				break;
+			case REST:
+
+				break;
+		}
 	}
-	
-	
+
+	//region Movement
+
+	/**
+	 * Retrieve the Unit's base speed
+	 * @return
+     */
+	private double getBaseSpeed(){
+		return 1.5*(this.getStrength()+this.getAgility())/(200*this.getWeight()/100);
+	}
+
+	/**
+	 * Retrieve the Unit's walking speed
+	 * @param direction The direction the Unit is walking in, this is a vector with norm 1
+	 * @return
+     */
+	private double getWalkingSpeed(Vector direction){
+		if(direction.Z()>0) return 1.2*this.getBaseSpeed();
+		else if(direction.Z()<0) return 0.5*this.getBaseSpeed();
+		else return this.getBaseSpeed();
+	}
+
+	/**
+	 * Retrieve the Unit's sprinting speed
+	 * @param direction The direction the Unit is sprinting in, this is a vector with norm 1
+	 * @return
+     */
+	private double getSprintSpeed(Vector direction){
+		return 2*this.getWalkingSpeed(direction);
+	}
+
+	/**
+	 * Method to let the Unit move to an adjacent cube
+	 * @param direction The direction the Unit should move towards. Since this method can only be used to move to
+	 *                  neighbouring cubes, each element of the array must have a value of (-)1 or 0
+     */
+	public void moveToAdjacent(Vector direction){
+		setCurrentActivity(Activity.MOVE);
+		nextPosition = this.position.getCubeCoordinates().add(direction);// TODO: make setPosition to check nextPosition is between world boundaries
+	}
+
+	public void moveToTarget(Vector targetPosition){
+		setCurrentActivity(Activity.MOVE);
+		this.targetPosition = targetPosition;
+	}
+	private Vector nextPosition, targetPosition;
+	//endregion
+
+
 	/**
 	 * Return the work duration of this unit.
 	 */
@@ -663,10 +753,10 @@ public class Unit {
 	public float getWorkDuration() {
 		return this.workDuration;
 	}
-	
+
 	/**
 	 * Set the work duration of this unit to the given work duration.
-	 * 
+	 *
 	 * @param  workDuration
 	 *         The new work duration for this unit.
 	 * @post   The work duration of this new unit is equal to
@@ -675,16 +765,16 @@ public class Unit {
 	 */
 	@Raw
 	private void setWorkDuration(float workDuration) {
-			
+
 		this.workDuration = workDuration;
 	}
-	
+
 	/**
 	 * Variable registering the work duration of this unit.
 	 */
 	private float workDuration = 0;
-	
-	
+
+
 	/**
 	 * Return the work progress of this unit.
 	 */
@@ -692,10 +782,10 @@ public class Unit {
 	public float getWorkProgress() {
 		return this.workProgress;
 	}
-	
+
 	/**
 	 * Set the work progress of this unit to the given work progress.
-	 * 
+	 *
 	 * @param  workProgress
 	 *         The new work progress for this unit.
 	 * @post   The work progress of this new unit is equal to
@@ -704,22 +794,22 @@ public class Unit {
 	 */
 	@Raw
 	private void setWorkProgress(float workProgress) {
-			
+
 		this.workProgress = workProgress;
 	}
-	
+
 	/**
 	 * Variable registering the work Progress of this unit.
 	 */
 	private float workProgress = 0;
-	
+
 // COMMENT!
 	public void work(){
 		setCurrentActivity(Activity.WORK);
 		setWorkProgress(0);
 		setWorkDuration(getWorkingTime(this.getStrength()));
 	}
-	
+
 	/**
 	 * Return the current Activity of this unit.
 	 */
@@ -727,10 +817,10 @@ public class Unit {
 	public Activity getCurrentActivity() {
 		return this.activity;
 	}
-		
+
 	/**
 	 * Set the current Activity of this unit to the given current Activity.
-	 * 
+	 *
 	 * @param  activity
 	 *         The new current Activity for this unit.
 	 * @post   The current Activity of this new unit is equal to
@@ -741,7 +831,7 @@ public class Unit {
 	private void setCurrentActivity(Activity activity) {
 		this.activity = activity;
 	}
-	
+
 	/**
 	 * Variable registering the current Activity of this unit.
 	 */
@@ -750,9 +840,9 @@ public class Unit {
 	public void defend(Unit attacker){
 		//dodging
 		if (Math.random() < this.getDodgingProbability(attacker)){
-			
+
 		}
-			
-		
+
+
 	}
 }

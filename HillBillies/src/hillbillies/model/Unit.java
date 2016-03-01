@@ -735,7 +735,7 @@ public class Unit {
      */
 	public void moveToAdjacent(Vector direction){
 		setCurrentActivity(Activity.MOVE);
-		nextPosition = this.position.getCubeCoordinates().add(direction);// TODO: make setPosition to check nextPosition is between world boundaries
+		nextPosition = this.getPosition().getCubeCoordinates().add(direction);// TODO: make setPosition to check nextPosition is between world boundaries
 	}
 
 	public void moveToTarget(Vector targetPosition){

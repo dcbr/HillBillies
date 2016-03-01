@@ -1,6 +1,7 @@
 package hillbillies.tests.unit;
 
 import hillbillies.model.Unit;
+import hillbillies.utils.Vector;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -32,13 +33,13 @@ public class UnitTest {
 
     @Test
     public void testIsValidPosition(){
-        assertFalse(Unit.isValidPosition(new double[]{-1,0,0}));
-        assertFalse(Unit.isValidPosition(new double[]{0,-0.0001,0}));
-        assertFalse(Unit.isValidPosition(new double[]{0,0,-1}));
-        assertFalse(Unit.isValidPosition(new double[]{51,0,0}));
-        assertFalse(Unit.isValidPosition(new double[]{0,50.0001,0}));
-        assertFalse(Unit.isValidPosition(new double[]{0,0,51}));
-        assertTrue(Unit.isValidPosition(new double[]{1,1,1}));
+        assertFalse(Unit.isValidPosition(new Vector(-1,0,0)));
+        assertFalse(Unit.isValidPosition(new Vector(0,-0.0001,0)));
+        assertFalse(Unit.isValidPosition(new Vector(0,0,-1)));
+        assertFalse(Unit.isValidPosition(new Vector(51,0,0)));
+        assertFalse(Unit.isValidPosition(new Vector(0,50.0001,0)));
+        assertFalse(Unit.isValidPosition(new Vector(0,0,51)));
+        assertTrue(Unit.isValidPosition(new Vector(1,1,1)));
     }
 
     @Test

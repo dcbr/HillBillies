@@ -98,7 +98,11 @@ public class Vector {
         return Math.floor(this.vectorList[2]/Unit.CUBE_SIDE_LENGTH);
     }
 
+    /**
+     * Returns the coordinates of the center of the current cube
+     * @return
+     */
     public Vector getCubeCoordinates(){
-        return new Vector(this.cubeX(), this.cubeY(), this.cubeZ());
+        return new Vector(this.cubeX()+0.5, this.cubeY()+0.5, this.cubeZ()+0.5).multiply(Unit.CUBE_SIDE_LENGTH);
     }
 }

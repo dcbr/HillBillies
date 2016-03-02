@@ -596,6 +596,10 @@ public class Unit {
 	 *
 	 * @param  	hitpoints
 	 *         	The hitpoints to check.
+	 * @param	weight
+	 * 			The weight to check against.
+	 * @param 	toughness
+	 * 			The toughness to check against.
 	 * @return
 	 *       	| result == (MIN_HITPOINTS <= hitpoints <= getMaxHitpoints(weight, toughness))
 	*/
@@ -887,6 +891,14 @@ public class Unit {
 
 //TODO: COMMENT
 	public void defend(Unit attacker){
+		if (!attacker.isValidAttack(this))
+			return;
+		//Orientation
+		double dx = (this.getPosition().X()-attacker.getPosition().X());
+		double dy = (this.getPosition().Y()-attacker.getPosition().Y());
+		this.setOrientation((float)Math.atan2(-dy, -dx));
+		attacker.setOrientation((float)Math.atan2(dy, dx));
+		
 		//dodging
 		if ((randInt(0,99)/100.0) < this.getDodgingProbability(attacker)){
 			Boolean validDodge = false;
@@ -909,7 +921,27 @@ public class Unit {
 				
 			
 	}
-		
+	
+	/**
+	 * Check whether an attack is a valid for
+	 * any unit.
+	 *  
+	 * @param  defender
+	 *         The defender to check.
+	 * @return 	is true if the position of the attackers cube lies next to the defenders cube 
+	 * 			or is the same cube
+	 *       | result == ((Math.abs(defender.getPosition().cubeX()-this.getPosition().cubeX())<=1) &&
+				(Math.abs(defender.getPosition().cubeY()-this.getPosition().cubeY())<=1) &&
+				(Math.abs(defender.getPosition().cubeZ()-this.getPosition().cubeZ())<=1))
+	*/
+	public boolean isValidAttack(Unit defender) {
+//TODO mss eisen dat ze verschillende naam hebben?		
+		return ((Math.abs(defender.getPosition().cubeX()-this.getPosition().cubeX())<=1) &&
+				(Math.abs(defender.getPosition().cubeY()-this.getPosition().cubeY())<=1) &&
+				(Math.abs(defender.getPosition().cubeZ()-this.getPosition().cubeZ())<=1));
+	
+	}
+
 }
 
 	

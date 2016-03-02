@@ -19,7 +19,6 @@ public class UnitTest {
 
     }
 
-
     @Test
     public void testIsValidName() {
         assertTrue(Unit.isValidName("Blub"));
@@ -40,6 +39,7 @@ public class UnitTest {
         assertFalse(Unit.isValidPosition(new Vector(0,50.0001,0)));
         assertFalse(Unit.isValidPosition(new Vector(0,0,51)));
         assertTrue(Unit.isValidPosition(new Vector(1,1,1)));
+        assertTrue(Unit.isValidPosition(new Vector(0,0,0)));
     }
 
     @Test
@@ -78,7 +78,7 @@ public class UnitTest {
     @Test
     public void testIsValidStamina(){
         assertFalse(Unit.isValidStamina(-1,1,1));
-        assertFalse(Unit.isValidStamina(0,1,1));
+        assertTrue(Unit.isValidStamina(0,100,100));
         assertFalse(Unit.isValidStamina(801,200,200));
         assertTrue(Unit.isValidStamina(560,200,200));
         assertFalse(Unit.isValidStamina(100,25,25));
@@ -87,7 +87,7 @@ public class UnitTest {
     @Test
     public void testIsValidHitpoints(){
         assertFalse(Unit.isValidHitpoints(-1,1,1));
-        assertFalse(Unit.isValidHitpoints(0,1,1));
+        assertTrue(Unit.isValidHitpoints(0,1,1));
         assertFalse(Unit.isValidHitpoints(801,200,200));
         assertTrue(Unit.isValidHitpoints(560,200,200));
         assertFalse(Unit.isValidHitpoints(100,25,25));
@@ -98,7 +98,7 @@ public class UnitTest {
     	assertFalse(Unit.isValidOrientation((float) -0.001));
     	assertFalse(Unit.isValidOrientation((float)(5*Math.PI)));
     	assertTrue(Unit.isValidOrientation((float)(0)));
-    	assertFalse(Unit.isValidOrientation(Unit.MAX_ORIENTATION));
+    	assertTrue(Unit.isValidOrientation(Unit.MAX_ORIENTATION));
     	 
     }
 }

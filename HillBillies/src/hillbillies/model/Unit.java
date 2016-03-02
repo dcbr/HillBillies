@@ -1,5 +1,7 @@
 package hillbillies.model;
 
+import java.util.concurrent.ThreadLocalRandom;
+
 import be.kuleuven.cs.som.annotate.*;
 import hillbillies.utils.Vector;
 
@@ -528,7 +530,37 @@ public class Unit {
 	public double getDodgingProbability(Unit attacker) {
 		return (0.20*(this.getAgility())/(attacker.getAgility()));
 	}
-
+	/**
+	 * Return the probability a unit can block an attack.
+	 * @param	attacker
+	 * 			The attacker to check against.
+	 * @return 	The probability to block an attack is positive for all units.
+	 *       	| result >= 0.0
+	 */
+	@Basic
+	public double getBlockingProbability(Unit attacker) {
+		return (0.25*(this.getAgility()+this.getStrength())/
+				(attacker.getAgility()+attacker.getStrength()));
+	}
+	
+	/**
+	 * Return the hitpoints a unit lose when he is taking damage.
+	 * @param	attacker
+	 * 			The attacker to check against.
+	 * @return 	The hitpoints a unit loses is positive for all units.
+	 *       	| result >= 0
+	 * @return	The hitpoints a unit loses is less than or equal the current hitpoints of
+	 * 			that unit for all units.
+	 * 			| result <= this.getHitpoints()
+	 */
+	@Basic
+	public int getDamagingPoints(Unit attacker) {
+		int damage = (int)Math.round(attacker.getStrength()/10.0);
+		if (damage < this.getHitpoints())
+			return damage;
+		return this.getHitpoints(); 
+	}
+	
 	/**
 	 * Set the stamina of this unit to the given stamina.
 	 *
@@ -803,7 +835,7 @@ public class Unit {
 	 */
 	private float workProgress = 0;
 
-// COMMENT!
+// TODO: COMMENT!
 	public void work(){
 		setCurrentActivity(Activity.WORK);
 		setWorkProgress(0);
@@ -837,12 +869,53 @@ public class Unit {
 	 */
 	private Activity activity;
 	
+	/**
+	 * Returns a random integer between min and max, inclusive.
+	 *
+	 * @param 	min 
+	 * 			Minimum value
+	 * @param 	max 
+	 * 			Maximum value.  
+	 * @throws  IllegalArgumentException * min is greater than max
+	 * 			| (max < min)
+	 */
+	public static int randInt(int min, int max) throws IllegalArgumentException {
+		if (max < min)
+			throw new IllegalArgumentException();
+		return ThreadLocalRandom.current().nextInt(min, max + 1);
+	}
+
+//TODO: COMMENT
 	public void defend(Unit attacker){
 		//dodging
-		if (Math.random() < this.getDodgingProbability(attacker)){
-
+		if ((randInt(0,99)/100.0) < this.getDodgingProbability(attacker)){
+			Boolean validDodge = false;
+			while(! validDodge){
+				int dx = randInt(-1,1);
+				int dy = randInt(-1,1);
+				int dz = randInt(-1,1);
+				if ((dx != 0 || dy != 0 || dz!= 0)
+					&&(isValidPosition(this.getPosition().add(new Vector(dx,dy,dz)))))
+						validDodge = true;
+						
+			this.setPosition(getPosition().add(new Vector(dx,dy,dz)));
+			return;
 		}
-
-
+		}
+		//fails to block
+		if (!((randInt(0,99)/100.0) < this.getBlockingProbability(attacker)))
+			this.setHitpoints(this.getHitpoints()- this.getDamagingPoints(attacker));
+		
+		return;			
+				
+			
 	}
+		
 }
+
+	
+
+	
+
+	
+

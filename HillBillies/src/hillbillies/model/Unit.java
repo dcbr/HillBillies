@@ -893,12 +893,11 @@ public class Unit {
 			while(! validDodge){
 				int dx = randInt(-1,1);
 				int dy = randInt(-1,1);
-				int dz = randInt(-1,1);
-				if ((dx != 0 || dy != 0 || dz!= 0)
-					&&(isValidPosition(this.getPosition().add(new Vector(dx,dy,dz)))))
+				if ((dx != 0 || dy != 0 )
+					&&(isValidPosition(this.getPosition().add(new Vector(dx,dy,0)))))
 						validDodge = true;
 						
-			this.setPosition(getPosition().add(new Vector(dx,dy,dz)));
+			this.setPosition(getPosition().add(new Vector(dx,dy,0)));
 			return;
 		}
 		}

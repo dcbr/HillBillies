@@ -189,7 +189,7 @@ public class Unit {
 		this.setPosition(position);
 		// Total
 		if (! isValidStrength(strength))
-			strength = INITIAL_MIN_STRENGTH;// TODO: make separate method isValidInitialStrength!
+			strength = INITIAL_MIN_STRENGTH;// TODO: make separate method isValidInitialStrength! ==> DONE, also for agility, toughness,...?
 		setStrength(strength);
 		if (! isValidAgility(agility))
 			agility = INITIAL_MIN_AGILITY;
@@ -322,6 +322,19 @@ public class Unit {
 	*/
 	public static boolean isValidStrength(int strength) {
 		return (MIN_STRENGTH <= strength  && strength <= MAX_STRENGTH);
+	}
+	
+	/**
+	 * Check whether the given strength is a valid initial strength for
+	 * any unit.
+	 *  
+	 * @param  strength
+	 *         The strength to check.
+	 * @return is true if strength is between INITIAL_MIN_STRENGTH and INITIAL_MAX_STRENGTH
+	 *       | result == (INITIAL_MIN_STRENGTH <=strength<= INITIAL_MAX_STRENGTH)
+	*/
+	public static boolean isValidInitialStrength(int strength) {
+		return (INITIAL_MIN_STRENGTH <= strength  && strength <= INITIAL_MAX_STRENGTH);
 	}
 	
 	/**
@@ -903,13 +916,13 @@ public class Unit {
 		if ((randInt(0,99)/100.0) < this.getDodgingProbability(attacker)){
 			Boolean validDodge = false;
 			while(! validDodge){
-				int dx = randInt(-1,1);
-				int dy = randInt(-1,1);
-				if ((dx != 0 || dy != 0 )
-					&&(isValidPosition(this.getPosition().add(new Vector(dx,dy,0)))))
+				int dodgeX = randInt(-1,1);
+				int dodgeY = randInt(-1,1);
+				if ((dodgeX != 0 || dodgeY != 0 )&&
+						(isValidPosition(this.getPosition().add(new Vector(dodgeX,dodgeY,0)))))
 						validDodge = true;
 						
-			this.setPosition(getPosition().add(new Vector(dx,dy,0)));
+			this.setPosition(getPosition().add(new Vector(dodgeX,dodgeY,0)));
 			return;
 		}
 		}

@@ -84,6 +84,7 @@ public class Unit {
 
 	public static final int SPRINT_STAMINA_LOSS = 1;// Stamina loss per interval when sprinting
 	public static final double SPRINT_STAMINA_LOSS_INTERVAL = 0.1d;// Unit will loose SPRINT_STAMINA_LOSS every SPRINT_STAMINA_LOSS_INTERVAL seconds when sprinting
+	public static final double REST_INTERVAL = 3*60;// Unit will rest every REST_INTERVAL seconds
 	public static final double ATTACK_DURATION = 1d;
 	//endregion
 
@@ -869,6 +870,10 @@ public class Unit {
 
 	public void advanceTime(double dt){
 		// Defensively without documentation
+		restTimer += dt;
+		if(restTimer >= REST_INTERVAL && this.isAbleToRest()){
+			rest();
+		}
 
 		switch(getCurrentActivity()){
 			case MOVE:
@@ -915,7 +920,7 @@ public class Unit {
 				}
 				break;
 			case WORK:
-				
+
 				break;
 			case ATTACK:
 				if (this.isDefending){
@@ -927,14 +932,48 @@ public class Unit {
 						setCurrentActivity(Activity.NONE);} // TODO: enum doing nothing
 				break;
 			case REST:
-
+				int maxHp = getMaxHitpoints(this.getWeight(), this.getToughness());
+				int maxSt = getMaxStamina(this.getWeight(), this.getToughness());
+				double extraTime = -1d;
+				if(this.getHitpoints()<maxHp){
+					double extraRestHitpoints = getIntervalTicks(activityProgress, dt, 0.2d)*this.getToughness()/1000d;
+					int extraHitpoints = getIntervalTicks(restHitpoints, extraRestHitpoints, 1d);// TODO: make constants
+					int newHitpoints = this.getHitpoints() + extraHitpoints;
+					double newRestHitpoints = restHitpoints + extraRestHitpoints;
+					if(newHitpoints>=maxHp) {
+						newHitpoints = maxHp;
+						newRestHitpoints = 0;
+						double neededExtraRestHitpoints = maxHp - this.getHitpoints() - restHitpoints %1;
+						int neededTicks = (int)Math.ceil(neededExtraRestHitpoints*1000/this.getToughness());
+						double neededTime = 0.2d*neededTicks - activityProgress % 0.2;
+						extraTime = dt - neededTime;
+						assert extraTime >= 0;
+					}
+					this.setHitpoints(newHitpoints);
+					restHitpoints = newRestHitpoints;
+				}
+				if((this.getHitpoints()==maxHp && extraTime==-1d || extraTime > 0d) && this.getStamina()<maxSt){
+					double extraRestStamina = getIntervalTicks(activityProgress, dt, 0.2d)*this.getToughness()/500d;
+					int extraStamina = getIntervalTicks(restStamina, extraRestStamina, 1d);
+					int newStamina = this.getStamina() + extraStamina;
+					double newRestStamina = restStamina + extraRestStamina;
+					if(newStamina>=maxSt){
+						newStamina = maxSt;
+						newRestStamina = 0;
+						setCurrentActivity(Activity.NONE);// TODO: verify this
+					}
+					this.setStamina(newStamina);
+					restStamina = newRestStamina;
+				}
 				break;
 			case NONE:
-				
+
 				break;
-			
+
 		}
 		activityProgress += dt;
+
+
 	}
 
 	/**
@@ -992,11 +1031,15 @@ public class Unit {
 	 *                  neighbouring cubes, each element of the array must have a value of (-)1 or 0
      */
 	public void moveToAdjacent(Vector direction){
+		if(!this.isAbleToMove())
+			throw new IllegalStateException("Unit is not able to move at this moment.");
 		setCurrentActivity(Activity.MOVE);
 		nextPosition = this.getPosition().getCubeCoordinates().add(direction);// TODO: make setPosition to check nextPosition is between world boundaries
 	}
 
 	public void moveToTarget(Vector targetPosition){
+		if(!this.isAbleToMove())
+			throw new IllegalStateException("Unit is not able to move at this moment.");
 		setCurrentActivity(Activity.MOVE);
 		this.targetPosition = targetPosition;
 	}
@@ -1015,6 +1058,10 @@ public class Unit {
 
 	public boolean isAbleToSprint(){
 		return this.isMoving() && getStamina()>MIN_STAMINA;
+	}
+
+	public boolean isAbleToMove(){
+		return !this.isInitialRestMode() && this.getCurrentActivity()!=Activity.ATTACK && this.getCurrentActivity()!=Activity.WORK;
 	}
 
 	public boolean isMoving(){
@@ -1085,9 +1132,15 @@ public class Unit {
 
 // TODO: COMMENT!
 	public void work(){
+		if(!this.isAbleToWork())
+			throw new IllegalStateException("Unit is not able to work at this moment");
 		setCurrentActivity(Activity.WORK);
 		setWorkProgress(0);
 		setWorkDuration(getWorkingTime(this.getStrength()));
+	}
+
+	public boolean isAbleToWork(){
+		return !this.isInitialRestMode() && this.getCurrentActivity() != Activity.ATTACK;
 	}
 
 	/**
@@ -1106,10 +1159,13 @@ public class Unit {
 	 * @post   The current Activity of this new unit is equal to
 	 *         the given current Activity.
 	 *       | new.getCurrentActivity() == activity
+	 * @post	The activityProgress timer is reset
+	 * 			| new.activityProgress == 0d
 	 */
 	@Raw
 	private void setCurrentActivity(Activity activity) {
 		this.activity = activity;
+		this.activityProgress = 0d;
 	}
 
 	/**
@@ -1167,13 +1223,13 @@ public class Unit {
 		double dy = (defender.getPosition().Y()-this.getPosition().Y());
 		defender.setOrientation((float)Math.atan2(-dy, -dx));
 		this.setOrientation((float)Math.atan2(dy, dx));
-		
+
 		defender.defend(this);
 		setCurrentActivity(Activity.ATTACK);
-		
-		
+
+
 	}
-	
+
 	/**
 	 * Check whether an attack is a valid for
 	 * any unit.
@@ -1181,10 +1237,12 @@ public class Unit {
 	 * @param  defender
 	 *         The defender to check.
 	 * @return 	is true if the position of the attackers cube lies next to the defenders cube 
-	 * 			or is the same cube and the attacker do not attacks itself and 
-	 * 			the attacker is not attacking another unit at the same time
+	 * 			or is the same cube and the attacker do not attacks itself and
+	 * 			the attacker is not attacking another unit at the same time and
+	 * 			the attacker is not in the initial rest mode
 	 *       | result == (this.getId()!=defender.getId() &&
 					!this.isAttacking &&
+					!this.isInitialRestMode() &&
 					(Math.abs(defender.getPosition().cubeX()-this.getPosition().cubeX())<=1) &&
 					(Math.abs(defender.getPosition().cubeY()-this.getPosition().cubeY())<=1) &&
 					(Math.abs(defender.getPosition().cubeZ()-this.getPosition().cubeZ())<=1))
@@ -1192,6 +1250,7 @@ public class Unit {
 	public boolean isValidAttack(Unit defender) {
 		return this.getId()!=defender.getId() &&
 				!this.isAttacking &&
+				!this.isInitialRestMode() &&
 				(Math.abs(defender.getPosition().cubeX()-this.getPosition().cubeX())<=1) &&
 				(Math.abs(defender.getPosition().cubeY()-this.getPosition().cubeY())<=1) &&
 				(Math.abs(defender.getPosition().cubeZ()-this.getPosition().cubeZ())<=1);
@@ -1200,7 +1259,7 @@ public class Unit {
 
 	public boolean isAttacking = false;
 	public boolean isDefending= false;
-	
+
 	/**
 	 * Return the Id of this Unit.
 	 */
@@ -1210,7 +1269,32 @@ public class Unit {
 	public long getId() {
 		return this.Id;
 	}
-	
+
+	//region resting
+
+	public void rest(){
+		if(!isAbleToRest())
+			throw new IllegalStateException("This unit cannot rest at this moment");
+		setCurrentActivity(Activity.REST);
+		this.restTimer = 0d;// TODO: verify when the restTimer should be reset
+		this.restHitpoints = 0d;
+		this.restStamina = 0d;
+	}
+
+	public boolean isAbleToRest(){
+		return this.getCurrentActivity()!=Activity.ATTACK;
+	}
+
+	public boolean isInitialRestMode(){
+		return this.getCurrentActivity()==Activity.REST && this.restHitpoints<1d;
+	}
+
+	private double restTimer = 0d;
+	private double restHitpoints = 0d;
+	private double restStamina = 0d;
+	//endregion
+
+
 	private boolean defaultActive = false;
 	public void startDefaultBehviour(){
 		this.defaultActive= true;
@@ -1237,7 +1321,7 @@ public class Unit {
 			this.rest();
 		
 	}
-	
+
 }
 
 	

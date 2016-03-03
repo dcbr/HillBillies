@@ -1224,8 +1224,18 @@ public class Unit {
 	public void setDefaultBehaviour(){
 		int activity = randInt(0,2);
 		if (activity ==0){
-			this.moveToTarget(new Vector (((double)(Math.random()*MAX_POSITION.X()-MIN_POSITION.X()),(double)(Math.random()*MAX_POSITION-MIN_POSITION),(Math.random()*MAX_POSITION-MIN_POSITION));
+			this.moveToTarget(new Vector ((double)(Math.random()*(MAX_POSITION.X()-MIN_POSITION.X())+MIN_POSITION.X()),
+					(double)(Math.random()*(MAX_POSITION.Y()-MIN_POSITION.Y())+MIN_POSITION.Y()),
+					(double)(Math.random()*MAX_POSITION.Z()-MIN_POSITION.Z())+MIN_POSITION.Z()));
+			if (this.isAbleToSprint() && randInt(0, 1) == 0){
+				this.sprint();
+			}
 		}
+		if (activity == 1)
+			this.work();
+		if (activity ==2)
+			this.rest();
+		
 	}
 	
 }

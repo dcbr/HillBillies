@@ -84,6 +84,7 @@ public class Unit {
 
 	public static final int SPRINT_STAMINA_LOSS = 1;// Stamina loss per interval when sprinting
 	public static final double SPRINT_STAMINA_LOSS_INTERVAL = 0.1d;// Unit will loose SPRINT_STAMINA_LOSS every SPRINT_STAMINA_LOSS_INTERVAL seconds when sprinting
+	public static final double ATTACK_DURATION = 1d;
 	//endregion
 
 	//region Private members
@@ -882,7 +883,7 @@ public class Unit {
 				Vector cpos = getPosition();
 				if(targetPosition!=null){
 					if(targetPosition.equals(cpos))
-						setCurrentActivity(Activity.REST);
+						setCurrentActivity(Activity.NONE); // TODO: enum doing nothing
 					else{
 						int dx = 0, dy = 0, dz = 0;
 						if (targetPosition.X() < cpos.X())
@@ -917,11 +918,16 @@ public class Unit {
 
 				break;
 			case ATTACK:
-
+					if (activityProgress > 1)
+						setCurrentActivity(Activity.NONE); // TODO: enum doing nothing
 				break;
 			case REST:
 
 				break;
+			case NONE:
+				
+				break;
+			
 		}
 		activityProgress += dt;
 	}
@@ -1064,7 +1070,6 @@ public class Unit {
 	 */
 	@Raw
 	private void setWorkProgress(float workProgress) {
-
 		this.workProgress = workProgress;
 	}
 
@@ -1127,14 +1132,7 @@ public class Unit {
 
 //TODO: COMMENT
 	public void defend(Unit attacker){
-		if (!attacker.isValidAttack(this))
-			throw new IllegalArgumentException("Attacker cannot attack this unit");
-		//Orientation
-		double dx = (this.getPosition().X()-attacker.getPosition().X());
-		double dy = (this.getPosition().Y()-attacker.getPosition().Y());
-		this.setOrientation((float)Math.atan2(-dy, -dx));
-		attacker.setOrientation((float)Math.atan2(dy, dx));
-		
+		this.isDefending = true;
 		//dodging
 		if ((randInt(0,99)/100.0) < this.getDodgingProbability(attacker)){
 			Boolean validDodge = false;
@@ -1150,6 +1148,23 @@ public class Unit {
 		}// fails to block
 		else if (!((randInt(0,99)/100.0) < this.getBlockingProbability(attacker)))
 			this.setHitpoints(this.getHitpoints()- this.getDamagingPoints(attacker));
+	}
+	
+//TODO COMMENT
+	public void attack(Unit defender) throws IllegalArgumentException{
+		if (!this.isValidAttack(defender))
+			throw new IllegalArgumentException("Cannot attack that unit");
+		this.isAttacking = true;
+		//Orientation
+		double dx = (defender.getPosition().X()-this.getPosition().X());
+		double dy = (defender.getPosition().Y()-this.getPosition().Y());
+		defender.setOrientation((float)Math.atan2(-dy, -dx));
+		this.setOrientation((float)Math.atan2(dy, dx));
+		
+		defender.defend(this);
+		setCurrentActivity(Activity.ATTACK);
+		
+		
 	}
 	
 	/**
@@ -1172,6 +1187,9 @@ public class Unit {
 	
 	}
 
+	public boolean isAttacking = false;//TODO cannot attack 2 units
+	public boolean isDefending= false; //TODO can be attacked by 2 units
+	
 	/**
 	 * Return the Id of this Unit.
 	 */

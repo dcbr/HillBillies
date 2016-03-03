@@ -9,5 +9,6 @@ public enum Activity {
     MOVE,
     WORK,
     REST,
-    ATTACK
+    ATTACK,
+    NONE
 }

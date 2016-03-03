@@ -10,6 +10,8 @@ import hillbillies.utils.Vector;
  * @author Kenneth & Bram
  * @version 1.0
  *
+ * @invar Each Unit has a unique Id.
+ * | for each Unit u, for each Unit o -> u.getId()!=o.getId() if u!=o
  * @invar The name of each Unit must be a valid name for any
  * Unit.
  * | isValidName(getName())
@@ -41,6 +43,8 @@ import hillbillies.utils.Vector;
 public class Unit {
 
 	//region Constants
+	private static long ID = 0;
+
     private static final String ALLOWED_NAME_PATTERN = "[a-zA-Z \"']+";
 
     public static final double CUBE_SIDE_LENGTH = 1;
@@ -77,10 +81,17 @@ public class Unit {
 	public static final int INITIAL_MIN_STAMINA = 1;
 	public static final int INITIAL_MIN_HITPOINTS = 1;
 	public static final float INITIAL_ORIENTATION = (float)Math.PI/2;
+
+	public static final int SPRINT_STAMINA_LOSS = 1;// Stamina loss per interval when sprinting
+	public static final double SPRINT_STAMINA_LOSS_INTERVAL = 0.1d;// Unit will loose SPRINT_STAMINA_LOSS every SPRINT_STAMINA_LOSS_INTERVAL seconds when sprinting
 	//endregion
 
 	//region Private members
 
+	/**
+	 * Variable registering the Id of this Unit.
+	 */
+	private final long Id;
 	/**
 	 * Variable registering the name of this Unit.
 	 */
@@ -148,6 +159,10 @@ public class Unit {
 	 * | this.setPosition(position)
 	 * @effect The orientation of this new Unit is set to the default orientation.
 	 * 			| this.setOrientation(INITIAL_ORIENTATION)
+	 * @post The Id of this new Unit is equal to ID.
+	 * 		| this.getId()==ID
+	 * @post The static field ID is incremented by 1. This way uniqueness is almost certainly guaranteed.
+	 * 		| new ID == ID + 1
 	 * @post   If the given strength is a valid strength for any unit,
 	 *         the strength of this new unit is equal to the given
 	 *         strength. Otherwise, the strength of this new unit is equal
@@ -184,12 +199,14 @@ public class Unit {
 	 *       | new.getHitpoints() == hitpoints
 	 */
 	public Unit(String name, Vector position, int strength, int agility, int toughness, int weight, int stamina, int hitpoints) throws IllegalArgumentException {
+		this.Id = ID;
+		ID++;
 		// Defensive
 		this.setName(name);
 		this.setPosition(position);
 		// Total
 		if (! isValidInitialStrength(strength))
-			strength = INITIAL_MIN_STRENGTH;// TODO: ;
+			strength = INITIAL_MIN_STRENGTH;
 		if (! isValidInitialAgility(agility))
 			agility = INITIAL_MIN_AGILITY;
 		setAgility(agility);
@@ -851,8 +868,17 @@ public class Unit {
 
 	public void advanceTime(double dt){
 		// Defensively without documentation
+
 		switch(getCurrentActivity()){
 			case MOVE:
+				if(this.isSprinting){
+					int newStamina = this.getStamina()-SPRINT_STAMINA_LOSS*getIntervalTicks(activityProgress, dt, SPRINT_STAMINA_LOSS_INTERVAL);
+					if(newStamina<=0){
+						newStamina = 0;
+						stopSprint();
+					}
+					this.setStamina(newStamina);
+				}
 				Vector cpos = getPosition();
 				if(targetPosition!=null){
 					if(targetPosition.equals(cpos))
@@ -877,7 +903,7 @@ public class Unit {
 				if(nextPosition!=null && !nextPosition.equals(cpos)){
 					Vector difference = nextPosition.difference(cpos);
 					double d = difference.length();
-					double v = getWalkingSpeed(difference);// TODO: get proper speed (walking or sprinting)
+					double v = this.isSprinting ? getSprintSpeed(difference) : getWalkingSpeed(difference);
 					Vector dPos = difference.multiply(v/d*dt);
 					Vector velocity = difference.multiply(v/d);
 					Vector newPos = cpos.add(dPos);
@@ -897,6 +923,26 @@ public class Unit {
 
 				break;
 		}
+		activityProgress += dt;
+	}
+
+	/**
+	 * This method returns how many times the specified time-interval (delta) is contained in newTime.
+	 * Where newTime is calculated as
+	 * | newTime = (prevProgress % delta) + dt
+	 * This method is used to determine game-time progression in a correct way inside the advanceTime method,
+	 * because otherwise certain intervals could be skipped. (For example when dt is always smaller than delta,
+	 * using dt / delta won't give the desired result)
+	 * @param prevProgress The previous progress of an activity
+	 * @param dt The time the progress will be increased with
+	 * @param delta The time-interval to check
+     * @return How many times delta is contained in newTime
+	 * 			| newTime == (prevProgress % delta) + dt
+	 * 			| result == (newTime - newTime % delta) / delta
+     */
+	public int getIntervalTicks(double prevProgress, double dt, double delta){
+		double newTime = (prevProgress % delta) + dt;
+		return (int)((newTime - newTime % delta) / delta);
 	}
 
 	//region Movement
@@ -944,6 +990,29 @@ public class Unit {
 		this.targetPosition = targetPosition;
 	}
 	private Vector nextPosition, targetPosition;
+	private boolean isSprinting = false;
+
+	public void sprint(){
+		if(!isAbleToSprint())
+			throw new IllegalStateException("The Unit is not able to sprint!");
+		this.isSprinting = true;
+	}
+
+	public void stopSprint(){
+		this.isSprinting = false;
+	}
+
+	public boolean isAbleToSprint(){
+		return this.isMoving() && getStamina()>MIN_STAMINA;
+	}
+
+	public boolean isMoving(){
+		return this.getCurrentActivity()==Activity.MOVE;
+	}
+
+	public boolean isSprinting(){
+		return this.isSprinting;
+	}
 	//endregion
 
 
@@ -1037,6 +1106,8 @@ public class Unit {
 	 * Variable registering the current Activity of this unit.
 	 */
 	private Activity activity;
+
+	private double activityProgress = 0d;
 	
 	/**
 	 * Returns a random integer between min and max, inclusive.
@@ -1100,11 +1171,21 @@ public class Unit {
 				(Math.abs(defender.getPosition().cubeZ()-this.getPosition().cubeZ())<=1))
 	*/
 	public boolean isValidAttack(Unit defender) {
-//TODO mss eisen dat ze verschillende naam hebben?		
-		return ((Math.abs(defender.getPosition().cubeX()-this.getPosition().cubeX())<=1) &&
+		return this.getId()!=defender.getId() &&
+				((Math.abs(defender.getPosition().cubeX()-this.getPosition().cubeX())<=1) &&
 				(Math.abs(defender.getPosition().cubeY()-this.getPosition().cubeY())<=1) &&
 				(Math.abs(defender.getPosition().cubeZ()-this.getPosition().cubeZ())<=1));
 	
+	}
+
+	/**
+	 * Return the Id of this Unit.
+	 */
+	@Basic
+	@Raw
+	@Immutable
+	public long getId() {
+		return this.Id;
 	}
 
 }

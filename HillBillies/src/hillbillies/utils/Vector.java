@@ -56,11 +56,11 @@ public class Vector {
     }
 
     public boolean isInBetween(Vector minPosition, Vector maxPosition){
-        boolean inBetween = true;
         for(int i=0;i<vectorList.length;i++){
-            inBetween = inBetween && (vectorList[i]>=minPosition.vectorList[i] && vectorList[i]<=maxPosition.vectorList[i]);
+            if(vectorList[i]<minPosition.vectorList[i] || vectorList[i]>maxPosition.vectorList[i])
+                return false;
         }
-        return inBetween;
+        return true;
     }
 
     public Vector clone() {
@@ -72,11 +72,11 @@ public class Vector {
     }
 
     public boolean equals(Vector other){
-        boolean equal = true;
         for(int i=0;i<vectorList.length;i++){
-            equal = equal && Math.abs(vectorList[i]-other.vectorList[i])<1e-7;
+            if(Math.abs(vectorList[i]-other.vectorList[i])>1e-7)
+                return false;
         }
-        return equal;
+        return true;
     }
 
     public double X(){

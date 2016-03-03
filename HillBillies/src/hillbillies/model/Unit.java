@@ -1312,7 +1312,7 @@ public class Unit {
 					(double)(Math.random()*(MAX_POSITION.Y()-MIN_POSITION.Y())+MIN_POSITION.Y()),
 					(double)(Math.random()*MAX_POSITION.Z()-MIN_POSITION.Z())+MIN_POSITION.Z()));
 			if (this.isAbleToSprint() && randInt(0, 1) == 0){
-				this.sprint();
+				this.sprint(); //TODO can sprint every moment
 			}
 		}
 		if (activity == 1)

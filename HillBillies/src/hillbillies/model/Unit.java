@@ -136,10 +136,10 @@ public class Unit {
 	 *         The stamina for this new unit.
 	 * @param  hitpoints
 	 *         The hitpoints for this new unit.
-	 * @pre    The given stamina must be a valid stamina for any unit.
-	 *       | isValidStamina(stamina)
-	 * @pre    The given hitpoints must be a valid hitpoints for any unit.
-	 *       | isValidHitpoints(hitpoints)
+	 * @pre    The given stamina must be a valid initial stamina for any unit.
+	 *       | isValidInitialStamina(stamina)
+	 * @pre    The given hitpoints must be valid initial hitpoints for any unit.
+	 *       | isValidInitialHitpoints(hitpoints)
 	 * @effect The name of this new Unit is set to
 	 * the given name.
 	 * | this.setName(name)
@@ -188,21 +188,20 @@ public class Unit {
 		this.setName(name);
 		this.setPosition(position);
 		// Total
-		if (! isValidStrength(strength))
-			strength = INITIAL_MIN_STRENGTH;// TODO: make separate method isValidInitialStrength! ==> DONE, also for agility, toughness,...?
-		setStrength(strength);
-		if (! isValidAgility(agility))
+		if (! isValidInitialStrength(strength))
+			strength = INITIAL_MIN_STRENGTH;// TODO: ;
+		if (! isValidInitialAgility(agility))
 			agility = INITIAL_MIN_AGILITY;
 		setAgility(agility);
-		if (! isValidToughness(toughness))
+		if (! isValidInitialToughness(toughness))
 			toughness = INITIAL_MIN_TOUGHNESS;
 		setToughness(toughness);
-		if (! isValidWeight(weight, strength, agility))
+		if (! isValidInitialWeight(weight, strength, agility))
 			weight = INITIAL_MIN_WEIGHT;
 		setWeight(weight);
 		// Nominal
-		this.setStamina(stamina);
-		this.setHitpoints(hitpoints);
+		this.setInitialStamina(stamina);
+		this.setInitialHitpoints(hitpoints);
 		// Total
 		this.setOrientation(INITIAL_ORIENTATION);
 
@@ -265,7 +264,7 @@ public class Unit {
     @Basic
     @Raw
     public Vector getPosition() {
-        return this.position.clone();// TODO: return new position object instead of returning the real position's reference!
+        return this.position.clone();
     }
     /**
      * Check whether the given position is a valid position for
@@ -325,7 +324,7 @@ public class Unit {
 	}
 	
 	/**
-	 * Check whether the given strength is a valid initial strength for
+	 * Check whether the given initial strength is a valid initial strength for
 	 * any unit.
 	 *  
 	 * @param  strength
@@ -377,6 +376,19 @@ public class Unit {
 	}
 	
 	/**
+	 * Check whether the given initial agility is a valid initial agility for
+	 * any unit.
+	 *  
+	 * @param  agility
+	 *         The agility to check.
+	 * @return is true if agility is between INITIAL_MIN_AGILITY and INITIAL_MAX_AGILITY
+	 *       | result == (INITIAL_MIN_AGILITY <=strength<= INITIAL_MAX_AGILITY)
+	*/
+	public static boolean isValidInitialAgility(int agility) {
+		return (INITIAL_MIN_AGILITY <= agility  && agility <= INITIAL_MAX_AGILITY);
+	}
+	
+	/**
 	 * Set the agility of this unit to the given agility.
 	 * 
 	 * @param  agility
@@ -417,6 +429,19 @@ public class Unit {
 	}
 	
 	/**
+	 * Check whether the given initial toughness is a valid initial toughness for
+	 * any unit.
+	 *  
+	 * @param  toughness
+	 *         The initial toughness to check.
+	 * @return is true if strength is between MIN_TOUGHNESS and MAX_TOUGHNESS
+	 *       | result == (INITIAL_MIN_TOUGHNESS <= toughness <= INITIAL_MAX_TOUGHNESS)
+	*/
+	public static boolean isValidInitialToughness(int toughness) {
+		return (INITIAL_MIN_TOUGHNESS <= toughness && toughness <= INITIAL_MAX_TOUGHNESS);
+	}
+	
+	/**
 	 * Set the toughness of this unit to the given toughness.
 	 * 
 	 * @param  toughness
@@ -452,12 +477,64 @@ public class Unit {
 	 * 			The strength to check against.
 	 * @param	agility
 	 * 			The agility to check against.
-	 * @return 	is true if strength is between MIN_WEIGHT and MAX_WEIGHT 
-	 * 			and weight is at least the average between strength and agility
-	 *       	| result == (MIN_WEIGHT <= weight <= MAX_WEIGHT && weight >= (strength + agility)/2)
+	 * @return 	is true if weight is between getMinWeight() and MAX_WEIGHT.
+	 *       	| result == (this.getMinWeight() <= weight <= MAX_WEIGHT )
 	*/
 	public static boolean isValidWeight(int weight, int strength, int agility) {
-		return (MIN_WEIGHT <= weight && weight <= MAX_WEIGHT && weight >= (strength + agility)/2);
+		return (getMinWeight(strength, agility) <= weight && weight <= MAX_WEIGHT);
+	}
+	
+	/**
+	 * Check whether the given initial weight is a valid initial weight for
+	 * any unit.
+	 *  
+	 * @param  	weight
+	 *       	The initial weight to check.
+	 * @param	strength
+	 * 			The strength to check against.
+	 * @param	agility
+	 * 			The agility to check against.
+	 * @return 	is true if weight is between getInitialMinWeight() and INITIAL_MAX_WEIGHT.
+	 *       	| result == (getInitialMinWeight() <= weight <= INITIAL_MAX_WEIGHT)
+	*/
+	public static boolean isValidInitialWeight(int weight, int strength, int agility) {
+		return (getInitialMinWeight(strength, agility) <= weight && weight <= INITIAL_MAX_WEIGHT);
+	}
+	
+	/**
+	 * Return the lowest possible value for weight of this unit.
+	 * @param	strength
+	 * 			The strength to check against.
+	 * @param	agility
+	 * 			The agility to check against.
+	 * @return 	The lowest possible value for weight of all
+	 *         	units is not below MIN_WEIGHT for all units.
+	 *       	| result >= MIN_WEIGHT
+	 */
+	@Basic
+	public static int getMinWeight(int strength, int agility) {
+		int minWeight = (strength + agility)/2;
+		if (minWeight <= MIN_WEIGHT)
+			return (MIN_WEIGHT);
+		return minWeight;
+	}
+	
+	/**
+	 * Return the lowest possible value for initial weight of this unit.
+	 * @param	strength
+	 * 			The strength to check against.
+	 * @param	agility
+	 * 			The agility to check against.
+	 * @return 	The lowest possible value for stamina of all
+	 *         	units is not below MIN_WEIGHT for all units.
+	 *       	| result >= INITIAL_MIN_WEIGHT
+	 */
+	@Basic
+	public static int getInitialMinWeight(int strength, int agility) {
+		int minWeight = (strength + agility)/2;
+		if (minWeight <= INITIAL_MIN_WEIGHT)
+			return (INITIAL_MIN_WEIGHT);
+		return minWeight;
 	}
 	
 	/**
@@ -504,6 +581,23 @@ public class Unit {
 		return (stamina <= getMaxStamina(weight, toughness) && stamina >= MIN_STAMINA);
 	}
 
+	/**
+	 * Check whether the given initial stamina is a valid initial stamina for
+	 * any unit.
+	 *
+	 * @param  	stamina
+	 *         	The initial stamina to check.
+	 * @param	weight
+	 * 			The weight to check against.
+	 * @param	toughness
+	 * 			The toughness to check against.
+	 * @return
+	 *       	| result == (INITIAL_MIN_STAMINA <= stamina <= getMaxStamina(weight, toughness) )
+	*/
+	public static boolean isValidInitialStamina(int stamina, int weight, int toughness) {
+		return (stamina <= getMaxStamina(weight, toughness) && stamina >= INITIAL_MIN_STAMINA);
+	}
+	
 	/**
 	 * Return the highest possible value for stamina of this unit.
 	 * @param	weight
@@ -594,6 +688,27 @@ public class Unit {
 		this.stamina = stamina;
 	}
 
+	/**
+	 * Set the initial stamina of this unit to the given stamina.
+	 *
+	 * @param  	stamina
+	 *         	The initial stamina for this unit.
+	 * @pre    	The given stamina must be a valid initial stamina for any
+	 *         	unit.
+	 *       	| isValidInitialStamina(stamina)
+	 * @pre		The units weight and toughness should already have been set.
+	 *       	| isValidWeight(this.getWeight()) && isValidToughness(this.getToughness())
+	 * @post   	The stamina of this unit is equal to the given initial
+	 *         	stamina.
+	 *       	| new.getStamina() == stamina
+	 */
+	@Raw
+	public void setInitialStamina(int stamina) {
+		assert isValidInitialStamina(stamina, this.getWeight(), this.getToughness());
+		this.stamina = stamina;
+	}
+
+	
 
 	/**
 	 * Return the hitpoints of this unit.
@@ -604,7 +719,7 @@ public class Unit {
 	}
 
 	/**
-	 * Check whether the given hitpoints is a valid hitpoints for
+	 * Check whether the given hitpoints are valid hitpoints for
 	 * any unit.
 	 *
 	 * @param  	hitpoints
@@ -621,6 +736,23 @@ public class Unit {
 	}
 
 	/**
+	 * Check whether the given initial hitpoints are valid initial hitpoints for
+	 * any unit.
+	 *
+	 * @param  	hitpoints
+	 *         	The initial hitpoints to check.
+	 * @param	weight
+	 * 			The weight to check against.
+	 * @param 	toughness
+	 * 			The toughness to check against.
+	 * @return
+	 *       	| result == (INITIAL_MIN_HITPOINTS <= hitpoints <= getMaxHitpoints(weight, toughness))
+	*/
+	public static boolean isValidInitialHitpoints(int hitpoints, int weight, int toughness) {
+		return (INITIAL_MIN_HITPOINTS <= hitpoints && hitpoints <= getMaxHitpoints(weight, toughness));
+	}
+	
+	/**
 	 * Return the highest possible value for hitpoints of this unit.
 	 * @param	weight
 	 * 			The weight to check against.
@@ -635,6 +767,7 @@ public class Unit {
 	public static int getMaxHitpoints(int weight, int toughness) {
 		return ((int)Math.ceil(200*weight/100.0 * toughness/100.0));
 	}
+	
 	/**
 	 * Set the hitpoints of this unit to the given hitpoints.
 	 *
@@ -655,6 +788,25 @@ public class Unit {
 		this.hitpoints = hitpoints;
 	}
 
+	/**
+	 * Set the initial hitpoints of this unit to the given hitpoints.
+	 *
+	 * @param	hitpoints
+	 *       	The initial hitpoints for this unit.
+	 * @pre    	The given initial hitpoints must be valid hitpoints for any
+	 *         	unit.
+	 *       	| isValidInitialHitpoints(hitpoints)
+	 * @pre  	The units weight and toughness should already have been set.
+		      	| isValidWeight(this.getWeight()) && isValidToughness(this.getToughness())
+	 * @post   	The hitpoints of this unit is equal to the given
+	 *         	hitpoints.
+	 *       	| new.getHitpoints() == hitpoints
+	 */
+	@Raw
+	public void setInitialHitpoints(int hitpoints) {
+		assert isValidInitialHitpoints(hitpoints, this.getWeight(), this.getToughness());
+		this.hitpoints = hitpoints;
+	}	
 
 	/**
 	 * Return the orientation of this Unit.

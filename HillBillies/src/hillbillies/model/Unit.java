@@ -1128,7 +1128,7 @@ public class Unit {
 //TODO: COMMENT
 	public void defend(Unit attacker){
 		if (!attacker.isValidAttack(this))
-			return;
+			throw new IllegalArgumentException("Attacker cannot attack this unit");
 		//Orientation
 		double dx = (this.getPosition().X()-attacker.getPosition().X());
 		double dy = (this.getPosition().Y()-attacker.getPosition().Y());
@@ -1138,24 +1138,18 @@ public class Unit {
 		//dodging
 		if ((randInt(0,99)/100.0) < this.getDodgingProbability(attacker)){
 			Boolean validDodge = false;
-			while(! validDodge){
-				int dodgeX = randInt(-1,1);
-				int dodgeY = randInt(-1,1);
-				if ((dodgeX != 0 || dodgeY != 0 )&&
-						(isValidPosition(this.getPosition().add(new Vector(dodgeX,dodgeY,0)))))
-						validDodge = true;
-						
-			this.setPosition(getPosition().add(new Vector(dodgeX,dodgeY,0)));
-			return;
-		}
-		}
-		//fails to block
-		if (!((randInt(0,99)/100.0) < this.getBlockingProbability(attacker)))
+			while(! validDodge) {
+				int dodgeX = randInt(-1, 1);
+				int dodgeY = randInt(-1, 1);
+				if ((dodgeX != 0 || dodgeY != 0) &&
+						(isValidPosition(this.getPosition().add(new Vector(dodgeX, dodgeY, 0))))) {
+					validDodge = true;
+					this.setPosition(getPosition().add(new Vector(dodgeX,dodgeY,0)));
+				}
+			}
+		}// fails to block
+		else if (!((randInt(0,99)/100.0) < this.getBlockingProbability(attacker)))
 			this.setHitpoints(this.getHitpoints()- this.getDamagingPoints(attacker));
-		
-		return;			
-				
-			
 	}
 	
 	/**

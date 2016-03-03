@@ -915,11 +915,16 @@ public class Unit {
 				}
 				break;
 			case WORK:
-
+				
 				break;
 			case ATTACK:
-					if (activityProgress > 1)
-						setCurrentActivity(Activity.NONE); // TODO: enum doing nothing
+				if (this.isDefending){
+					this.isDefending = false;
+					if(!this.isAttacking)
+						setCurrentActivity(Activity.NONE); }
+				if (activityProgress > 1){
+						this.isAttacking = false;
+						setCurrentActivity(Activity.NONE);} // TODO: enum doing nothing
 				break;
 			case REST:
 
@@ -1133,6 +1138,7 @@ public class Unit {
 //TODO: COMMENT
 	public void defend(Unit attacker){
 		this.isDefending = true;
+		setCurrentActivity(Activity.ATTACK);
 		//dodging
 		if ((randInt(0,99)/100.0) < this.getDodgingProbability(attacker)){
 			Boolean validDodge = false;
@@ -1150,7 +1156,8 @@ public class Unit {
 			this.setHitpoints(this.getHitpoints()- this.getDamagingPoints(attacker));
 	}
 	
-//TODO COMMENT
+
+	//TODO: COMMENT
 	public void attack(Unit defender) throws IllegalArgumentException{
 		if (!this.isValidAttack(defender))
 			throw new IllegalArgumentException("Cannot attack that unit");
@@ -1174,21 +1181,25 @@ public class Unit {
 	 * @param  defender
 	 *         The defender to check.
 	 * @return 	is true if the position of the attackers cube lies next to the defenders cube 
-	 * 			or is the same cube
-	 *       | result == ((Math.abs(defender.getPosition().cubeX()-this.getPosition().cubeX())<=1) &&
-				(Math.abs(defender.getPosition().cubeY()-this.getPosition().cubeY())<=1) &&
-				(Math.abs(defender.getPosition().cubeZ()-this.getPosition().cubeZ())<=1))
+	 * 			or is the same cube and the attacker do not attacks itself and 
+	 * 			the attacker is not attacking another unit at the same time
+	 *       | result == (this.getId()!=defender.getId() &&
+					!this.isAttacking &&
+					(Math.abs(defender.getPosition().cubeX()-this.getPosition().cubeX())<=1) &&
+					(Math.abs(defender.getPosition().cubeY()-this.getPosition().cubeY())<=1) &&
+					(Math.abs(defender.getPosition().cubeZ()-this.getPosition().cubeZ())<=1))
 	*/
 	public boolean isValidAttack(Unit defender) {
 		return this.getId()!=defender.getId() &&
-				((Math.abs(defender.getPosition().cubeX()-this.getPosition().cubeX())<=1) &&
+				!this.isAttacking &&
+				(Math.abs(defender.getPosition().cubeX()-this.getPosition().cubeX())<=1) &&
 				(Math.abs(defender.getPosition().cubeY()-this.getPosition().cubeY())<=1) &&
-				(Math.abs(defender.getPosition().cubeZ()-this.getPosition().cubeZ())<=1));
+				(Math.abs(defender.getPosition().cubeZ()-this.getPosition().cubeZ())<=1);
 	
 	}
 
-	public boolean isAttacking = false;//TODO cannot attack 2 units
-	public boolean isDefending= false; //TODO can be attacked by 2 units
+	public boolean isAttacking = false;
+	public boolean isDefending= false;
 	
 	/**
 	 * Return the Id of this Unit.
@@ -1199,7 +1210,24 @@ public class Unit {
 	public long getId() {
 		return this.Id;
 	}
-
+	
+	private boolean defaultActive = false;
+	public void startDefaultBehviour(){
+		this.defaultActive= true;
+	}
+	public void stopDefaultBehaviour(){
+		this.defaultActive = false;
+	}
+	public boolean isDefaultActive() {
+		return this.defaultActive;
+	}
+	public void setDefaultBehaviour(){
+		int activity = randInt(0,2);
+		if (activity ==0){
+			this.moveToTarget(new Vector (((double)(Math.random()*MAX_POSITION.X()-MIN_POSITION.X()),(double)(Math.random()*MAX_POSITION-MIN_POSITION),(Math.random()*MAX_POSITION-MIN_POSITION));
+		}
+	}
+	
 }
 
 	

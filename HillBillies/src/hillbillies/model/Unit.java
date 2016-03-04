@@ -885,6 +885,8 @@ public class Unit {
 					}
 					this.setStamina(newStamina);
 				}
+				if(this.isDoingDefault()==2 && !this.isSprinting &&this.isAbleToSprint() &&randInt(0, 1) == 0)
+					this.sprint();
 				Vector cpos = getPosition();
 				if(targetPosition!=null){
 					if(targetPosition.equals(cpos))
@@ -903,6 +905,7 @@ public class Unit {
 							dx = 1;
 						else if(targetPosition.Z() > cpos.Z())
 							dx = -1;
+						this.doingDefault +=1;
 						moveToAdjacent(new Vector(dx, dy, dz));
 					}
 				}
@@ -967,7 +970,8 @@ public class Unit {
 				}
 				break;
 			case NONE:
-
+				if(this.isDefaultActive())
+					this.setDefaultBehaviour();
 				break;
 
 		}
@@ -1031,15 +1035,25 @@ public class Unit {
 	 *                  neighbouring cubes, each element of the array must have a value of (-)1 or 0
      */
 	public void moveToAdjacent(Vector direction){
-		if(!this.isAbleToMove())
+		if(!this.isAbleToMove()&& this.isDoingDefault()!=3)
 			throw new IllegalStateException("Unit is not able to move at this moment.");
 		setCurrentActivity(Activity.MOVE);
+		if(this.isDoingDefault() ==3) //TODO: controleren en verder aanpassen
+			this.stopDoingDefault();
+		if(this.isDoingDefault() >=1)
+			this.doingDefault -=1;
+
 		nextPosition = this.getPosition().getCubeCoordinates().add(direction);// TODO: make setPosition to check nextPosition is between world boundaries
 	}
 
 	public void moveToTarget(Vector targetPosition){
 		if(!this.isAbleToMove())
 			throw new IllegalStateException("Unit is not able to move at this moment.");
+		if(this.isDoingDefault() ==2)
+			this.stopDoingDefault();
+		if(this.isDoingDefault() == 3)
+			this.doingDefault -=1;
+
 		setCurrentActivity(Activity.MOVE);
 		this.targetPosition = targetPosition;
 	}
@@ -1047,7 +1061,7 @@ public class Unit {
 	private boolean isSprinting = false;
 
 	public void sprint(){
-		if(!isAbleToSprint())
+		if(!this.isAbleToSprint())
 			throw new IllegalStateException("The Unit is not able to sprint!");
 		this.isSprinting = true;
 	}
@@ -1302,24 +1316,36 @@ public class Unit {
 	public void stopDefaultBehaviour(){
 		this.defaultActive = false;
 	}
-	public boolean isDefaultActive() {
+	public boolean isDefaultActive(){
 		return this.defaultActive;
 	}
+	private int doingDefault = 0;
+	
+	public void startDoingDefault(){
+		this.doingDefault = 3; // TODO : alle activiteiten controlen
+	}
+	public void stopDoingDefault(){
+		this.doingDefault = 0;
+	}
+	public int isDoingDefault(){
+		return this.doingDefault;
+	}
+	
 	public void setDefaultBehaviour(){
+		this.startDoingDefault();
 		int activity = randInt(0,2);
 		if (activity ==0){
 			this.moveToTarget(new Vector ((double)(Math.random()*(MAX_POSITION.X()-MIN_POSITION.X())+MIN_POSITION.X()),
 					(double)(Math.random()*(MAX_POSITION.Y()-MIN_POSITION.Y())+MIN_POSITION.Y()),
 					(double)(Math.random()*MAX_POSITION.Z()-MIN_POSITION.Z())+MIN_POSITION.Z()));
 			if (this.isAbleToSprint() && randInt(0, 1) == 0){
-				this.sprint(); //TODO can sprint every moment
+				this.sprint();
 			}
 		}
 		if (activity == 1)
 			this.work();
 		if (activity ==2)
 			this.rest();
-		
 	}
 
 }

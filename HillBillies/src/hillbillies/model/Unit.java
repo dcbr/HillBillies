@@ -885,8 +885,6 @@ public class Unit {
 					}
 					this.setStamina(newStamina);
 				}
-				if(this.isDoingDefault()==2 && !this.isSprinting &&this.isAbleToSprint() &&randInt(0, 1) == 0)
-					this.sprint();
 				Vector cpos = getPosition();
 				if(targetPosition!=null){
 					if(targetPosition.equals(cpos))
@@ -921,6 +919,8 @@ public class Unit {
 					setPosition(newPos);
 					setOrientation((float)Math.atan2(velocity.Y(),velocity.X()));
 				}
+				if(this.isDoingDefault()==2 && !this.isSprinting &&this.isAbleToSprint() &&randInt(0, 1) == 0)
+					this.sprint();
 				break;
 			case WORK:
 
@@ -929,10 +929,12 @@ public class Unit {
 				if (this.isDefending){
 					this.isDefending = false;
 					if(!this.isAttacking)
-						setCurrentActivity(Activity.NONE); }
+						setCurrentActivity(Activity.NONE); 
+				}
 				if (activityProgress > 1){
 						this.isAttacking = false;
-						setCurrentActivity(Activity.NONE);} // TODO: enum doing nothing
+						setCurrentActivity(Activity.NONE);// TODO: enum doing nothing
+				} 
 				break;
 			case REST:
 				int maxHp = getMaxHitpoints(this.getWeight(), this.getToughness());
@@ -1035,32 +1037,35 @@ public class Unit {
 	 *                  neighbouring cubes, each element of the array must have a value of (-)1 or 0
      */
 	public void moveToAdjacent(Vector direction){
-		if(!this.isAbleToMove()&& this.isDoingDefault()!=3)
-			throw new IllegalStateException("Unit is not able to move at this moment.");
-		setCurrentActivity(Activity.MOVE);
-		if(this.isDoingDefault() ==3) //TODO: controleren en verder aanpassen
+		if(this.isDoingDefault()!=2){
+			if(!this.isAbleToMove() )
+				throw new IllegalStateException("Unit is not able to move at this moment.");
+		}
+		if(this.isDoingDefault() ==2) //TODO: controleren en verder aanpassen
 			this.stopDoingDefault();
 		if(this.isDoingDefault() >=1)
 			this.doingDefault -=1;
-
+		setCurrentActivity(Activity.MOVE);
 		nextPosition = this.getPosition().getCubeCoordinates().add(direction);// TODO: make setPosition to check nextPosition is between world boundaries
 	}
 
-	public void moveToTarget(Vector targetPosition){
-		if(!this.isAbleToMove())
-			throw new IllegalStateException("Unit is not able to move at this moment.");
+	public void moveToTarget(Vector targetPosition) throws IllegalStateException{
+		if(this.isDoingDefault()!=2){
+			if(!this.isAbleToMove())
+				throw new IllegalStateException("Unit is not able to move at this moment.");
+		}
 		if(this.isDoingDefault() ==2)
 			this.stopDoingDefault();
 		if(this.isDoingDefault() == 3)
 			this.doingDefault -=1;
-
+		
 		setCurrentActivity(Activity.MOVE);
 		this.targetPosition = targetPosition;
 	}
 	private Vector nextPosition, targetPosition;
 	private boolean isSprinting = false;
 
-	public void sprint(){
+	public void sprint() throws IllegalStateException{
 		if(!this.isAbleToSprint())
 			throw new IllegalStateException("The Unit is not able to sprint!");
 		this.isSprinting = true;
@@ -1145,9 +1150,15 @@ public class Unit {
 	private float workProgress = 0;
 
 // TODO: COMMENT!
-	public void work(){
-		if(!this.isAbleToWork())
-			throw new IllegalStateException("Unit is not able to work at this moment");
+	public void work() throws IllegalStateException{
+		if(this.isDoingDefault()!=2){
+			if(!this.isAbleToWork())
+				throw new IllegalStateException("Unit is not able to work at this moment");
+		}
+		if(this.isDoingDefault() ==2)
+			this.stopDoingDefault();
+		if(this.isDoingDefault() == 3)
+			this.doingDefault -=1;
 		setCurrentActivity(Activity.WORK);
 		setWorkProgress(0);
 		setWorkDuration(getWorkingTime(this.getStrength()));
@@ -1286,9 +1297,15 @@ public class Unit {
 
 	//region resting
 
-	public void rest(){
-		if(!isAbleToRest())
-			throw new IllegalStateException("This unit cannot rest at this moment");
+	public void rest() throws IllegalStateException{
+		if(this.isDoingDefault()!=2){
+			if(!isAbleToRest())
+				throw new IllegalStateException("This unit cannot rest at this moment");
+		}
+		if(this.isDoingDefault() ==2)
+			this.stopDoingDefault();
+		if(this.isDoingDefault() == 3)
+			this.doingDefault -=1;
 		setCurrentActivity(Activity.REST);
 		this.restTimer = 0d;// TODO: verify when the restTimer should be reset
 		this.restHitpoints = 0d;
@@ -1308,30 +1325,84 @@ public class Unit {
 	private double restStamina = 0d;
 	//endregion
 
-
+	//region default
+	/**
+	 * Variable registering whether the default behaviour of this unit is activated.
+	 */
 	private boolean defaultActive = false;
+	
+	/**
+	 * Activate the default behaviour of this unit.
+	 *
+	 * @post   Default behaviour of this unit is activated.
+	 *       | new.isDefaultActive()
+	 */
 	public void startDefaultBehviour(){
 		this.defaultActive= true;
 	}
+	
+	/**
+	 * Deactivate the default behaviour of this unit.
+	 *
+	 * @post   Default behaviour of this unit is deactivated.
+	 *       | new.isDefaultActive()
+	 * @effect //TODO: andere dingen beschrijven
+	 */
 	public void stopDefaultBehaviour(){
+		this.stopDoingDefault();
 		this.defaultActive = false;
+		this.setCurrentActivity(Activity.NONE);
 	}
+	
+	/**
+	 * Return a boolean indicating whether or not the units default behaviour is activated
+	 */
 	public boolean isDefaultActive(){
 		return this.defaultActive;
 	}
-	private int doingDefault = 0;
 	
+	/**
+	 * Variable registering the state of the default behaviour.
+	 */
+	private int doingDefault = 0
+			// 0 && 1(in moveToAdjacent)= not doing default behaviour
+			// 2= doing the default behaviour
+			// 3= starting default behaviour
+			;
+	
+	/**
+	 * Start the default behaviour of this unit.
+	 *
+	 * @post   Default behaviour of this unit is started.
+	 *       | new.isDoingDefault()
+	 */
 	public void startDoingDefault(){
-		this.doingDefault = 3; // TODO : alle activiteiten controlen
+		this.doingDefault = 3;
 	}
+	
+	/**
+	 * Stop the default behaviour of this unit.
+	 *
+	 * @post   Default behaviour of this unit is stopped.
+	 *       | new.isDoingDefault()
+	 */
 	public void stopDoingDefault(){
 		this.doingDefault = 0;
 	}
+	
+	/**
+	 * Return a integer indicating in what state the default behaviour is.
+	 */
 	public int isDoingDefault(){
 		return this.doingDefault;
 	}
-	
-	public void setDefaultBehaviour(){
+	//TODO
+	/**
+	 *
+	 */
+	public void setDefaultBehaviour() throws IllegalStateException{
+		if(!this.isDefaultActive())
+			throw new IllegalStateException("The default behaviour of unit is activated");
 		this.startDoingDefault();
 		int activity = randInt(0,2);
 		if (activity ==0){
@@ -1347,7 +1418,8 @@ public class Unit {
 		if (activity ==2)
 			this.rest();
 	}
-
+	//endregion
+	
 }
 
 	

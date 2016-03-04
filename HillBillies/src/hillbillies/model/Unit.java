@@ -46,7 +46,7 @@ public class Unit {
 	private static long ID = 0;
 
     private static final String ALLOWED_NAME_PATTERN = "[a-zA-Z \"']+";
-
+    
     public static final double CUBE_SIDE_LENGTH = 1;
     /*public static final double MIN_X = CUBE_SIDE_LENGTH * 0;
     public static final double MIN_Y = CUBE_SIDE_LENGTH * 0;
@@ -424,8 +424,6 @@ public class Unit {
 			this.agility = agility;
 	}
 
-
-	
 	/**
 	 * Return the toughness of this unit.
 	 */
@@ -477,7 +475,6 @@ public class Unit {
 			this.toughness = toughness;
 	}
 
-	
 	/**
 	 * Return the weight of this unit.
 	 */
@@ -903,7 +900,7 @@ public class Unit {
 							dx = 1;
 						else if(targetPosition.Z() > cpos.Z())
 							dx = -1;
-						this.doingDefault +=1;
+						this.stateDefault +=1;
 						moveToAdjacent(new Vector(dx, dy, dz));
 					}
 				}
@@ -919,7 +916,7 @@ public class Unit {
 					setPosition(newPos);
 					setOrientation((float)Math.atan2(velocity.Y(),velocity.X()));
 				}
-				if(this.isDoingDefault()==2 && !this.isSprinting &&this.isAbleToSprint() &&randInt(0, 1) == 0)
+				if(this.getStateDefault()==2 && !this.isSprinting &&this.isAbleToSprint() &&randInt(0, 1) == 0)
 					this.sprint();
 				break;
 			case WORK:
@@ -927,12 +924,12 @@ public class Unit {
 				break;
 			case ATTACK:
 				if (this.isDefending){
-					this.isDefending = false;
-					if(!this.isAttacking)
+					this.stopDefending();
+					if(!this.isAttacking())
 						setCurrentActivity(Activity.NONE); 
 				}
 				if (activityProgress > 1){
-						this.isAttacking = false;
+						this.stopAttacking();
 						setCurrentActivity(Activity.NONE);// TODO: enum doing nothing
 				} 
 				break;
@@ -1037,27 +1034,27 @@ public class Unit {
 	 *                  neighbouring cubes, each element of the array must have a value of (-)1 or 0
      */
 	public void moveToAdjacent(Vector direction){
-		if(this.isDoingDefault()!=2){
+		if(this.getStateDefault()!=2){
 			if(!this.isAbleToMove() )
 				throw new IllegalStateException("Unit is not able to move at this moment.");
 		}
-		if(this.isDoingDefault() ==2) //TODO: controleren en verder aanpassen
+		if(this.getStateDefault() ==2) //TODO: controleren en verder aanpassen
 			this.stopDoingDefault();
-		if(this.isDoingDefault() >=1)
-			this.doingDefault -=1;
+		if(this.getStateDefault() >=1)
+			this.stateDefault -=1;
 		setCurrentActivity(Activity.MOVE);
 		nextPosition = this.getPosition().getCubeCoordinates().add(direction);// TODO: make setPosition to check nextPosition is between world boundaries
 	}
 
 	public void moveToTarget(Vector targetPosition) throws IllegalStateException{
-		if(this.isDoingDefault()!=2){
+		if(this.getStateDefault()!=2){
 			if(!this.isAbleToMove())
 				throw new IllegalStateException("Unit is not able to move at this moment.");
 		}
-		if(this.isDoingDefault() ==2)
+		if(this.getStateDefault() ==2)
 			this.stopDoingDefault();
-		if(this.isDoingDefault() == 3)
-			this.doingDefault -=1;
+		if(this.getStateDefault() == 3)
+			this.stateDefault -=1;
 		
 		setCurrentActivity(Activity.MOVE);
 		this.targetPosition = targetPosition;
@@ -1151,14 +1148,14 @@ public class Unit {
 
 // TODO: COMMENT!
 	public void work() throws IllegalStateException{
-		if(this.isDoingDefault()!=2){
+		if(this.getStateDefault()!=2){
 			if(!this.isAbleToWork())
 				throw new IllegalStateException("Unit is not able to work at this moment");
 		}
-		if(this.isDoingDefault() ==2)
+		if(this.getStateDefault() ==2)
 			this.stopDoingDefault();
-		if(this.isDoingDefault() == 3)
-			this.doingDefault -=1;
+		if(this.getStateDefault() == 3)
+			this.stateDefault -=1;
 		setCurrentActivity(Activity.WORK);
 		setWorkProgress(0);
 		setWorkDuration(getWorkingTime(this.getStrength()));
@@ -1218,7 +1215,7 @@ public class Unit {
 
 //TODO: COMMENT
 	public void defend(Unit attacker){
-		this.isDefending = true;
+		this.startDefending();
 		setCurrentActivity(Activity.ATTACK);
 		//dodging
 		if ((randInt(0,99)/100.0) < this.getDodgingProbability(attacker)){
@@ -1239,10 +1236,17 @@ public class Unit {
 	
 
 	//TODO: COMMENT
+	/**
+	 * Register an attack from this unit to the given defender.
+	 *
+	 * @param  defender
+	 *         The defender of this attack.
+	 * 
+	 */
 	public void attack(Unit defender) throws IllegalArgumentException{
 		if (!this.isValidAttack(defender))
 			throw new IllegalArgumentException("Cannot attack that unit");
-		this.isAttacking = true;
+		this.startAttacking();
 		//Orientation
 		double dx = (defender.getPosition().X()-this.getPosition().X());
 		double dy = (defender.getPosition().Y()-this.getPosition().Y());
@@ -1256,8 +1260,7 @@ public class Unit {
 	}
 
 	/**
-	 * Check whether an attack is a valid for
-	 * any unit.
+	 * Check whether an attack is a valid for any unit.
 	 *  
 	 * @param  defender
 	 *         The defender to check.
@@ -1266,24 +1269,87 @@ public class Unit {
 	 * 			the attacker is not attacking another unit at the same time and
 	 * 			the attacker is not in the initial rest mode
 	 *       | result == (this.getId()!=defender.getId() &&
-					!this.isAttacking &&
-					!this.isInitialRestMode() &&
-					(Math.abs(defender.getPosition().cubeX()-this.getPosition().cubeX())<=1) &&
-					(Math.abs(defender.getPosition().cubeY()-this.getPosition().cubeY())<=1) &&
-					(Math.abs(defender.getPosition().cubeZ()-this.getPosition().cubeZ())<=1))
-	*/
+	 *				!this.isAttacking &&
+	 *				!this.isInitialRestMode() &&
+	 * 				(Math.abs(defender.getPosition().cubeX()-this.getPosition().cubeX())<=1) &&
+	 *				(Math.abs(defender.getPosition().cubeY()-this.getPosition().cubeY())<=1) &&
+	 *				(Math.abs(defender.getPosition().cubeZ()-this.getPosition().cubeZ())<=1))
+	 */
 	public boolean isValidAttack(Unit defender) {
 		return this.getId()!=defender.getId() &&
-				!this.isAttacking &&
+				!this.isAttacking() &&
 				!this.isInitialRestMode() &&
 				(Math.abs(defender.getPosition().cubeX()-this.getPosition().cubeX())<=1) &&
 				(Math.abs(defender.getPosition().cubeY()-this.getPosition().cubeY())<=1) &&
 				(Math.abs(defender.getPosition().cubeZ()-this.getPosition().cubeZ())<=1);
 	
 	}
-
-	public boolean isAttacking = false;
-	public boolean isDefending= false;
+	
+	/**
+	 * Return a boolean indicating whether or not this person
+	 * is attacking.
+	 */
+	@Basic @Raw
+	public boolean isAttacking() {
+		return this.isAttacking;
+	}
+	
+	/**
+	 * Start attacking.
+	 * @post   This unit is attacking.
+	 *       | new.isAttacking() == true
+	 */
+	public void startAttacking(){
+		this.isAttacking = true;
+	}
+	
+	/**
+	 * Stop attacking.
+	 * @post   This unit is not attacking.
+	 *       | new.isAttacking() == false
+	 */
+	
+	public void stopAttacking(){
+		this.isAttacking = false;
+	}
+	
+	/**
+	 * Variable registering whether this unit is attacking.
+	 */
+	private boolean isAttacking = false;
+	
+	/**
+	 * Return a boolean indicating whether or not this person
+	 * is defending.
+	 */
+	@Basic @Raw
+	public boolean isDefending() {
+		return this.isDefending;
+	}
+	
+	/**
+	 * Start defending.
+	 * @post   This unit is defending.
+	 *       | new.isDefending() == true
+	 */
+	public void startDefending(){
+		this.isDefending = true;
+	}
+	
+	/**
+	 * Stop defending.
+	 * @post   This unit is not defending.
+	 *       | new.isDefending() == false
+	 */
+	
+	public void stopDefending(){
+		this.isDefending = false;
+	}
+	
+	/**
+	 * Variable registering whether this unit is defending.
+	 */
+	private boolean isDefending= false;
 
 	/**
 	 * Return the Id of this Unit.
@@ -1298,14 +1364,14 @@ public class Unit {
 	//region resting
 
 	public void rest() throws IllegalStateException{
-		if(this.isDoingDefault()!=2){
+		if(this.getStateDefault()!=2){
 			if(!isAbleToRest())
 				throw new IllegalStateException("This unit cannot rest at this moment");
 		}
-		if(this.isDoingDefault() ==2)
+		if(this.getStateDefault() ==2)
 			this.stopDoingDefault();
-		if(this.isDoingDefault() == 3)
-			this.doingDefault -=1;
+		if(this.getStateDefault() == 3)
+			this.stateDefault -=1;
 		setCurrentActivity(Activity.REST);
 		this.restTimer = 0d;// TODO: verify when the restTimer should be reset
 		this.restHitpoints = 0d;
@@ -1335,7 +1401,7 @@ public class Unit {
 	 * Activate the default behaviour of this unit.
 	 *
 	 * @post	Default behaviour of this unit is activated.
-	 *       	| new.isDefaultActive() = true
+	 *       	| new.isDefaultActive() == true
 	 */
 	public void startDefaultBehviour(){
 		this.defaultActive= true;
@@ -1345,11 +1411,11 @@ public class Unit {
 	 * Deactivate the default behaviour of this unit.
 	 *
 	 * @post   	Default behaviour of this unit is deactivated.
-	 *       	| new.isDefaultActive() = false
+	 *       	| new.isDefaultActive() == false
      * @post   	The new state of the default behaviour is equal to stopDoingDefault().
-     * 			| new.isDoingDefault() =  stopDoingDefault()
+     * 			| new.isDoingDefault() ==  stopDoingDefault()
      * @post   	The new current activity of this unit is equal to None.
-     * 			| new.getCurrentActivity() = None
+     * 			| new.getCurrentActivity() == None
 	 */
 	public void stopDefaultBehaviour(){
 		this.stopDoingDefault();
@@ -1360,6 +1426,7 @@ public class Unit {
 	/**
 	 * Return a boolean indicating whether or not the units default behaviour is activated
 	 */
+	@Basic
 	public boolean isDefaultActive(){
 		return this.defaultActive;
 	}
@@ -1367,7 +1434,7 @@ public class Unit {
 	/**
 	 * Variable registering the state of the default behaviour.
 	 */
-	private int doingDefault = 0
+	private int stateDefault = 0
 			// 0 && 1(in moveToAdjacent)= not doing default behaviour
 			// 2= doing the default behaviour
 			// 3= starting default behaviour
@@ -1377,27 +1444,28 @@ public class Unit {
 	 * Start the default behaviour of this unit.
 	 *
 	 * @post   Default behaviour of this unit is started.
-	 *       | new.isDoingDefault() = 3
+	 *       | new.getStateDefault()
 	 */
 	public void startDoingDefault(){
-		this.doingDefault = 3;
+		this.stateDefault = 3;
 	}
 	
 	/**
 	 * Stop the default behaviour of this unit.
 	 *
 	 * @post   Default behaviour of this unit is stopped.
-	 *       | new.isDoingDefault() = 0
+	 *       | new.getStateDefault()
 	 */
 	public void stopDoingDefault(){
-		this.doingDefault = 0;
+		this.stateDefault = 0;
 	}
 	
 	/**
 	 * Return a integer indicating in what state the default behaviour is.
 	 */
-	public int isDoingDefault(){
-		return this.doingDefault;
+	@Basic
+	public int getStateDefault(){
+		return this.stateDefault;
 	}
 
     /**
@@ -1406,9 +1474,9 @@ public class Unit {
      * a random activity.
      * | new.getCurrentActivity() 
      * @post The new state of the default behaviour is equal to startDoingDefault()
-     * | new.isDoingDefault() =  startDoingDefault()
+     * | new.isDoingDefault() == startDoingDefault()
      * @throws IllegalStateException * The default behaviour is not activated for this unit.
-     * | ! !this.isDefaultActive()
+     * |   !this.isDefaultActive()
      */
 	public void setDefaultBehaviour() throws IllegalStateException{
 		if(!this.isDefaultActive())

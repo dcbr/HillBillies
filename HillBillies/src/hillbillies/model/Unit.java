@@ -1334,8 +1334,8 @@ public class Unit {
 	/**
 	 * Activate the default behaviour of this unit.
 	 *
-	 * @post   Default behaviour of this unit is activated.
-	 *       | new.isDefaultActive()
+	 * @post	Default behaviour of this unit is activated.
+	 *       	| new.isDefaultActive() = true
 	 */
 	public void startDefaultBehviour(){
 		this.defaultActive= true;
@@ -1344,9 +1344,12 @@ public class Unit {
 	/**
 	 * Deactivate the default behaviour of this unit.
 	 *
-	 * @post   Default behaviour of this unit is deactivated.
-	 *       | new.isDefaultActive()
-	 * @effect //TODO: andere dingen beschrijven
+	 * @post   	Default behaviour of this unit is deactivated.
+	 *       	| new.isDefaultActive() = false
+     * @post   	The new state of the default behaviour is equal to stopDoingDefault().
+     * 			| new.isDoingDefault() =  stopDoingDefault()
+     * @post   	The new current activity of this unit is equal to None.
+     * 			| new.getCurrentActivity() = None
 	 */
 	public void stopDefaultBehaviour(){
 		this.stopDoingDefault();
@@ -1374,7 +1377,7 @@ public class Unit {
 	 * Start the default behaviour of this unit.
 	 *
 	 * @post   Default behaviour of this unit is started.
-	 *       | new.isDoingDefault()
+	 *       | new.isDoingDefault() = 3
 	 */
 	public void startDoingDefault(){
 		this.doingDefault = 3;
@@ -1384,7 +1387,7 @@ public class Unit {
 	 * Stop the default behaviour of this unit.
 	 *
 	 * @post   Default behaviour of this unit is stopped.
-	 *       | new.isDoingDefault()
+	 *       | new.isDoingDefault() = 0
 	 */
 	public void stopDoingDefault(){
 		this.doingDefault = 0;
@@ -1396,10 +1399,17 @@ public class Unit {
 	public int isDoingDefault(){
 		return this.doingDefault;
 	}
-	//TODO
-	/**
-	 *
-	 */
+
+    /**
+     * Set current activity of this Unit to a random activity.
+     * @post The new current activity of this new Unit is equal to
+     * a random activity.
+     * | new.getCurrentActivity() 
+     * @post The new state of the default behaviour is equal to startDoingDefault()
+     * | new.isDoingDefault() =  startDoingDefault()
+     * @throws IllegalStateException * The default behaviour is not activated for this unit.
+     * | ! !this.isDefaultActive()
+     */
 	public void setDefaultBehaviour() throws IllegalStateException{
 		if(!this.isDefaultActive())
 			throw new IllegalStateException("The default behaviour of unit is activated");

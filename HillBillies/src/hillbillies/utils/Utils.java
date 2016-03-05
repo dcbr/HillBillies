@@ -27,4 +27,31 @@ public final class Utils {
             throw new IllegalArgumentException();
         return ThreadLocalRandom.current().nextInt(min, max + 1);
     }
+
+    public static final class ArrayConvert{
+        public static double[] intToDouble(int[] array){
+            double[] result = new double[array.length];
+            for(int i=0;i<result.length;i++)
+                result[i] = (double)array[i];
+            return result;
+        }
+        public static int[] doubleToInt(double[] array){
+            int[] result = new int[array.length];
+            for(int i=0;i<result.length;i++)
+                result[i] = (int)array[i];
+            return result;
+        }
+        public static double[] longToDouble(long[] array){
+            double[] result = new double[array.length];
+            for(int i=0;i<result.length;i++)
+                result[i] = (double)array[i];
+            return result;
+        }
+        public static long[] doubleToLong(double[] array){
+            long[] result = new long[array.length];
+            for(int i=0;i<result.length;i++)
+                result[i] = (long)array[i];
+            return result;
+        }
+    }
 }

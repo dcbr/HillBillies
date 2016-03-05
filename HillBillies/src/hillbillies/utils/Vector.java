@@ -50,9 +50,7 @@ public class Vector {
      *          | vectorList == null
      */
     public Vector(long... vectorList) throws NullPointerException {
-        this.vectorList = new double[vectorList.length];
-        for(int i=0; i<this.vectorList.length; i++)
-            this.vectorList[i] = (double)vectorList[i];
+        this(Utils.ArrayConvert.longToDouble(vectorList));
     }
     /**
      * Initialize a new immutable N-dimensional vector with given coordinates. This is an alternative
@@ -68,9 +66,7 @@ public class Vector {
      *          | vectorList == null
      */
     public Vector(int... vectorList) throws NullPointerException {
-        this.vectorList = new double[vectorList.length];
-        for(int i=0; i<this.vectorList.length; i++)
-            this.vectorList[i] = (double)vectorList[i];
+        this(Utils.ArrayConvert.intToDouble(vectorList));
     }
     /**
      * Initialize a new immutable 3-dimensional vector. This vector represents the origin.

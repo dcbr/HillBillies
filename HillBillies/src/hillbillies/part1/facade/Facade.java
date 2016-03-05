@@ -1,6 +1,7 @@
 package hillbillies.part1.facade;
 
 import hillbillies.model.Unit;
+import hillbillies.utils.Utils;
 import hillbillies.utils.Vector;
 import ogp.framework.util.ModelException;
 
@@ -57,7 +58,7 @@ public class Facade implements IFacade {
      */
     @Override
     public int[] getCubeCoordinate(Unit unit) throws ModelException {
-        return unit.getPosition().getCubeCoordinates();
+        return Utils.ArrayConvert.doubleToInt(unit.getPosition().getCubeCoordinates().asArray());
     }
 
     /**
@@ -69,7 +70,7 @@ public class Facade implements IFacade {
      */
     @Override
     public String getName(Unit unit) throws ModelException {
-        return null;
+        return unit.getName();
     }
 
     /**
@@ -81,7 +82,11 @@ public class Facade implements IFacade {
      */
     @Override
     public void setName(Unit unit, String newName) throws ModelException {
-
+        try {
+            unit.setName(newName);
+        }catch(IllegalArgumentException e){
+            throw new ModelException("Invalid newName for unit.", e);
+        }
     }
 
     /**
@@ -93,7 +98,7 @@ public class Facade implements IFacade {
      */
     @Override
     public int getWeight(Unit unit) throws ModelException {
-        return 0;
+        return unit.getWeight();
     }
 
     /**
@@ -105,7 +110,7 @@ public class Facade implements IFacade {
      */
     @Override
     public void setWeight(Unit unit, int newValue) throws ModelException {
-
+        unit.setWeight(newValue);
     }
 
     /**
@@ -117,7 +122,7 @@ public class Facade implements IFacade {
      */
     @Override
     public int getStrength(Unit unit) throws ModelException {
-        return 0;
+        return unit.getStrength();
     }
 
     /**

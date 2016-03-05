@@ -1435,7 +1435,7 @@ public class Unit {
 		if(this.getStateDefault() >=1)
 			this.stateDefault -=1;
 		setCurrentActivity(Activity.MOVE);
-		nextPosition = this.getPosition().getCubeCoordinates().add(direction);// TODO: make setPosition to check nextPosition is between world boundaries
+		nextPosition = this.getPosition().getCubeCenterCoordinates().add(direction);// TODO: make setPosition to check nextPosition is between world boundaries
 	}
 	
 	public void moveToTarget(Vector targetPosition) throws IllegalStateException{

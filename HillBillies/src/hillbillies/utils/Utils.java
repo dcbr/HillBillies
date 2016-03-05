@@ -16,8 +16,11 @@ public final class Utils {
      * 			Minimum value
      * @param 	max
      * 			Maximum value.
-     * @throws  IllegalArgumentException * min is greater than max
+     * @throws  IllegalArgumentException
+     *          min is greater than max
      * 			| (max < min)
+     * @return  A random integer between min and max (both included).
+     *          | min <= result <= max
      */
     public static int randInt(int min, int max) throws IllegalArgumentException {
         if (max < min)

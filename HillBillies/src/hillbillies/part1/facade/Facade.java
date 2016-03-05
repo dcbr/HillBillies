@@ -1,6 +1,7 @@
 package hillbillies.part1.facade;
 
 import hillbillies.model.Unit;
+import hillbillies.utils.Vector;
 import ogp.framework.util.ModelException;
 
 /**
@@ -26,7 +27,11 @@ public class Facade implements IFacade {
      */
     @Override
     public Unit createUnit(String name, int[] initialPosition, int weight, int agility, int strength, int toughness, boolean enableDefaultBehavior) throws ModelException {
-        return null;
+        try{
+            return new Unit(name, new Vector(initialPosition), strength, agility, toughness, weight, Unit.INITIAL_MIN_STAMINA, Unit.INITIAL_MIN_TOUGHNESS);
+        }catch(IllegalArgumentException e){
+            throw new ModelException("Could not create new Unit.", e);
+        }
     }
 
     /**
@@ -39,7 +44,7 @@ public class Facade implements IFacade {
      */
     @Override
     public double[] getPosition(Unit unit) throws ModelException {
-        return new double[0];
+        return unit.getPosition().asArray();
     }
 
     /**
@@ -52,7 +57,7 @@ public class Facade implements IFacade {
      */
     @Override
     public int[] getCubeCoordinate(Unit unit) throws ModelException {
-        return new int[0];
+        return unit.getPosition().getCubeCoordinates();
     }
 
     /**

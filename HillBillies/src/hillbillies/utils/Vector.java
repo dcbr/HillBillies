@@ -26,20 +26,59 @@ public class Vector {
      * @post    The dimension of this new vector equals the length of vectorList
      *          | this.dimension() == vectorList.length
      * @post    The new vector's coordinates are set to the corresponding elements of vectorList
-     *          | for(int i=0;i<vectorList.length;i++)
+     *          | for(int i=0;i < vectorList.length;i++)
      *          |   this.get(i) == vectorList[i]
+     * @throws  NullPointerException
+     *          When vectorList references null
+     *          | vectorList == null
      */
-    public Vector(double... vectorList){
+    public Vector(double... vectorList) throws NullPointerException {
         this.vectorList = vectorList.clone();
     }
 
     /**
+     * Initialize a new immutable N-dimensional vector with given coordinates. This is an alternative
+     * constructor for when the specified vectorList contains only longs.
+     * @param vectorList Long array containing the coordinates of this new vector.
+     * @post    The dimension of this new vector equals the length of vectorList
+     *          | this.dimension() == vectorList.length
+     * @post    The new vector's coordinates are set to the corresponding elements of vectorList
+     *          | for(int i=0;i < vectorList.length;i++)
+     *          |   this.get(i) == vectorList[i]
+     * @throws  NullPointerException
+     *          When vectorList references null
+     *          | vectorList == null
+     */
+    public Vector(long... vectorList) throws NullPointerException {
+        this.vectorList = new double[vectorList.length];
+        for(int i=0; i<this.vectorList.length; i++)
+            this.vectorList[i] = (double)vectorList[i];
+    }
+    /**
+     * Initialize a new immutable N-dimensional vector with given coordinates. This is an alternative
+     * constructor for when the specified vectorList contains only integers.
+     * @param vectorList Integer array containing the coordinates of this new vector.
+     * @post    The dimension of this new vector equals the length of vectorList
+     *          | this.dimension() == vectorList.length
+     * @post    The new vector's coordinates are set to the corresponding elements of vectorList
+     *          | for(int i=0;i < vectorList.length;i++)
+     *          |   this.get(i) == vectorList[i]
+     * @throws  NullPointerException
+     *          When vectorList references null
+     *          | vectorList == null
+     */
+    public Vector(int... vectorList) throws NullPointerException {
+        this.vectorList = new double[vectorList.length];
+        for(int i=0; i<this.vectorList.length; i++)
+            this.vectorList[i] = (double)vectorList[i];
+    }
+    /**
      * Initialize a new immutable 3-dimensional vector. This vector represents the origin.
      * @effect  Initialize a new Vector with given coordinates: {0,0,0}
-     *          | this(0,0,0)
+     *          | this(0d,0d,0d)
      */
     public Vector(){
-        this(0,0,0);
+        this(0d,0d,0d);
     }
 
     /**
@@ -59,10 +98,25 @@ public class Vector {
      *          The result will be the sum of the first 'this.dimension()' coordinates of this
      *          and other. The remaining coordinates of other do not influence the result.
      */
-    public Vector add(Vector other) throws NullPointerException, IndexOutOfBoundsException {// TODO: rekening houden met overflow? Miss ExtMath gebruiken?
+    public Vector add(Vector other) throws NullPointerException, IndexOutOfBoundsException {
         Vector result = this.clone();
         for(int i=0;i<vectorList.length;i++){
             result.vectorList[i] += other.vectorList[i];
+        }
+        return result;
+    }
+
+    /**
+     * Add a constant to every coordinate of this vector. The result is a new immutable Vector instance.
+     * @param constant The constant to add
+     * @return A new immutable Vector which is calculated as the addition of this Vector's coordinates and the constant.
+     *          | for(int i = 0; i < this.dimension(); i++)
+     *          |   result.get(i) == this.get(i) + constant
+     */
+    public Vector add(double constant){
+        Vector result = this.clone();
+        for(int i=0;i<vectorList.length;i++){
+            result.vectorList[i] += constant;
         }
         return result;
     }
@@ -112,6 +166,7 @@ public class Vector {
      * @return The Euclidean norm of this Vector
      *          | result == sqrt(sum(this.get(i)^2,i=0..this.dimension()-1))
      */
+    @Immutable
     public double length(){
         double lengthSq = 0d;
         for(double coordinate : vectorList)
@@ -142,6 +197,8 @@ public class Vector {
      *          do not influence the result.
      */
     public boolean isInBetween(Vector minPosition, Vector maxPosition) throws NullPointerException, IndexOutOfBoundsException{
+        if(minPosition.dimension() < this.dimension() || maxPosition.dimension() < this.dimension())
+            throw new IndexOutOfBoundsException();
         for(int i=0;i<vectorList.length;i++){
             if(vectorList[i]<minPosition.vectorList[i] || vectorList[i]>maxPosition.vectorList[i])
                 return false;
@@ -215,8 +272,6 @@ public class Vector {
      *          When the given index is greater than or equal to this Vector's dimension.
      *          | index >= this.dimension()
      */
-    @Immutable
-    @Basic // TODO: is this really a basic inspector?
     public double get(int index) throws IndexOutOfBoundsException {
         return this.vectorList[index];
     }
@@ -273,8 +328,8 @@ public class Vector {
      *          When this Vector's dimension is less than or equals index.
      *          | this.dimension() <= index
      */
-    public double getCube(int index) throws IndexOutOfBoundsException {
-        return Math.floor(this.get(index)/CUBE_SIDE_LENGTH);
+    public int getCube(int index) throws IndexOutOfBoundsException {
+        return (int)Math.floor(this.get(index)/CUBE_SIDE_LENGTH);
     }
     /**
      * @return The index of the cube (this Vector lies in) along the X-axis.
@@ -285,7 +340,7 @@ public class Vector {
      *          | this.dimension() == X_INDEX
      */
     @Immutable
-    public double cubeX() throws IndexOutOfBoundsException {
+    public int cubeX() throws IndexOutOfBoundsException {
         return this.getCube(X_INDEX);
     }
     /**
@@ -297,7 +352,7 @@ public class Vector {
      *          | this.dimension() <= Y_INDEX
      */
     @Immutable
-    public double cubeY(){
+    public int cubeY(){
         return this.getCube(Y_INDEX);
     }
     /**
@@ -309,22 +364,36 @@ public class Vector {
      *          | this.dimension() <= Z_INDEX
      */
     @Immutable
-    public double cubeZ(){
+    public int cubeZ(){
         return this.getCube(Z_INDEX);
     }
 
     /**
-     * Returns the coordinates of the center of the cube this Vector lies in.
-     * @return A new Vector instance containing the coordinates of the center of the cube this Vector lies in.
-     *          | result == new Vector(cubeX()+CUBE_SIDE_LENGTH/2, cubeY()+CUBE_SIDE_LENGTH/2, cubeZ()+CUBE_SIDE_LENGTH/2)
-     *          |                       .multiply(CUBE_SIDE_LENGTH)
+     * Returns the coordinates of the cube this Vector lies in.
+     * @return A new Vector instance containing the coordinates of the cube this Vector lies in.
+     *          | for(int i = 0 ; i < this.dimension() ; i++)
+     *          |   cubeIndices[i] = this.getCube(i)
+     *          | result == new Vector(cubeIndices).multiply(CUBE_SIDE_LENGTH)
      */
     @Immutable
     public Vector getCubeCoordinates(){
-        return new Vector(
-                this.cubeX()+CUBE_SIDE_LENGTH/2,
-                this.cubeY()+CUBE_SIDE_LENGTH/2,
-                this.cubeZ()+CUBE_SIDE_LENGTH/2
-        ).multiply(CUBE_SIDE_LENGTH);
+        double[] cubeIndices = new double[this.dimension()];
+        for(int i=0;i<this.dimension();i++){
+            cubeIndices[i] = this.getCube(i);
+        }
+        return new Vector(cubeIndices).multiply(CUBE_SIDE_LENGTH);
+    }
+    /**
+     * Returns the coordinates of the center of the cube this Vector lies in.
+     * @return A new Vector instance containing the coordinates of the center of the cube this Vector lies in.
+     *          | for(int i = 0 ; i < this.dimension() ; i++)
+     *          |   cubeIndices[i] = this.getCube(i) + 0.5
+     *          | result == new Vector(cubeIndices).multiply(CUBE_SIDE_LENGTH)
+     * @effect  Add CUBE_SIDE_LENGTH/2 to the coordinates of the Vector this.getCubeCoordinates()
+     *          | this.getCubeCoordinates().add(CUBE_SIDE_LENGTH/2)
+     */
+    @Immutable
+    public Vector getCubeCenterCoordinates(){
+        return this.getCubeCoordinates().add(CUBE_SIDE_LENGTH/2);
     }
 }

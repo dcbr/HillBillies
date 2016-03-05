@@ -893,13 +893,14 @@ public class Unit {
 
 	/**
 	 * Set the orientation of this Unit to the given orientation.
-	 * * @param orientation
+	 * @param orientation
 	 * The new orientation for this Unit.
-	 * @post If the given orientation is a valid orientation for any Unit,
-	 * the orientation of this new Unit is equal to the given
-	 * orientation. Otherwise the orientation is set to its default
-	 * | if (isValidOrientation(orientation))
-	 * | then new.getOrientation() == orientation}
+	 * @post The orientation of this unit is equal to the rest of the division
+	 * between the given orientation and MAX_ORIENTATION. If the rest is negative, 
+	 * the rest is added with MAX_ORIENTATION.  
+	 * | new.getOrientation() == orientation%MAX_ORIENTATION
+	 * | if (orientation%MAX_ORIENTATION < 0)
+	 * | 	new.getOrientation() == (orientation%MAX_ORIENTATION) + MAX_ORIENTATION
 	 */
 	@Raw
 	public void setOrientation(float orientation) {
@@ -1399,6 +1400,7 @@ public class Unit {
 	private void stopAttacking(){
 		this.isAttacking = false;
 	}
+	
 	/**
 	 * Start defending.
 	 * @post   This unit is defending.
@@ -1407,12 +1409,12 @@ public class Unit {
 	public void startDefending(){
 		this.isDefending = true;
 	}
+	
 	/**
 	 * Stop defending.
 	 * @post   This unit is not defending.
 	 *       | new.isDefending() == false
 	 */
-
 	public void stopDefending(){
 		this.isDefending = false;
 	}
@@ -1421,7 +1423,7 @@ public class Unit {
 
 	//region Moving
 	/**
-	 * Method to let the Unit move to an adjacent cube
+	 * Method to let the Unit move to an adjacent cube.
 	 * @param direction The direction the Unit should move towards. Since this method can only be used to move to
 	 *                  neighbouring cubes, each element of the array must have a value of (-)1 or 0
      */

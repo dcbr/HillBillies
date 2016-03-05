@@ -1267,10 +1267,12 @@ public class Unit {
 	 * @return 	is true if the position of the attackers cube lies next to the defenders cube 
 	 * 			or is the same cube and the attacker do not attacks itself and
 	 * 			the attacker is not attacking another unit at the same time and
-	 * 			the attacker is not in the initial rest mode
+	 * 			the attacker is not in the initial rest mode and
+	 * 			the defender has more hitpoints than MIN_HITPOINTS
 	 *       | result == (this.getId()!=defender.getId() &&
 	 *				!this.isAttacking &&
 	 *				!this.isInitialRestMode() &&
+	 *				(defender.getHitpoints()> MIN_HITPOINTS)
 	 * 				(Math.abs(defender.getPosition().cubeX()-this.getPosition().cubeX())<=1) &&
 	 *				(Math.abs(defender.getPosition().cubeY()-this.getPosition().cubeY())<=1) &&
 	 *				(Math.abs(defender.getPosition().cubeZ()-this.getPosition().cubeZ())<=1))
@@ -1279,6 +1281,7 @@ public class Unit {
 		return this.getId()!=defender.getId() &&
 				!this.isAttacking() &&
 				!this.isInitialRestMode() &&
+				(defender.getHitpoints()> MIN_HITPOINTS) &&
 				(Math.abs(defender.getPosition().cubeX()-this.getPosition().cubeX())<=1) &&
 				(Math.abs(defender.getPosition().cubeY()-this.getPosition().cubeY())<=1) &&
 				(Math.abs(defender.getPosition().cubeZ()-this.getPosition().cubeZ())<=1);
@@ -1299,7 +1302,7 @@ public class Unit {
 	 * @post   This unit is attacking.
 	 *       | new.isAttacking() == true
 	 */
-	public void startAttacking(){
+	private void startAttacking(){
 		this.isAttacking = true;
 	}
 	
@@ -1309,7 +1312,7 @@ public class Unit {
 	 *       | new.isAttacking() == false
 	 */
 	
-	public void stopAttacking(){
+	private void stopAttacking(){
 		this.isAttacking = false;
 	}
 	
@@ -1424,7 +1427,7 @@ public class Unit {
 	}
 	
 	/**
-	 * Return a boolean indicating whether or not the units default behaviour is activated
+	 * Return a boolean indicating whether or not the units default behaviour is activated.
 	 */
 	@Basic
 	public boolean isDefaultActive(){

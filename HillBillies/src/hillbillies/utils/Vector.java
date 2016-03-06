@@ -391,5 +391,6 @@ public class Vector {
     @Immutable
     public Vector getCubeCenterCoordinates(){
         return this.getCubeCoordinates().add(CUBE_SIDE_LENGTH/2);
-    }
+ }
+    
 }

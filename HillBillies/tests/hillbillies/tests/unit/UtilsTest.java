@@ -42,10 +42,10 @@ public class UtilsTest {
         assertTrue(Arrays.equals(coordinates, v.asArray()));
         assertTrue(Arrays.equals(new double[]{0,0,0},origin.asArray()));
     }
-    @Test(expected = NullPointerException.class)
-    public void testConstructorNull() throws NullPointerException {
-        new Vector(null);
-    }
+//    @Test(expected = NullPointerException.class)
+//    public void testConstructorNull() throws NullPointerException {
+//        new Vector(null);
+//    }
 
     @Test
     public void testAdd() throws Exception {
@@ -301,7 +301,9 @@ public class UtilsTest {
 
     @Test
     public void testCubeCoordinates() throws Exception {
-        // TODO: implement tests
+    	assertTrue(origin.getCubeCoordinates().equals(new Vector (0,0,0)));
+    	assertTrue((new Vector(5.2,4.9,3.1)).getCubeCoordinates().equals(new Vector(5,4,3)));
+        assertTrue(neg.getCubeCoordinates().equals(new Vector(-1,-2,-4)));
     }
 
     @Test

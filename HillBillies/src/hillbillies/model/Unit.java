@@ -43,42 +43,134 @@ import static hillbillies.utils.Utils.randInt;
 public class Unit {
 
 	//region Constants
+	/**
+	 * Constant reflecting the length of a units ID.     
+	 */
 	private static long ID = 0;
-
+	/**
+	 * Constant reflecting the allowed name pattern    
+	 */
     private static final String ALLOWED_NAME_PATTERN = "[a-zA-Z \"']+";
-    
+	/**
+	 * Constant reflecting the length of a cube side.    
+	 */
     public static final double CUBE_SIDE_LENGTH = 1;
+	/**
+	 * Constant reflecting the minimum position in the units world.    
+	 */
     public static final Vector MIN_POSITION = new Vector(CUBE_SIDE_LENGTH * 0, CUBE_SIDE_LENGTH * 0, CUBE_SIDE_LENGTH * 0);
+	/**
+	 * Constant reflecting the maximum position in the units world.    
+	 */
     public static final Vector MAX_POSITION = new Vector(CUBE_SIDE_LENGTH * 50, CUBE_SIDE_LENGTH * 50, CUBE_SIDE_LENGTH * 50);
-    
+	/**
+	 * Constant reflecting the minimum strength of a unit.    
+	 */
     public static final int MIN_STRENGTH = 1;
+	/**
+	 * Constant reflecting the maximum strength of a unit.    
+	 */
     public static final int MAX_STRENGTH = 200;
+	/**
+	 * Constant reflecting the minimum agility of a unit.    
+	 */
     public static final int MIN_AGILITY = 1;
+	/**
+	 * Constant reflecting the maximum agility of a unit.    
+	 */
     public static final int MAX_AGILITY = 200;
+	/**
+	 * Constant reflecting the minimum toughness of a unit.    
+	 */
     public static final int MIN_TOUGHNESS = 1;
+	/**
+	 * Constant reflecting the maximum toughness of a unit.    
+	 */
     public static final int MAX_TOUGHNESS = 200;
+	/**
+	 * Constant reflecting the minimum weight of a unit.    
+	 */
     public static final int MIN_WEIGHT = 1;
+	/**
+	 * Constant reflecting the maximum weight of a unit.    
+	 */
     public static final int MAX_WEIGHT = 200;
+	/**
+	 * Constant reflecting the minimum stamina of a unit.    
+	 */
     public static final int MIN_STAMINA = 0;
+	/**
+	 * Constant reflecting the minimum hitpoints of a unit.    
+	 */
     public static final int MIN_HITPOINTS = 0;
+	/**
+	 * Constant reflecting the minimum orientation of a unit.    
+	 */
 	public static final float MIN_ORIENTATION = 0;
+	/**
+	 * Constant reflecting the maximum strength of a unit.    
+	 */
 	public static final float MAX_ORIENTATION = 2*(float)Math.PI;
-
+	
+	/**
+	 * Constant reflecting the minimum initial strength of a unit.    
+	 */
     public static final int INITIAL_MIN_STRENGTH = 25;
+	/**
+	 * Constant reflecting the maximal initial strength of a unit.    
+	 */
     public static final int INITIAL_MAX_STRENGTH = 100;
+	/**
+	 * Constant reflecting the minimum initial agility of a unit.    
+	 */
     public static final int INITIAL_MIN_AGILITY = 25;
+	/**
+	 * Constant reflecting the maximal initial agility of a unit.    
+	 */
     public static final int INITIAL_MAX_AGILITY = 100;
+	/**
+	 * Constant reflecting the minimum initial toughness of a unit.    
+	 */
     public static final int INITIAL_MIN_TOUGHNESS = 25;
+	/**
+	 * Constant reflecting the maximal initial toughness of a unit.    
+	 */
     public static final int INITIAL_MAX_TOUGHNESS = 100;
+	/**
+	 * Constant reflecting the minimum initial weight of a unit.    
+	 */
     public static final int INITIAL_MIN_WEIGHT = 25;
+	/**
+	 * Constant reflecting the maximal initial weight of a unit.    
+	 */
     public static final int INITIAL_MAX_WEIGHT = 100;
+	/**
+	 * Constant reflecting the minimum initial stamina points of a unit.    
+	 */
 	public static final int INITIAL_MIN_STAMINA = 1;
+	/**
+	 * Constant reflecting the minimum initial hitpoints of a unit.    
+	 */
 	public static final int INITIAL_MIN_HITPOINTS = 1;
+	/**
+	 * Constant reflecting the initial orientation of a unit.    
+	 */
 	public static final float INITIAL_ORIENTATION = (float)Math.PI/2;
-
+	/**
+	 * Constant reflecting the stamina points a unit loses while sprinting.    
+	 */
 	public static final int SPRINT_STAMINA_LOSS = 1;// Stamina loss per interval when sprinting
+	/**
+	 * Constant reflecting the interval a sprinting unit loses a SPRINT_STAMINA_LOSS.    
+	 */
 	public static final double SPRINT_STAMINA_LOSS_INTERVAL = 0.1d;// Unit will loose SPRINT_STAMINA_LOSS every SPRINT_STAMINA_LOSS_INTERVAL seconds when sprinting
+	/**
+	 * Constant reflecting the interval when a unit has to rest.    
+	 */
 	public static final double REST_INTERVAL = 3*60;// Unit will rest every REST_INTERVAL seconds
+	/**
+	 * Constant reflecting the duration of an attack.    
+	 */
 	public static final double ATTACK_DURATION = 1d;
 	//endregion
 
@@ -133,9 +225,15 @@ public class Unit {
 	 * Variable registering the orientation of this Unit.
 	 */
 	private float orientation;
-
+	
+	/**
+	 * Variable registering the next position and target position of this unit.
+	 */
 	private Vector nextPosition, targetPosition;
-
+	
+	/**
+	 * Variable registering whether this unit is sprrinting.
+	 */
 	private boolean isSprinting = false;
 
 	/**
@@ -155,6 +253,9 @@ public class Unit {
 	 */
 	private Activity activity;
 
+	/**
+	 * Variable registering the duration of an activity progress of this unit.
+	 */
 	private double activityProgress = 0d;
 
 	/**
@@ -167,9 +268,17 @@ public class Unit {
 	 */
 	private boolean isDefending= false;
 
+	/**
+	 * Variable registering time each period a unit starts to is required time.
+	 */
 	private double restTimer = 0d;
-
+	/**
+	 * Variable registering the hitpoints a unit recovered during the current rest period.
+	 */
 	private double restHitpoints = 0d;
+	/**
+	 * Variable registering the stamina points a unit recovered during the current rest period.
+	 */
 	private double restStamina = 0d;
 	//endregion
 
@@ -510,6 +619,16 @@ public class Unit {
 		return this.activity;
 	}
 	/**
+	 * Return the current speed of this unit.
+	 */
+	public double getCurrentSpeed(){
+		if(this.getCurrentActivity() != Activity.MOVE)
+			return ((double)0.0);
+		Vector cpos = getPosition();
+		Vector difference = nextPosition.difference(cpos);
+		return (this.isSprinting ? getSprintSpeed(difference) : getWalkingSpeed(difference));
+	}
+	/**
 	 * Return the hitpoints a unit lose when he is taking damage.
 	 * @param	attacker
 	 * 			The attacker to check against.
@@ -661,20 +780,32 @@ public class Unit {
 	//endregion
 
 	//region Checkers
-
+	/**
+	 * Return a boolean indicating whether or not this person
+	 * is able to move.
+	 */
 	public boolean isAbleToMove(){
 		return !this.isInitialRestMode() && this.getCurrentActivity()!=Activity.ATTACK && this.getCurrentActivity()!=Activity.WORK;
 	}
-
+	/**
+	 * Return a boolean indicating whether or not this person
+	 * is able to rest.
+	 */
 	public boolean isAbleToRest(){
 		return this.getCurrentActivity()!=Activity.ATTACK;
 	}
-
+	/**
+	 * Return a boolean indicating whether or not this person
+	 * is able to sprint.
+	 */
 	public boolean isAbleToSprint(){
 		return this.isMoving() && getStamina()>MIN_STAMINA;
 	}
 
-
+	/**
+	 * Return a boolean indicating whether or not this person
+	 * is able to work.
+	 */
 	public boolean isAbleToWork(){
 		return !this.isInitialRestMode() && this.getCurrentActivity() != Activity.ATTACK;
 	}
@@ -704,15 +835,24 @@ public class Unit {
 	public boolean isDefending() {
 		return this.isDefending;
 	}
-
+	/**
+	 * Return a boolean indicating whether or not this person
+	 * is in its initial resting period.
+	 */
 	public boolean isInitialRestMode(){
 		return this.getCurrentActivity()==Activity.REST && this.restHitpoints<1d;
 	}
-
+	/**
+	 * Return a boolean indicating whether or not this person
+	 * is moving.
+	 */
 	public boolean isMoving(){
 		return this.getCurrentActivity()==Activity.MOVE;
 	}
-
+	/**
+	 * Return a boolean indicating whether or not this person
+	 * is sprinting.
+	 */
 	public boolean isSprinting(){
 		return this.isSprinting;
 	}
@@ -1196,7 +1336,11 @@ public class Unit {
 					this.sprint();
 				break;
 			case WORK:
-
+				if (activityProgress >= this.getWorkDuration())
+					setCurrentActivity(Activity.NONE);
+				else{
+					this.setWorkProgress(((float) activityProgress)/ ((float)this.getWorkDuration()));
+				}
 				break;
 			case ATTACK:
 				if (this.isDefending){
@@ -1339,17 +1483,34 @@ public class Unit {
 
 	//region Fighting
 
-	//TODO: COMMENT
+	
 	/**
-	 * Register an attack from this unit to the given defender.
+	 * Let this unit attack the defender.
 	 *
 	 * @param  defender
 	 *         The defender of this attack.
-	 * 
+	 * @post   	The orientation of this unit and the defender is changed. 
+	 * 			They are orientated to each other.
+	 *			| (new defender).getOrientation() == -this.setOrientation((float)Math.atan2(defender.getPosition().Y()-this.getPosition().Y(), (defender.getPosition().X()-this.getPosition().X())))
+	 * 			| new.getOrientation() == this.setOrientation((float)Math.atan2(defender.getPosition().Y()-this.getPosition().Y(), (defender.getPosition().X()-this.getPosition().X())))
+	 * @post	the attacker is attacking.
+	 * 			| new.isAttacking() == true
+	 * @post	the current activity is attack
+	 * 			| new.getCurrentActivity() == Activity.Attack
+	 * @post	The attacker stops the default behaviour if it was doing this.
+	 * 			| new.isDoingBehaviour
+	 * @effect	The defender defends this attack
+	 * 			| defender.defend(this)
+	 * @throws	IllegalArgumentException * the attacker is not able to attack this unit.
+	 * 			| !this.isValidAttack(defender)	
 	 */
 	public void attack(Unit defender) throws IllegalArgumentException{
-		if (!this.isValidAttack(defender))
-			throw new IllegalArgumentException("Cannot attack that unit");
+		if(this.getStateDefault()!=2){
+			if (!this.isValidAttack(defender))
+				throw new IllegalArgumentException("Cannot attack that unit");
+		}
+		if(this.getStateDefault() ==2)
+			this.stopDoingDefault();
 		this.startAttacking();
 		//Orientation
 		double dx = (defender.getPosition().X()-this.getPosition().X());
@@ -1363,9 +1524,30 @@ public class Unit {
 
 	}
 	
-	//TODO: COMMENT
+	/**
+	 * Let defend this unit against the given attacker.
+	 *
+	 * @param  attacker
+	 *         The attacker of this attack.
+	 * @post	This unit stops the default behaviour if it was doing this.
+	 * 			| new.isDoingBehaviour
+	 * @post 	The new activity of this unit is Attack.
+	 * 			| new.getCurrentActivity == Activity.Attack
+	 * @post	If a random number between 0 and 1 (1 excluded) is less then 
+	 * this.getDodgingProbability(attacker), the defender shall dodge the attack
+	 * by jumping to a random other place. With Math.abs(dx) = Math.abs(dy) <= 1, dz = 0.
+	 * | if ((randInt(0,99)/100.0) < this.getDodgingProbability(attacker))
+	 * | then new.getPosition()
+	 * @post	When a unit fails to dodge, it can block the attack if a random number 
+	 * between 0 and 1 (1 excluded) is less then this.getBlockingProbability(attacker).
+	 * If it fails to block, it will be damaged with this.getDamagingPoints(attacker).
+	 * | else if ( !((randInt(0,99)/100.0) < this.getBlockingProbability(attacker)))
+	 * | then new.getHitpoints()
+	 */
 	public void defend(Unit attacker){
 		this.startDefending();
+		if(this.getStateDefault() ==2)
+			this.stopDoingDefault();
 		setCurrentActivity(Activity.ATTACK);
 		//dodging
 		if ((randInt(0,99)/100.0) < this.getDodgingProbability(attacker)){
@@ -1425,7 +1607,9 @@ public class Unit {
 	/**
 	 * Method to let the Unit move to an adjacent cube.
 	 * @param direction The direction the Unit should move towards. Since this method can only be used to move to
-	 *                  neighbouring cubes, each element of the array must have a value of (-)1 or 0
+	 *                  neighbouring cubes, each element of the array must have a value of (-)1 or 0.
+	 * @post	This unit stops the default behaviour if it was doing this
+	 * 			| new.isDoingBehaviour
      */
 	public void moveToAdjacent(Vector direction) throws IllegalStateException{
 		if(this.getStateDefault()!=2){
@@ -1439,7 +1623,17 @@ public class Unit {
 		setCurrentActivity(Activity.MOVE);
 		nextPosition = this.getPosition().getCubeCenterCoordinates().add(direction);// TODO: make setPosition to check nextPosition is between world boundaries
 	}
-	
+	/**
+	 * Method to let the Unit move to a target.
+	 * @param targetPosition 
+	 * 			The direction the Unit should move towards.
+	 * @post	This unit stops the default behaviour if it was doing this
+	 * 			| new.isDoingBehaviour
+	 * @post	if this is the default behaviour, set the stateDefault to a new state.
+	 * 			| new.isDoingBehaviour
+	 * @throws IllegalStateException * If this unit isn't able to move.
+	 * 		|!this.isAbleToMove()
+	 */
 	public void moveToTarget(Vector targetPosition) throws IllegalStateException{
 		if(this.getStateDefault()!=2){
 			if(!this.isAbleToMove())
@@ -1453,20 +1647,45 @@ public class Unit {
 		setCurrentActivity(Activity.MOVE);
 		this.targetPosition = targetPosition;
 	}
-
+	/**
+	 * Method to let the Unit sprint.
+	 * @post the unit is sprinting.
+	 * 		| new.isSprinting() == true
+	 * @throws IllegalStateException * if the unit isn't able to sprint.
+	 * | !this.isAbleToSprint()
+	 */
 	public void sprint() throws IllegalStateException{
 		if(!this.isAbleToSprint())
 			throw new IllegalStateException("The Unit is not able to sprint!");
 		this.isSprinting = true;
 	}
-
+	/**
+	 * Method to let the Unit sprint.
+	 * @post the unit stop sprinting.
+	 * 		| new.isSprinting() == false
+	 */
 	public void stopSprint(){
 		this.isSprinting = false;
 	}
 
 	//endregion
-
-	//region Resting
+	/**
+	 * Method to let the Unit rest.
+	 * @post the unit is resting.
+	 * 		| new.getCurrentActivity() == Activity.REST
+	 * @post This unit stops the default behaviour if it was doing this.
+	 * 		| new.isDoingBehaviour
+	 * @post if this is the default behaviour, set the stateDefault to a new state.
+	 * 		| new.isDoingBehaviour 
+	 * @post reset the restTimer of this unit
+	 * 		new.restTimer
+	 * @post reset the restHitpoints of this unit
+	 * 		new.restHitpoints
+	 * @post reset the restStamina of this unit
+	 * 		new.restStamina
+	 * @throws IllegalStateException * if the unit isn't able to rest.
+	 * | !this.isAbleToRest()
+	 */
 	public void rest() throws IllegalStateException{
 		if(this.getStateDefault()!=2){
 			if(!isAbleToRest())
@@ -1485,7 +1704,21 @@ public class Unit {
 	//endregion
 
 	//region Working
-    // TODO: COMMENT!
+	/**
+	 * Method to let the Unit work.
+	 * @post the unit is working.
+	 * 		| new.getCurrentActivity() == Activity.WORK
+	 * @post This unit stops the default behaviour if it was doing this.
+	 * 		| new.isDoingBehaviour
+	 * @post if this is the default behaviour, set the stateDefault to a new state.
+	 * 		| new.isDoingBehaviour 
+	 * @post reset the work progress
+	 * 		| new.getWorkprogress()
+	 * @post reset the work duration
+	 * 		| new.getWorkDuration()
+	 * @throws IllegalStateException * if the unit isn't able to work.
+	 * | !this.isAbleToWork()
+	 */
 	public void work() throws IllegalStateException{
 		if(this.getStateDefault()!=2){
 			if(!this.isAbleToWork())

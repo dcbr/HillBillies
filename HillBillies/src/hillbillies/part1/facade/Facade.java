@@ -292,9 +292,9 @@ public class Facade implements IFacade {
      */
     @Override
     public double getCurrentSpeed(Unit unit) throws ModelException {
-        return 0;
-    }//TODO
-
+        return unit.getCurrentSpeed();
+    }
+    
     /**
      * Return whether the given unit is currently moving.
      *
@@ -330,7 +330,9 @@ public class Facade implements IFacade {
      */
     @Override
     public void stopSprinting(Unit unit) throws ModelException {
-    	unit.stopSprint(); //TODO throwen dat deze niet aant sprinten was?
+    	if(!unit.isSprinting())
+    		throw new ModelException("Unit was not sprinting");
+    	unit.stopSprint(); 
     }
 
     /**
@@ -367,7 +369,11 @@ public class Facade implements IFacade {
      */
     @Override
     public void moveTo(Unit unit, int[] cube) throws ModelException {
-    	//TODO
+    	try{
+    		unit.moveToTarget(new Vector (cube));
+    	}catch (IllegalStateException e){
+    		throw new ModelException("Unit is not able to move at this moment.",e );
+    	}
     }
 
     /**
@@ -466,7 +472,7 @@ public class Facade implements IFacade {
     	if (value)
     		unit.startDefaultBehviour();
     	else unit.stopDefaultBehaviour();
-    } //TODO: ze zeggen precies dat al je deze opzet en dat dit dan direct moet gebeuren. en niet actveren, voor in het geval je niks doet, dat unit default moet doen
+    } 
 
     /**
      * Returns whether the default behavior of the given unit is enabled.

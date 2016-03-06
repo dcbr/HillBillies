@@ -1427,7 +1427,7 @@ public class Unit {
 	 * @param direction The direction the Unit should move towards. Since this method can only be used to move to
 	 *                  neighbouring cubes, each element of the array must have a value of (-)1 or 0
      */
-	public void moveToAdjacent(Vector direction){
+	public void moveToAdjacent(Vector direction) throws IllegalStateException{
 		if(this.getStateDefault()!=2){
 			if(!this.isAbleToMove() )
 				throw new IllegalStateException("Unit is not able to move at this moment.");

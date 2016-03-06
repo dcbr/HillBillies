@@ -707,7 +707,7 @@ public class Unit {
 	public Vector getCorrectPosition(){
 		return getPosition().add(0.5);
 	}
-	
+	 
 	/**
 	 * Retrieve the Unit's sprinting speed
 	 * @param direction The direction the Unit is sprinting in, this is a vector with norm 1

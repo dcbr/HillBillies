@@ -1274,7 +1274,7 @@ public class Unit {
 		// Total
 		this.setOrientation(INITIAL_ORIENTATION);
 
-		this.setCurrentActivity(Activity.REST);
+		this.setCurrentActivity(Activity.NONE);
 	}
 
 	//endregion

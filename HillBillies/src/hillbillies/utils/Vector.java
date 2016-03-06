@@ -10,14 +10,29 @@ import hillbillies.model.Unit;
  * @version 1.0
  */
 public class Vector {
-
+	/**
+	 * Constant reflecting the equals precision.    
+	 */
     public static final double EQUALS_PRECISION = 1e-7;
+	/**
+	 * Constant reflecting the length of a cube side.    
+	 */
     public static final double CUBE_SIDE_LENGTH = Unit.CUBE_SIDE_LENGTH;
-
+	/**
+	 * Constant reflecting the index of x.    
+	 */
     public static final int X_INDEX = 0;
+	/**
+	 * Constant reflecting the index of y.    
+	 */
     public static final int Y_INDEX = 1;
+	/**
+	 * Constant reflecting the index of z.    
+	 */
     public static final int Z_INDEX = 2;
-
+	/**
+	 * Variable registering a vector list.    
+	 */
     private double[] vectorList;
 
     /**

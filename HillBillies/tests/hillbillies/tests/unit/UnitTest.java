@@ -1,5 +1,6 @@
 package hillbillies.tests.unit;
 
+import hillbillies.model.Activity;
 import hillbillies.model.Unit;
 import hillbillies.utils.Vector;
 import org.junit.Before;
@@ -13,10 +14,12 @@ import static org.junit.Assert.*;
  * @version 1.0
  */
 public class UnitTest {
-
+	private static Unit unitx,unity,unitz;
     @Before
     public void setUp() throws Exception {
-
+    	unitx = new Unit("Unitx", new Vector(23,23,0));
+    	unity = new Unit("Unity", new Vector(21,23,0));
+    	unitz = new Unit("Unitx", new Vector(22,22,0));
     }
 
     @Test
@@ -99,6 +102,13 @@ public class UnitTest {
     	assertFalse(Unit.isValidOrientation((float)(5*Math.PI)));
     	assertTrue(Unit.isValidOrientation((float)(0)));
     	assertTrue(Unit.isValidOrientation(Unit.MAX_ORIENTATION));
-    	 
+    	  	
+    }   
+     @Test
+    public void testIsAttack(){
+    	assertTrue(unitx.isValidAttack(unitz));
+    	assertFalse(unitx.isValidAttack(unitx));
+    	assertFalse(unitx.isValidAttack(unity));
     }
+
 }

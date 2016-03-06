@@ -284,7 +284,7 @@ public class Facade implements IFacade {
     }
 
     /**
-     * Return the current speed of the given unit.
+     * Return the current speed of the given unit. 
      *
      * @param unit The unit for which to retrieve the speed.
      * @return The speed of the given unit.

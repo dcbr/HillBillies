@@ -625,7 +625,7 @@ public class Unit {
 		if(this.getCurrentActivity() != Activity.MOVE)
 			return ((double)0.0);
 		Vector cpos = getPosition();
-		Vector difference = nextPosition.difference(cpos);
+		Vector difference = getNextPosition().difference(cpos);
 		return (this.isSprinting ? getSprintSpeed(difference) : getWalkingSpeed(difference));
 	}
 	/**
@@ -685,6 +685,15 @@ public class Unit {
 		return this.name;
 	}
 
+	/**
+	 * Return the next position of this unit.
+	 */
+	@Basic
+	@Raw
+	public Vector getNextPosition(){
+		return this.nextPosition;
+	}
+	
 	/**
 	 * Return the orientation of this Unit.
 	 */
@@ -1030,7 +1039,26 @@ public class Unit {
 			throw new IllegalArgumentException();
 		this.name = name;
 	}
-
+	
+	/**
+	 * Set the next position of this Unit to the given position.
+	 *
+	 * @param position
+	 * The next position for this Unit.
+	 * @post The next position of this new Unit is equal to
+	 * the given position.
+	 * | new.getNextPosition() == position
+	 * @throws IllegalArgumentException * The given position is not a valid position for any
+	 * Unit.
+	 * | ! isValidPosition(getPosition())
+	 */
+	@Raw
+	public void setNextPosition(Vector position) throws IllegalArgumentException {
+		if (position!=null && ! isValidPosition(position))
+			throw new IllegalArgumentException("Invalid position");
+		this.nextPosition = position;
+	}
+	
 	/**
 	 * Set the orientation of this Unit to the given orientation.
 	 * @param orientation
@@ -1318,23 +1346,31 @@ public class Unit {
 						else if(targetPosition.Z() > cpos.Z())
 							dz = 1;
 						this.stateDefault +=1;
+//						if(dx!=0 && Math.abs(targetPosition.X()-cpos.X()) <0.1)
+//							dx *= Math.abs(targetPosition.X()-cpos.X());
+//						if(dy!=0 && Math.abs(targetPosition.Y()-cpos.Y()) <0.1)
+//							dy *= Math.abs(targetPosition.Y()-cpos.Y());
+//						if(dz!=0 && Math.abs(targetPosition.Z()-cpos.Z()) <0.1)
+//							dz *= Math.abs(targetPosition.Z()-cpos.Z());
 						moveToAdjacent(new Vector(dx, dy, dz));
 					}
 				}
-				if(nextPosition.equals(cpos)){
-					setCurrentActivity(Activity.NONE); }
-				if(nextPosition!=null){
-					if(nextPosition.equals(cpos))
-						setCurrentActivity(Activity.NONE);					
+//				if(getNextPosition().equals(cpos)){
+//					setCurrentActivity(Activity.NONE); }
+				if(getNextPosition()!=null){
+					if(getNextPosition().equals(cpos)){
+						setNextPosition(null);
+						setCurrentActivity(Activity.NONE);
+					}					
 					else{
-						Vector difference = nextPosition.difference(cpos);
+						Vector difference = getNextPosition().difference(cpos);
 						double d = difference.length();
 						double v = this.isSprinting ? getSprintSpeed(difference) : getWalkingSpeed(difference);
 						Vector dPos = difference.multiply(v/d*dt);
 						Vector velocity = difference.multiply(v/d);
 						Vector newPos = cpos.add(dPos);
-						if(newPos.equals(nextPosition) || nextPosition.isInBetween(cpos,newPos))
-							newPos = nextPosition;// Set correct position if newPos would surpass next position
+						if(newPos.equals(getNextPosition()) || getNextPosition().isInBetween(cpos,newPos))
+							newPos = getNextPosition();// Set correct position if newPos would surpass next position
 						setPosition(newPos);
 						setOrientation((float)Math.atan2(velocity.Y(),velocity.X()));
 					}
@@ -1620,7 +1656,8 @@ public class Unit {
 	 * @post	This unit stops the default behaviour if it was doing this
 	 * 			| new.isDoingBehaviour
      */
-	public void moveToAdjacent(Vector direction) throws IllegalStateException{
+	//TODO: throws comment
+	public void moveToAdjacent(Vector direction) throws IllegalStateException, IllegalArgumentException{
 		if(this.getStateDefault()!=2){
 			if(!this.isAbleToMove() )
 				throw new IllegalStateException("Unit is not able to move at this moment.");
@@ -1630,7 +1667,11 @@ public class Unit {
 		if(this.getStateDefault() >=1)
 			this.stateDefault -=1;
 		setCurrentActivity(Activity.MOVE);
-		nextPosition = this.getPosition().getCubeCenterCoordinates().add(direction);// TODO: make setPosition to check nextPosition is between world boundaries
+		try{
+			this.setNextPosition(this.getPosition().getCubeCenterCoordinates().add(direction));// TODO: make setPosition to check nextPosition is between world boundaries
+		}catch(IllegalArgumentException e){
+			throw new IllegalArgumentException("Invalid position",e);
+		}
 	}
 	/**
 	 * Method to let the Unit move to a target.

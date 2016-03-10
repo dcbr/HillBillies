@@ -280,6 +280,8 @@ public class Facade implements IFacade {
     		unit.moveToAdjacent(new Vector(dx,dy,dz));
     	}catch(IllegalStateException e){
     		throw new ModelException("Unit is not able to move at this moment.",e);    		
+    	}catch(IllegalArgumentException e){
+    		throw new ModelException("Invalid position",e);
     	}
     }
 

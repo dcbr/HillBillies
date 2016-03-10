@@ -700,7 +700,7 @@ public class Unit {
 	@Basic
 	@Raw
 	public Vector getPosition() {
-		return this.position.clone();
+		return (this.position).clone();
 	}
 	 
 	/**
@@ -942,7 +942,7 @@ public class Unit {
 			this.moveToTarget(new Vector ((double)(Math.random()*(MAX_POSITION.X()-MIN_POSITION.X())+MIN_POSITION.X()),
 					(double)(Math.random()*(MAX_POSITION.Y()-MIN_POSITION.Y())+MIN_POSITION.Y()),
 					(double)(Math.random()*MAX_POSITION.Z()-MIN_POSITION.Z())+MIN_POSITION.Z()));
-			if (this.isAbleToSprint() && randInt(0, 1) == 0){
+			if (this.isAbleToSprint() && randInt(0, 9) < 1){
 				this.sprint();
 			}
 		}
@@ -1301,39 +1301,46 @@ public class Unit {
 				}
 				Vector cpos = getPosition();
 				if(targetPosition!=null){
-					if(targetPosition.equals(cpos))
-						setCurrentActivity(Activity.NONE); // TODO: enum doing nothing
+					if(targetPosition.equals(cpos)){
+						setCurrentActivity(Activity.NONE); }// TODO: enum doing nothing
 					else{
 						int dx = 0, dy = 0, dz = 0;
 						if (targetPosition.X() < cpos.X())
-							dx = 1;
+							dx = -1;
 						else if(targetPosition.X() > cpos.X())
-							dx = -1;
+							dx = 1;
 						if (targetPosition.Y() < cpos.Y())
-							dx = 1;
+							dy = -1;
 						else if(targetPosition.Y() > cpos.Y())
-							dx = -1;
+							dy = 1;
 						if (targetPosition.Z() < cpos.Z())
-							dx = 1;
+							dz = -1;
 						else if(targetPosition.Z() > cpos.Z())
-							dx = -1;
+							dz = 1;
 						this.stateDefault +=1;
 						moveToAdjacent(new Vector(dx, dy, dz));
 					}
 				}
-				if(nextPosition!=null && !nextPosition.equals(cpos)){
-					Vector difference = nextPosition.difference(cpos);
-					double d = difference.length();
-					double v = this.isSprinting ? getSprintSpeed(difference) : getWalkingSpeed(difference);
-					Vector dPos = difference.multiply(v/d*dt);
-					Vector velocity = difference.multiply(v/d);
-					Vector newPos = cpos.add(dPos);
-					if(newPos.equals(nextPosition) || nextPosition.isInBetween(cpos,newPos))
-						newPos = nextPosition;// Set correct position if newPos would surpass next position
-					setPosition(newPos);
-					setOrientation((float)Math.atan2(velocity.Y(),velocity.X()));
-				}
-				if(this.getStateDefault()==2 && !this.isSprinting &&this.isAbleToSprint() &&randInt(0, 1) == 0)
+				if(nextPosition.equals(cpos)){
+					setCurrentActivity(Activity.NONE); }
+				if(nextPosition!=null){
+					if(nextPosition.equals(cpos))
+						setCurrentActivity(Activity.NONE);					
+					else{
+						Vector difference = nextPosition.difference(cpos);
+						double d = difference.length();
+						double v = this.isSprinting ? getSprintSpeed(difference) : getWalkingSpeed(difference);
+						Vector dPos = difference.multiply(v/d*dt);
+						Vector velocity = difference.multiply(v/d);
+						Vector newPos = cpos.add(dPos);
+						if(newPos.equals(nextPosition) || nextPosition.isInBetween(cpos,newPos))
+							newPos = nextPosition;// Set correct position if newPos would surpass next position
+						setPosition(newPos);
+						setOrientation((float)Math.atan2(velocity.Y(),velocity.X()));
+					}
+				}	
+				
+				if(this.getStateDefault()==2 && !this.isSprinting &&this.isAbleToSprint() &&randInt(0, 9) < 1)
 					this.sprint();
 				break;
 			case WORK:
@@ -1478,6 +1485,7 @@ public class Unit {
 	 *       | new.getStateDefault()
 	 */
 	public void stopDoingDefault(){
+		this.stopSprint();
 		this.stateDefault = 0;
 	}
 	//endregion
@@ -1646,7 +1654,7 @@ public class Unit {
 			this.stateDefault -=1;
 		
 		setCurrentActivity(Activity.MOVE);
-		this.targetPosition = targetPosition;
+		this.targetPosition = targetPosition.getCubeCenterCoordinates();
 	}
 	/**
 	 * Method to let the Unit sprint.

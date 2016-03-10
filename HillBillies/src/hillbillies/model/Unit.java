@@ -702,11 +702,6 @@ public class Unit {
 	public Vector getPosition() {
 		return this.position.clone();
 	}
-	@Basic
-	@Raw
-	public Vector getCorrectPosition(){
-		return getPosition().add(0.5);
-	}
 	 
 	/**
 	 * Retrieve the Unit's sprinting speed
@@ -1260,7 +1255,8 @@ public class Unit {
 		ID++;
 		// Defensive
 		this.setName(name);
-		this.setPosition(position);
+		this.setPosition((position.add(0.5)));
+		
 		// Total
 		if (! isValidInitialStrength(strength))
 			strength = INITIAL_MIN_STRENGTH;

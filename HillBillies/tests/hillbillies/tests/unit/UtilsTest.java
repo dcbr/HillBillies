@@ -60,7 +60,16 @@ public class UtilsTest {
         assertTrue(new Vector(10.4321).equals(oneD.add(twoD)));
         // Zero dimensions
         assertTrue(zeroD.equals(zeroD.add(fourD)));
-        // TODO: implement constant addition
+        // Constant addition:
+        // Test immutability (returned Vector is not the same as original Vector)
+        assertFalse(fourD.add(0d)==fourD);
+        // Basic cases
+        assertTrue(fourD.add(0d).equals(fourD));
+        assertTrue(origin.add(1d).equals(unitSum));
+        assertTrue(threeD.add(2.1).equals(new Vector(7.1,6.1,5.31)));
+        assertTrue(unitSum.add(-1d).equals(origin));
+        // Zero dimensions
+        assertTrue(zeroD.equals(zeroD.add(Math.PI)));
     }
     @Test(expected = NullPointerException.class)
     public void testAddNull() throws NullPointerException {
@@ -300,14 +309,14 @@ public class UtilsTest {
     }
 
     @Test
-    public void testCubeCoordinates() throws Exception {
+    public void testGetCubeCoordinates() throws Exception {
     	assertTrue(origin.getCubeCoordinates().equals(new Vector (0,0,0)));
     	assertTrue((new Vector(5.2,4.9,3.1)).getCubeCoordinates().equals(new Vector(5,4,3)));
         assertTrue(neg.getCubeCoordinates().equals(new Vector(-1,-2,-4)));
     }
 
     @Test
-    public void testGetCubeCoordinates() throws Exception {
+    public void testGetCubeCenterCoordinates() throws Exception {
         assertTrue(origin.getCubeCenterCoordinates().equals(unitSum.multiply(0.5)));
         assertTrue(fourD.getCubeCenterCoordinates().equals(new Vector(5.5,4.5,3.5,2.5)));
         assertTrue(neg.getCubeCenterCoordinates().equals(new Vector(-0.5,-1.5,-3.5)));

@@ -2,6 +2,7 @@ package hillbillies.model;
 
 import be.kuleuven.cs.som.annotate.*;
 import hillbillies.utils.Vector;
+import ogp.framework.util.ModelException;
 
 import static hillbillies.utils.Utils.randInt;
 
@@ -967,9 +968,9 @@ public class Unit {
 		this.startDoingDefault();
 		int activity = randInt(0,2);
 		if (activity ==0){
-			this.moveToTarget(new Vector ((double)(Math.random()*(MAX_POSITION.X()-MIN_POSITION.X())+MIN_POSITION.X()),
-					(double)(Math.random()*(MAX_POSITION.Y()-MIN_POSITION.Y())+MIN_POSITION.Y()),
-					(double)(Math.random()*MAX_POSITION.Z()-MIN_POSITION.Z())+MIN_POSITION.Z()));
+			this.moveToTarget(new Vector (Math.random()*(MAX_POSITION.X()-MIN_POSITION.X())+MIN_POSITION.X(),
+					Math.random()*(MAX_POSITION.Y()-MIN_POSITION.Y())+MIN_POSITION.Y(),
+					Math.random()*MAX_POSITION.Z()-MIN_POSITION.Z()+MIN_POSITION.Z()));
 			if (this.isAbleToSprint() && randInt(0, 9) < 1){
 				this.sprint();
 			}
@@ -1418,7 +1419,7 @@ public class Unit {
 				if (activityProgress >= this.getWorkDuration())
 					setCurrentActivity(Activity.NONE);
 				else{
-					this.setWorkProgress(((float) activityProgress)/ ((float)this.getWorkDuration()));
+					this.setWorkProgress(((float) activityProgress)/ (this.getWorkDuration()));
 				}
 				break;
 			case ATTACK:
@@ -1659,16 +1660,18 @@ public class Unit {
 			if(!this.isAbleToMove() )
 				throw new IllegalStateException("Unit is not able to move at this moment.");
 		}
-		if(this.getStateDefault() ==2) //TODO: controleren en verder aanpassen
+		if(this.getStateDefault() ==2) 
 			this.stopDoingDefault();
 		if(this.getStateDefault() >=1)
 			this.stateDefault -=1;
-		setCurrentActivity(Activity.MOVE);
-		try{
-			this.setNextPosition(this.getPosition().getCubeCenterCoordinates().add(direction));// TODO: make setPosition to check nextPosition is between world boundaries
-		}catch(IllegalArgumentException e){
-			throw new IllegalArgumentException("Invalid position",e);
-		}
+		// setNextPosition throws the exception
+		this.setNextPosition(this.getPosition().getCubeCenterCoordinates().add(direction));
+		setCurrentActivity(Activity.MOVE);	
+	}
+	
+	public void moveToAdjacent(int dx, int dy, int dz){
+		this.targetPosition = null;
+  		this.moveToAdjacent(new Vector(dx,dy,dz));
 	}
 	/**
 	 * Method to let the Unit move to a target.

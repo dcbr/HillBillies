@@ -277,7 +277,7 @@ public class Facade implements IFacade {
     @Override
     public void moveToAdjacent(Unit unit, int dx, int dy, int dz) throws ModelException {
     	try{
-    		unit.moveToAdjacent(new Vector(dx,dy,dz));
+    		unit.moveToAdjacent(dx,dy,dz);
     	}catch(IllegalStateException e){
     		throw new ModelException("Unit is not able to move at this moment.",e);    		
     	}catch(IllegalArgumentException e){

@@ -854,7 +854,7 @@ public class Unit {
 	 * is in its initial resting period.
 	 */
 	public boolean isInitialRestMode(){
-		return this.getCurrentActivity()==Activity.REST && this.restHitpoints<1d;
+		return this.getCurrentActivity()==Activity.REST && (this.restHitpoints<1d || this.restStamina<1d);
 	}
 	/**
 	 * Return a boolean indicating whether or not this person
@@ -1363,9 +1363,11 @@ public class Unit {
 				}
 				Vector cpos = getPosition();
 				if(targetPosition!=null){
-					if(targetPosition.equals(cpos)){
-						setCurrentActivity(Activity.NONE); }// TODO: enum doing nothing
-					else{
+//					if(targetPosition.equals(cpos)){
+//						setCurrentActivity(Activity.NONE); 
+//						System.out.println("stopmoving");}// TODO: enum doing nothing
+//					else{
+						System.out.println("target: "+targetPosition);
 						int dx = 0, dy = 0, dz = 0;
 //						if (targetPosition.X() < cpos.X())
 //							dx = -1;
@@ -1379,17 +1381,17 @@ public class Unit {
 //							dz = -1;
 //						else if(targetPosition.Z() > cpos.Z())
 //							dz = 1;
-						if (targetPosition.X() - cpos.X() < -1)
+						if (targetPosition.cubeX() - cpos.cubeX() < 0)
 							dx = -1;
-						else if(targetPosition.X() - cpos.X() > 1)
+						else if(targetPosition.cubeX() - cpos.cubeX() > 0)
 							dx = 1;
-						if (targetPosition.Y() - cpos.Y() < -1)
+						if (targetPosition.cubeY() - cpos.cubeY() < 0)
 							dy = -1;
-						else if(targetPosition.Y() - cpos.Y() > 1)
+						else if(targetPosition.cubeY() - cpos.cubeY() > 0)
 							dy = 1;
-						if (targetPosition.Z() - cpos.Z() < -1)
+						if (targetPosition.cubeZ() - cpos.cubeZ() < 0)
 							dz = -1;
-						else if(targetPosition.Z() - cpos.Z() > 1)
+						else if(targetPosition.cubeZ() - cpos.cubeZ() > 0)
 							dz = 1;
 						this.stateDefault +=1;
 //						if(dx!=0 && Math.abs(targetPosition.X()-cpos.X()) <0.1)
@@ -1404,7 +1406,7 @@ public class Unit {
 							moveToAdjacent(d);
 						else
 							targetPosition = null;
-					}
+//					}
 				}
 //				if(getNextPosition().equals(cpos)){
 //					setCurrentActivity(Activity.NONE); }
@@ -1421,7 +1423,7 @@ public class Unit {
 						Vector dPos = difference.multiply(v/d*dt);
 						Vector velocity = difference.multiply(v/d);
 						Vector newPos = cpos.add(dPos);
-						System.out.println(newPos.add(getNextPosition().multiply(-1)));
+						//System.out.println(newPos.add(getNextPosition().multiply(-1)));
 						System.out.println("diff: " + difference);
 						for(int i=0;i< 3;i++){
 				            if(getNextPosition().isInBetween(i,cpos,newPos)){
@@ -1430,7 +1432,10 @@ public class Unit {
 				            		newPos = new Vector(a);
 				            }
 						}
-				            		
+				        System.out.println("newPos: " + newPos);   
+				        System.out.println("cpos: " + cpos);
+				        System.out.println("dPos: " + dPos);
+				        System.out.println("next " + getNextPosition());
 //						if(newPos.equals(getNextPosition()) || getNextPosition().isInBetween(cpos,newPos))
 //							newPos = getNextPosition();// Set correct position if newPos would surpass next position
 						setPosition(newPos);
@@ -1458,6 +1463,8 @@ public class Unit {
 				int maxHp = getMaxHitpoints(this.getWeight(), this.getToughness());
 				int maxSt = getMaxStamina(this.getWeight(), this.getToughness());
 				double extraTime = -1d;
+				if(maxHp == this.getHitpoints() && maxSt==this.getStamina())
+					setCurrentActivity(Activity.NONE);
 				if(this.getHitpoints()<maxHp){
 					double extraRestHitpoints = getIntervalTicks(activityProgress, dt, 0.2d)*this.getToughness()/1000d;
 					int extraHitpoints = getIntervalTicks(restHitpoints, extraRestHitpoints, 1d);// TODO: make constants
@@ -1485,11 +1492,14 @@ public class Unit {
 					if(newStamina>=maxSt){
 						newStamina = maxSt;
 						newRestStamina = 0;
-						setCurrentActivity(Activity.NONE);// TODO: verify this
+						System.out.println("bkuk");
+						setCurrentActivity(Activity.NONE);
+						System.out.println("");;// TODO: verify this
 					}
 					this.setStamina(newStamina);
 					restStamina = newRestStamina;
 				}
+				
 				break;
 			case NONE:
 				if(this.isDefaultActive())

@@ -854,7 +854,7 @@ public class Unit {
 	 * is in its initial resting period.
 	 */
 	public boolean isInitialRestMode(){
-		return this.getCurrentActivity()==Activity.REST && (this.restHitpoints<1d || this.restStamina<1d);
+		return this.getCurrentActivity()==Activity.REST && (this.restHitpoints+this.restStamina<1d);
 	}
 	/**
 	 * Return a boolean indicating whether or not this person
@@ -1363,24 +1363,8 @@ public class Unit {
 				}
 				Vector cpos = getPosition();
 				if(targetPosition!=null){
-//					if(targetPosition.equals(cpos)){
-//						setCurrentActivity(Activity.NONE); 
-//						System.out.println("stopmoving");}// TODO: enum doing nothing
-//					else{
 						System.out.println("target: "+targetPosition);
 						int dx = 0, dy = 0, dz = 0;
-//						if (targetPosition.X() < cpos.X())
-//							dx = -1;
-//						else if(targetPosition.X() > cpos.X())
-//							dx = 1;
-//						if (targetPosition.Y() < cpos.Y())
-//							dy = -1;
-//						else if(targetPosition.Y() > cpos.Y())
-//							dy = 1;
-//						if (targetPosition.Z() < cpos.Z())
-//							dz = -1;
-//						else if(targetPosition.Z() > cpos.Z())
-//							dz = 1;
 						if (targetPosition.cubeX() - cpos.cubeX() < 0)
 							dx = -1;
 						else if(targetPosition.cubeX() - cpos.cubeX() > 0)
@@ -1394,22 +1378,8 @@ public class Unit {
 						else if(targetPosition.cubeZ() - cpos.cubeZ() > 0)
 							dz = 1;
 						this.stateDefault +=1;
-//						if(dx!=0 && Math.abs(targetPosition.X()-cpos.X()) <0.1)
-//							dx *= Math.abs(targetPosition.X()-cpos.X());
-//						if(dy!=0 && Math.abs(targetPosition.Y()-cpos.Y()) <0.1)
-//							dy *= Math.abs(targetPosition.Y()-cpos.Y());
-//						if(dz!=0 && Math.abs(targetPosition.Z()-cpos.Z()) <0.1)
-//							dz *= Math.abs(targetPosition.Z()-cpos.Z());
-						Vector d = new Vector(dx, dy, dz);
-						System.out.println("dx,dy,dz: " + d);
-						if(d.length()!=0)
-							moveToAdjacent(d);
-						else
-							targetPosition = null;
-//					}
+							moveToAdjacent(new Vector(dx, dy, dz));
 				}
-//				if(getNextPosition().equals(cpos)){
-//					setCurrentActivity(Activity.NONE); }
 				if(getNextPosition()!=null){
 					if(getNextPosition().equals(cpos)){
 						setNextPosition(null);
@@ -1423,7 +1393,6 @@ public class Unit {
 						Vector dPos = difference.multiply(v/d*dt);
 						Vector velocity = difference.multiply(v/d);
 						Vector newPos = cpos.add(dPos);
-						//System.out.println(newPos.add(getNextPosition().multiply(-1)));
 						System.out.println("diff: " + difference);
 						for(int i=0;i< 3;i++){
 				            if(getNextPosition().isInBetween(i,cpos,newPos)){
@@ -1432,12 +1401,6 @@ public class Unit {
 				            		newPos = new Vector(a);
 				            }
 						}
-				        System.out.println("newPos: " + newPos);   
-				        System.out.println("cpos: " + cpos);
-				        System.out.println("dPos: " + dPos);
-				        System.out.println("next " + getNextPosition());
-//						if(newPos.equals(getNextPosition()) || getNextPosition().isInBetween(cpos,newPos))
-//							newPos = getNextPosition();// Set correct position if newPos would surpass next position
 						setPosition(newPos);
 						setOrientation((float)Math.atan2(velocity.Y(),velocity.X()));
 					}
@@ -1466,13 +1429,12 @@ public class Unit {
 				if(maxHp == this.getHitpoints() && maxSt==this.getStamina())
 					setCurrentActivity(Activity.NONE);
 				if(this.getHitpoints()<maxHp){
-					double extraRestHitpoints = getIntervalTicks(activityProgress, dt, 0.2d)*this.getToughness()/1000d;
+					double extraRestHitpoints = getIntervalTicks(activityProgress, dt, 0.02d)*this.getToughness()/1000d;
 					int extraHitpoints = getIntervalTicks(restHitpoints, extraRestHitpoints, 1d);// TODO: make constants
 					int newHitpoints = this.getHitpoints() + extraHitpoints;
 					double newRestHitpoints = restHitpoints + extraRestHitpoints;
 					if(newHitpoints>=maxHp) {
 						newHitpoints = maxHp;
-						newRestHitpoints = 0;
 						double neededExtraRestHitpoints = maxHp - this.getHitpoints() - restHitpoints %1;
 						int neededTicks = (int)Math.ceil(neededExtraRestHitpoints*1000/this.getToughness());
 						double neededTime = 0.2d*neededTicks - activityProgress % 0.2;
@@ -1485,16 +1447,15 @@ public class Unit {
 				if((this.getHitpoints()==maxHp || extraTime > 0d) && this.getStamina()<maxSt){
 					if(extraTime > 0d)
 						dt = extraTime;
-					double extraRestStamina = getIntervalTicks(activityProgress, dt, 0.2d)*this.getToughness()/500d;
+					double extraRestStamina = getIntervalTicks(activityProgress, dt, 0.02d)*this.getToughness()/500d;
 					int extraStamina = getIntervalTicks(restStamina, extraRestStamina, 1d);
 					int newStamina = this.getStamina() + extraStamina;
 					double newRestStamina = restStamina + extraRestStamina;
 					if(newStamina>=maxSt){
 						newStamina = maxSt;
 						newRestStamina = 0;
-						System.out.println("bkuk");
+						restHitpoints = 0;
 						setCurrentActivity(Activity.NONE);
-						System.out.println("");;// TODO: verify this
 					}
 					this.setStamina(newStamina);
 					restStamina = newRestStamina;

@@ -209,7 +209,7 @@ public class Vector {
      *          minPosition and maxPosition. The remaining coordinates of minPosition or maxPosition
      *          do not influence the result.
      * @note    It is not strictly necessary that minPosition 'is less than' maxPosition. If minPosition lies
-     *          further than maxPosition, maxPosition will be threated as minPosition and vice versa.
+     *          further than maxPosition, maxPosition will be treated as minPosition and vice versa.
      */
     public boolean isInBetween(Vector minPosition, Vector maxPosition) throws NullPointerException, IndexOutOfBoundsException{
         if(minPosition.dimension() < this.dimension() || maxPosition.dimension() < this.dimension())

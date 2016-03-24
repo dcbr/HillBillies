@@ -74,6 +74,9 @@ public class Part1InputMode extends DefaultInputMode {
 		case S:
 			getActionExecutor().toggleSprint();
 			e.consume();
+		case D:
+			getActionExecutor().toggleDefaultBehavior();
+			e.consume();
 		default:
 			super.onKeyPressed(e);
 		}

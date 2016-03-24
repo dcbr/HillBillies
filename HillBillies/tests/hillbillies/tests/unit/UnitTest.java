@@ -16,11 +16,12 @@ import static org.junit.Assert.*;
  */
 public class UnitTest {
 
-	private static Unit unit, unitx, unity, unitz;
+	private static Unit unit, customUnit, unitx, unity, unitz;
 
     @BeforeClass
     public void setUpClass() {
         unit = new Unit("Unit", new Vector(25,25,25));
+        customUnit = new Unit("Custom", new Vector(20,20,20), 50, 50, 50, 100, 100, 100);
     }
 
     @Before
@@ -28,6 +29,50 @@ public class UnitTest {
     	unitx = new Unit("Unitx", new Vector(23,23,0));
     	unity = new Unit("Unity", new Vector(21,23,0));
     	unitz = new Unit("Unitz", new Vector(22,22,0));
+    }
+
+    @Test
+    public void testConstructor1(){
+        assertEquals(unit.getName(),"Unit");
+        assertTrue(unit.getPosition().equals(new Vector(25,25,25)));
+        assertEquals(unit.getAgility(), Unit.INITIAL_MIN_AGILITY);
+        assertEquals(unit.getStrength(), Unit.INITIAL_MIN_STRENGTH);
+        assertEquals(unit.getToughness(), Unit.INITIAL_MIN_TOUGHNESS);
+        assertEquals(unit.getWeight(), Unit.INITIAL_MIN_WEIGHT);
+        assertEquals(unit.getStamina(), Unit.INITIAL_MIN_STAMINA);
+        assertEquals(unit.getHitpoints(), Unit.INITIAL_MIN_HITPOINTS);
+    }
+    @Test
+    public void testConstructor2(){
+        assertEquals(customUnit.getName(),"Custom");
+        assertTrue(customUnit.getPosition().equals(new Vector(20,20,20)));
+        assertEquals(customUnit.getAgility(), 50);
+        assertEquals(customUnit.getStrength(), 50);
+        assertEquals(customUnit.getToughness(), 50);
+        assertEquals(customUnit.getWeight(), 100);
+        assertEquals(customUnit.getStamina(), 100);
+        assertEquals(customUnit.getHitpoints(), 100);
+        assertEquals(customUnit.getOrientation(), Unit.INITIAL_ORIENTATION, Vector.EQUALS_PRECISION);
+        assertTrue(customUnit.getCurrentActivity()==Activity.NONE);
+    }
+    @Test(expected = IllegalArgumentException.class)
+    public void testConstructorInvalidName() throws IllegalArgumentException {
+        Unit n = new Unit("no caps", new Vector(20,20,20));
+    }
+    @Test(expected = IllegalArgumentException.class)
+    public void testConstructorInvalidPosition() throws IllegalArgumentException {
+        Unit n = new Unit("Name", new Vector(-10,20,30));
+    }
+    @Test
+    public void testConstructorInvalidPoperties() {
+        Unit n = new Unit("New", new Vector(20,20,20), 500, 50, 50, 100, 100, 100);// Invalid strength
+        assertEquals(n.getStrength(), Unit.INITIAL_MIN_STRENGTH);
+        n = new Unit("New", new Vector(20,20,20), 50, 500, 50, 100, 100, 100);// Invalid agility
+        assertEquals(n.getAgility(), Unit.INITIAL_MIN_AGILITY);
+        n = new Unit("New", new Vector(20,20,20), 50, 50, 500, 100, 100, 100);// Invalid toughness
+        assertEquals(n.getToughness(), Unit.INITIAL_MIN_TOUGHNESS);
+        n = new Unit("New", new Vector(20,20,20), 50, 50, 50, -100, 100, 100);// Invalid weight
+        assertEquals(n.getWeight(), Unit.INITIAL_MIN_WEIGHT);
     }
 
     @Test

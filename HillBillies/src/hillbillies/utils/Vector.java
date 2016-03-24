@@ -4,6 +4,8 @@ import be.kuleuven.cs.som.annotate.Basic;
 import be.kuleuven.cs.som.annotate.Immutable;
 import hillbillies.model.Unit;
 
+import java.util.Arrays;
+
 /**
  * Utility class representing a Vector
  * @author Kenneth & Bram
@@ -407,5 +409,9 @@ public class Vector {
     public Vector getCubeCenterCoordinates(){
         return this.getCubeCoordinates().add(CUBE_SIDE_LENGTH/2);
  }
-    
+
+    @Override
+    public String toString() {
+        return Arrays.toString(this.vectorList);
+    }
 }

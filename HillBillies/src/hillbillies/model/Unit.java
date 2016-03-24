@@ -1367,17 +1367,29 @@ public class Unit {
 						setCurrentActivity(Activity.NONE); }// TODO: enum doing nothing
 					else{
 						int dx = 0, dy = 0, dz = 0;
-						if (targetPosition.X() < cpos.X())
+//						if (targetPosition.X() < cpos.X())
+//							dx = -1;
+//						else if(targetPosition.X() > cpos.X())
+//							dx = 1;
+//						if (targetPosition.Y() < cpos.Y())
+//							dy = -1;
+//						else if(targetPosition.Y() > cpos.Y())
+//							dy = 1;
+//						if (targetPosition.Z() < cpos.Z())
+//							dz = -1;
+//						else if(targetPosition.Z() > cpos.Z())
+//							dz = 1;
+						if (targetPosition.X() - cpos.X() < -1)
 							dx = -1;
-						else if(targetPosition.X() > cpos.X())
+						else if(targetPosition.X() - cpos.X() > 1)
 							dx = 1;
-						if (targetPosition.Y() < cpos.Y())
+						if (targetPosition.Y() - cpos.Y() < -1)
 							dy = -1;
-						else if(targetPosition.Y() > cpos.Y())
+						else if(targetPosition.Y() - cpos.Y() > 1)
 							dy = 1;
-						if (targetPosition.Z() < cpos.Z())
+						if (targetPosition.Z() - cpos.Z() < -1)
 							dz = -1;
-						else if(targetPosition.Z() > cpos.Z())
+						else if(targetPosition.Z() - cpos.Z() > 1)
 							dz = 1;
 						this.stateDefault +=1;
 //						if(dx!=0 && Math.abs(targetPosition.X()-cpos.X()) <0.1)
@@ -1386,7 +1398,12 @@ public class Unit {
 //							dy *= Math.abs(targetPosition.Y()-cpos.Y());
 //						if(dz!=0 && Math.abs(targetPosition.Z()-cpos.Z()) <0.1)
 //							dz *= Math.abs(targetPosition.Z()-cpos.Z());
-						moveToAdjacent(new Vector(dx, dy, dz));
+						Vector d = new Vector(dx, dy, dz);
+						System.out.println("dx,dy,dz: " + d);
+						if(d.length()!=0)
+							moveToAdjacent(d);
+						else
+							targetPosition = null;
 					}
 				}
 //				if(getNextPosition().equals(cpos)){
@@ -1404,9 +1421,18 @@ public class Unit {
 						Vector dPos = difference.multiply(v/d*dt);
 						Vector velocity = difference.multiply(v/d);
 						Vector newPos = cpos.add(dPos);
-//						System.out.println(newPos.add(getNextPosition().multiply(-1)).X());
-						if(newPos.equals(getNextPosition()) || getNextPosition().isInBetween(cpos,newPos))
-							newPos = getNextPosition();// Set correct position if newPos would surpass next position
+						System.out.println(newPos.add(getNextPosition().multiply(-1)));
+						System.out.println("diff: " + difference);
+						for(int i=0;i< 3;i++){
+				            if(getNextPosition().isInBetween(i,cpos,newPos)){
+				            		double[] a = newPos.asArray();
+				            		a[i] = getNextPosition().get(i);
+				            		newPos = new Vector(a);
+				            }
+						}
+				            		
+//						if(newPos.equals(getNextPosition()) || getNextPosition().isInBetween(cpos,newPos))
+//							newPos = getNextPosition();// Set correct position if newPos would surpass next position
 						setPosition(newPos);
 						setOrientation((float)Math.atan2(velocity.Y(),velocity.X()));
 					}

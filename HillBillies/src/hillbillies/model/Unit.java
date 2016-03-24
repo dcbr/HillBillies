@@ -1351,7 +1351,7 @@ public class Unit {
 
 		switch(getCurrentActivity()){
 			case MOVE:
-				System.out.println(this.getPosition().X());
+//				System.out.println(this.getPosition().X());
 				if(this.isSprinting){
 					int newStamina = this.getStamina()-SPRINT_STAMINA_LOSS*getIntervalTicks(activityProgress, dt, SPRINT_STAMINA_LOSS_INTERVAL);
 					if(newStamina<=0){
@@ -1403,7 +1403,7 @@ public class Unit {
 						Vector dPos = difference.multiply(v/d*dt);
 						Vector velocity = difference.multiply(v/d);
 						Vector newPos = cpos.add(dPos);
-						System.out.println(newPos.add(getNextPosition().multiply(-1)).X());
+//						System.out.println(newPos.add(getNextPosition().multiply(-1)).X());
 						if(newPos.equals(getNextPosition()) || getNextPosition().isInBetween(cpos,newPos))
 							newPos = getNextPosition();// Set correct position if newPos would surpass next position
 						setPosition(newPos);

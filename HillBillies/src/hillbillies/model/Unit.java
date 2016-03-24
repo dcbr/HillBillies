@@ -43,6 +43,7 @@ import static hillbillies.utils.Utils.randInt;
 public class Unit {
 
 	//region Constants
+
 	/**
 	 * Constant reflecting the length of a units ID.     
 	 */

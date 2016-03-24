@@ -56,9 +56,16 @@ public class UnitTest {
     @Test
     public void testIsValidAgility(){
         assertFalse(Unit.isValidAgility(-1));
-        assertFalse(Unit.isValidAgility(0));
-        assertFalse(Unit.isValidAgility(201));
+        assertFalse(Unit.isValidAgility(0));// Unit.MIN_AGILITY - 1
+        assertFalse(Unit.isValidAgility(201));// Unit.MAX_AGILITY - 1
         assertTrue(Unit.isValidAgility(150));
+    }
+    @Test
+    public void testIsValidInitialAgility(){
+        assertFalse(Unit.isValidInitialAgility(Unit.INITIAL_MIN_AGILITY-1));
+        assertTrue(Unit.isValidInitialAgility(Unit.INITIAL_MIN_AGILITY));
+        assertTrue(Unit.isValidInitialAgility(Unit.INITIAL_MAX_AGILITY));
+        assertFalse(Unit.isValidInitialAgility(Unit.INITIAL_MAX_AGILITY+1));
     }
 
     @Test
@@ -89,9 +96,9 @@ public class UnitTest {
 
     @Test
     public void testIsValidHitpoints(){
-        assertFalse(Unit.isValidHitpoints(-1,1,1));
+        assertFalse(Unit.isValidHitpoints(-1,1,1));// hitpoints < MIN_HITPOINTS
         assertTrue(Unit.isValidHitpoints(0,1,1));
-        assertFalse(Unit.isValidHitpoints(801,200,200));
+        assertFalse(Unit.isValidHitpoints(801,200,200));// hitpoints > getMaxHitpoints(200,200)
         assertTrue(Unit.isValidHitpoints(560,200,200));
         assertFalse(Unit.isValidHitpoints(100,25,25));
     }

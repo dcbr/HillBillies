@@ -208,15 +208,24 @@ public class Vector {
      *          The result will only be checked for the first 'this.dimension()' coordinates of this,
      *          minPosition and maxPosition. The remaining coordinates of minPosition or maxPosition
      *          do not influence the result.
+     * @note    It is not strictly necessary that minPosition 'is less than' maxPosition. If minPosition lies
+     *          further than maxPosition, maxPosition will be threated as minPosition and vice versa.
      */
     public boolean isInBetween(Vector minPosition, Vector maxPosition) throws NullPointerException, IndexOutOfBoundsException{
         if(minPosition.dimension() < this.dimension() || maxPosition.dimension() < this.dimension())
             throw new IndexOutOfBoundsException();
         for(int i=0;i<vectorList.length;i++){
-            if(vectorList[i]<minPosition.vectorList[i] || vectorList[i]>maxPosition.vectorList[i])
+            if(!isInBetween(i, minPosition, maxPosition))
                 return false;
         }
         return true;
+    }
+
+    public boolean isInBetween(int index, Vector position1, Vector position2) throws NullPointerException, IndexOutOfBoundsException{
+        if(position1.dimension() < index || position2.dimension() < index || this.dimension() < index)
+            throw new IndexOutOfBoundsException();
+        return (this.vectorList[index]>=position1.vectorList[index] && this.vectorList[index]<=position2.vectorList[index]) ||
+                (this.vectorList[index]>=position2.vectorList[index] && this.vectorList[index]<=position1.vectorList[index]);
     }
 
     /**

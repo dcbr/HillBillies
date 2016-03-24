@@ -969,8 +969,8 @@ public class Unit {
 		int activity = randInt(0,2);
 		if (activity ==0){
 			this.moveToTarget(new Vector (Math.random()*(MAX_POSITION.X()-MIN_POSITION.X())+MIN_POSITION.X(),
-					Math.random()*(MAX_POSITION.Y()-MIN_POSITION.Y())+MIN_POSITION.Y(),0));
-					//Math.random()*MAX_POSITION.Z()-MIN_POSITION.Z()+MIN_POSITION.Z()));
+					Math.random()*(MAX_POSITION.Y()-MIN_POSITION.Y())+MIN_POSITION.Y(),
+					Math.random()*(MAX_POSITION.Z()-MIN_POSITION.Z())+MIN_POSITION.Z()));
 			if (this.isAbleToSprint() && randInt(0, 99) < 1){
 				this.sprint();
 			}

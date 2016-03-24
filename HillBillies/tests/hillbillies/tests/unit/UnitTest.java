@@ -6,6 +6,7 @@ import hillbillies.utils.Vector;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
 
 import static org.junit.Assert.*;
 
@@ -19,7 +20,7 @@ public class UnitTest {
 	private static Unit unit, customUnit, unitx, unity, unitz;
 
     @BeforeClass
-    public void setUpClass() {
+    public static void setUpClass() {
         unit = new Unit("Unit", new Vector(25,25,25));
         customUnit = new Unit("Custom", new Vector(20,20,20), 50, 50, 50, 100, 100, 100);
     }
@@ -34,7 +35,7 @@ public class UnitTest {
     @Test
     public void testConstructor1(){
         assertEquals(unit.getName(),"Unit");
-        assertTrue(unit.getPosition().equals(new Vector(25,25,25)));
+        assertTrue(unit.getPosition().equals(new Vector(25.5,25.5,25.5)));
         assertEquals(unit.getAgility(), Unit.INITIAL_MIN_AGILITY);
         assertEquals(unit.getStrength(), Unit.INITIAL_MIN_STRENGTH);
         assertEquals(unit.getToughness(), Unit.INITIAL_MIN_TOUGHNESS);
@@ -45,7 +46,7 @@ public class UnitTest {
     @Test
     public void testConstructor2(){
         assertEquals(customUnit.getName(),"Custom");
-        assertTrue(customUnit.getPosition().equals(new Vector(20,20,20)));
+        assertTrue(customUnit.getPosition().equals(new Vector(20.5,20.5,20.5)));
         assertEquals(customUnit.getAgility(), 50);
         assertEquals(customUnit.getStrength(), 50);
         assertEquals(customUnit.getToughness(), 50);
@@ -65,14 +66,14 @@ public class UnitTest {
     }
     @Test
     public void testConstructorInvalidPoperties() {
-        Unit n = new Unit("New", new Vector(20,20,20), 500, 50, 50, 100, 100, 100);// Invalid strength
+        Unit n = new Unit("New", new Vector(20,20,20), 500, 50, 50, 100, 50, 50);// Invalid strength
         assertEquals(n.getStrength(), Unit.INITIAL_MIN_STRENGTH);
-        n = new Unit("New", new Vector(20,20,20), 50, 500, 50, 100, 100, 100);// Invalid agility
+        n = new Unit("New", new Vector(20,20,20), 50, 500, 50, 100, 50, 50);// Invalid agility
         assertEquals(n.getAgility(), Unit.INITIAL_MIN_AGILITY);
-        n = new Unit("New", new Vector(20,20,20), 50, 50, 500, 100, 100, 100);// Invalid toughness
+        n = new Unit("New", new Vector(20,20,20), 50, 50, 500, 100, 50, 50);// Invalid toughness
         assertEquals(n.getToughness(), Unit.INITIAL_MIN_TOUGHNESS);
-        n = new Unit("New", new Vector(20,20,20), 50, 50, 50, -100, 100, 100);// Invalid weight
-        assertEquals(n.getWeight(), Unit.INITIAL_MIN_WEIGHT);
+        n = new Unit("New", new Vector(20,20,20), 50, 50, 50, -100, 50, 50);// Invalid weight
+        assertEquals(n.getWeight(), Unit.getInitialMinWeight(50,50));
     }
 
     @Test
@@ -267,7 +268,7 @@ public class UnitTest {
     @Test
     public void testIsDefaultActive(){
         assertFalse(unitx.isDefaultActive());
-        unitx.setDefaultBehaviour();
+        unitx.startDefaultBehviour();
         assertTrue(unitx.isDefaultActive());
     }
 

@@ -1328,7 +1328,7 @@ public class Unit {
 			toughness = INITIAL_MIN_TOUGHNESS;
 		this.setToughness(toughness);
 		if (! isValidInitialWeight(weight, strength, agility))
-			weight = INITIAL_MIN_WEIGHT;
+			weight = getInitialMinWeight(strength, agility);
 		this.setWeight(weight);
 		// Nominal
 		this.setInitialStamina(stamina);

@@ -969,9 +969,9 @@ public class Unit {
 		int activity = randInt(0,2);
 		if (activity ==0){
 			this.moveToTarget(new Vector (Math.random()*(MAX_POSITION.X()-MIN_POSITION.X())+MIN_POSITION.X(),
-					Math.random()*(MAX_POSITION.Y()-MIN_POSITION.Y())+MIN_POSITION.Y(),
-					Math.random()*MAX_POSITION.Z()-MIN_POSITION.Z()+MIN_POSITION.Z()));
-			if (this.isAbleToSprint() && randInt(0, 9) < 1){
+					Math.random()*(MAX_POSITION.Y()-MIN_POSITION.Y())+MIN_POSITION.Y(),0));
+					//Math.random()*MAX_POSITION.Z()-MIN_POSITION.Z()+MIN_POSITION.Z()));
+			if (this.isAbleToSprint() && randInt(0, 99) < 1){
 				this.sprint();
 			}
 		}
@@ -1352,7 +1352,6 @@ public class Unit {
 
 		switch(getCurrentActivity()){
 			case MOVE:
-//				System.out.println(this.getPosition().X());
 				if(this.isSprinting){
 					int newStamina = this.getStamina()-SPRINT_STAMINA_LOSS*getIntervalTicks(activityProgress, dt, SPRINT_STAMINA_LOSS_INTERVAL);
 					if(newStamina<=0){
@@ -1363,7 +1362,6 @@ public class Unit {
 				}
 				Vector cpos = getPosition();
 				if(targetPosition!=null){
-						System.out.println("target: "+targetPosition);
 						int dx = 0, dy = 0, dz = 0;
 						if (targetPosition.cubeX() - cpos.cubeX() < 0)
 							dx = -1;
@@ -1393,7 +1391,6 @@ public class Unit {
 						Vector dPos = difference.multiply(v/d*dt);
 						Vector velocity = difference.multiply(v/d);
 						Vector newPos = cpos.add(dPos);
-						System.out.println("diff: " + difference);
 						for(int i=0;i< 3;i++){
 				            if(getNextPosition().isInBetween(i,cpos,newPos)){
 				            		double[] a = newPos.asArray();
@@ -1406,7 +1403,7 @@ public class Unit {
 					}
 				}	
 				
-				if(this.getStateDefault()==2 && !this.isSprinting &&this.isAbleToSprint() &&randInt(0, 9) < 1)
+				if(this.getStateDefault()==2 && !this.isSprinting &&this.isAbleToSprint() &&randInt(0, 99) < 1)
 					this.sprint();
 				break;
 			case WORK:
@@ -1429,7 +1426,7 @@ public class Unit {
 				if(maxHp == this.getHitpoints() && maxSt==this.getStamina())
 					setCurrentActivity(Activity.NONE);
 				if(this.getHitpoints()<maxHp){
-					double extraRestHitpoints = getIntervalTicks(activityProgress, dt, 0.02d)*this.getToughness()/1000d;
+					double extraRestHitpoints = getIntervalTicks(activityProgress, dt, 0.2d)*this.getToughness()/1000d;
 					int extraHitpoints = getIntervalTicks(restHitpoints, extraRestHitpoints, 1d);// TODO: make constants
 					int newHitpoints = this.getHitpoints() + extraHitpoints;
 					double newRestHitpoints = restHitpoints + extraRestHitpoints;
@@ -1447,7 +1444,7 @@ public class Unit {
 				if((this.getHitpoints()==maxHp || extraTime > 0d) && this.getStamina()<maxSt){
 					if(extraTime > 0d)
 						dt = extraTime;
-					double extraRestStamina = getIntervalTicks(activityProgress, dt, 0.02d)*this.getToughness()/500d;
+					double extraRestStamina = getIntervalTicks(activityProgress, dt, 0.2d)*this.getToughness()/500d;
 					int extraStamina = getIntervalTicks(restStamina, extraRestStamina, 1d);
 					int newStamina = this.getStamina() + extraStamina;
 					double newRestStamina = restStamina + extraRestStamina;

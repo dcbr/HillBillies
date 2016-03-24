@@ -4,6 +4,7 @@ import hillbillies.model.Activity;
 import hillbillies.model.Unit;
 import hillbillies.utils.Vector;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -14,12 +15,19 @@ import static org.junit.Assert.*;
  * @version 1.0
  */
 public class UnitTest {
-	private static Unit unitx,unity,unitz;
+
+	private static Unit unit, unitx, unity, unitz;
+
+    @BeforeClass
+    public void setUpClass() {
+        unit = new Unit("Unit", new Vector(25,25,25));
+    }
+
     @Before
     public void setUp() throws Exception {
     	unitx = new Unit("Unitx", new Vector(23,23,0));
     	unity = new Unit("Unity", new Vector(21,23,0));
-    	unitz = new Unit("Unitx", new Vector(22,22,0));
+    	unitz = new Unit("Unitz", new Vector(22,22,0));
     }
 
     @Test
@@ -47,10 +55,20 @@ public class UnitTest {
 
     @Test
     public void testIsValidStrength(){
-        assertFalse(Unit.isValidStrength(-1));
-        assertFalse(Unit.isValidStrength(0));
-        assertFalse(Unit.isValidStrength(201));
+        assertFalse(Unit.isValidStrength(-1));// strength < MIN_STRENGTH
+        assertFalse(Unit.isValidStrength(0));// strength < MIN_STRENGTH
+        assertTrue(Unit.isValidStrength(1));
+        assertFalse(Unit.isValidStrength(201));// strength > MAX_STRENGTH
         assertTrue(Unit.isValidStrength(150));
+    }
+    @Test
+    public void testIsValidInitialStrength(){
+        assertFalse(Unit.isValidInitialStrength(-1));// strength < MIN_STRENGTH
+        assertFalse(Unit.isValidInitialStrength(0));// strength < MIN_STRENGTH
+        assertFalse(Unit.isValidInitialStrength(1));// strength < INITIAL_MIN_STRENGTH
+        assertTrue(Unit.isValidInitialStrength(25));
+        assertFalse(Unit.isValidInitialStrength(101));// strength > INITIAL_MAX_STRENGTH
+        assertTrue(Unit.isValidInitialStrength(50));
     }
 
     @Test
@@ -70,28 +88,58 @@ public class UnitTest {
 
     @Test
     public void testIsValidToughness(){
-        assertFalse(Unit.isValidToughness(-1));
-        assertFalse(Unit.isValidToughness(0));
-        assertFalse(Unit.isValidToughness(201));
+        assertFalse(Unit.isValidToughness(-1));// toughness < MIN_TOUGHNESS
+        assertFalse(Unit.isValidToughness(0));// toughness < MIN_TOUGHNESS
+        assertTrue(Unit.isValidToughness(1));
+        assertFalse(Unit.isValidToughness(201));// toughness > MAX_TOUGHNESS
         assertTrue(Unit.isValidToughness(150));
+    }
+    @Test
+    public void testIsValidInitialToughness(){
+        assertFalse(Unit.isValidInitialToughness(-1));// toughness < MIN_TOUGHNESS
+        assertFalse(Unit.isValidInitialToughness(0));// toughness < MIN_TOUGHNESS
+        assertFalse(Unit.isValidInitialToughness(1));// toughness < INITIAL_MIN_TOUGHNESS
+        assertTrue(Unit.isValidInitialToughness(25));
+        assertFalse(Unit.isValidInitialToughness(101));// toughness > INITIAL_MAX_TOUGHNESS
+        assertTrue(Unit.isValidInitialToughness(50));
     }
 
     @Test
     public void testIsValidWeight(){
-        assertFalse(Unit.isValidWeight(-1,1,1));
-        assertFalse(Unit.isValidWeight(0,1,1));
-        assertFalse(Unit.isValidWeight(201,1,1));
+        assertFalse(Unit.isValidWeight(-1,1,1));// weight < getMinWeight(1,1)
+        assertFalse(Unit.isValidWeight(0,1,1));// weight < getMinWeight(1,1)
+        assertTrue(Unit.isValidWeight(1,1,1));
+        assertFalse(Unit.isValidWeight(201,1,1));// weight > MAX_WEIGHT
         assertTrue(Unit.isValidWeight(150,1,1));
-        assertFalse(Unit.isValidWeight(50,100,100));
+        assertFalse(Unit.isValidWeight(50,100,100));// weight < getMinWeight(100,100)
+    }
+    @Test
+    public void testIsValidInitialWeight(){
+        assertFalse(Unit.isValidInitialWeight(-1,1,1));// weight < getMinWeight(1,1)
+        assertFalse(Unit.isValidInitialWeight(0,1,1));// weight < getMinWeight(1,1)
+        assertFalse(Unit.isValidInitialWeight(1,1,1));// weight < getInitialMinWeight(1,1)
+        assertTrue(Unit.isValidInitialWeight(25,1,1));
+        assertFalse(Unit.isValidInitialWeight(101,1,1));// weight > INITIAL_MAX_WEIGHT
+        assertTrue(Unit.isValidInitialWeight(50,1,1));
+        assertFalse(Unit.isValidInitialWeight(50,100,100));// weight < getMinWeight(100,100)
     }
 
     @Test
     public void testIsValidStamina(){
-        assertFalse(Unit.isValidStamina(-1,1,1));
+        assertFalse(Unit.isValidStamina(-1,1,1));// stamina < MIN_STAMINA
         assertTrue(Unit.isValidStamina(0,100,100));
-        assertFalse(Unit.isValidStamina(801,200,200));
+        assertFalse(Unit.isValidStamina(801,200,200));// stamina > getMaxStamina(200,200)
         assertTrue(Unit.isValidStamina(560,200,200));
         assertFalse(Unit.isValidStamina(100,25,25));
+    }
+    @Test
+    public void testIsValidInitialStamina(){
+        assertFalse(Unit.isValidInitialStamina(-1,1,1));// stamina < MIN_STAMINA
+        assertFalse(Unit.isValidInitialStamina(0,100,100));// stamina < INITIAL_MIN_STAMINA
+        assertTrue(Unit.isValidInitialStamina(1,100,100));
+        assertFalse(Unit.isValidInitialStamina(801,200,200));// stamina > getMaxStamina(200,200)
+        assertTrue(Unit.isValidInitialStamina(560,200,200));
+        assertFalse(Unit.isValidInitialStamina(100,25,25));
     }
 
     @Test
@@ -102,6 +150,15 @@ public class UnitTest {
         assertTrue(Unit.isValidHitpoints(560,200,200));
         assertFalse(Unit.isValidHitpoints(100,25,25));
     }
+    @Test
+    public void testIsValidInitialHitpoints(){
+        assertFalse(Unit.isValidInitialHitpoints(-1,1,1));// hitpoints < MIN_HITPOINTS
+        assertFalse(Unit.isValidInitialHitpoints(0,1,1));// hitpoints < INITIAL_MIN_HITPOINTS
+        assertTrue(Unit.isValidInitialHitpoints(1,1,1));
+        assertFalse(Unit.isValidInitialHitpoints(801,200,200));// hitpoints > getMaxHitpoints(200,200)
+        assertTrue(Unit.isValidInitialHitpoints(560,200,200));
+        assertFalse(Unit.isValidInitialHitpoints(100,25,25));
+    }
     
     @Test
     public void testIsValidOrientation(){
@@ -109,13 +166,103 @@ public class UnitTest {
     	assertFalse(Unit.isValidOrientation((float)(5*Math.PI)));
     	assertTrue(Unit.isValidOrientation((float)(0)));
     	assertTrue(Unit.isValidOrientation(Unit.MAX_ORIENTATION));
-    	  	
-    }   
-     @Test
-    public void testIsAttack(){
+    }
+
+    @Test
+    public void testIsAbleToMove(){
+        assertTrue(unity.isAbleToMove());
+        unity.work();
+        assertFalse(unity.isAbleToMove());// Unit is working
+        unitx.attack(unitz);
+        assertFalse(unitx.isAbleToMove());// Unit is attacking
+        unitz.rest();
+        assertFalse(unitz.isAbleToMove());// Unit is in initial rest mode
+        while(unitz.isInitialRestMode())
+            unitz.advanceTime(0.2d);
+        assertTrue(unitz.isAbleToMove());// At least one hitpoint recovered => able to move
+    }
+
+    @Test
+    public void testIsAbleToRest(){
+        assertTrue(unity.isAbleToRest());
+        unitx.attack(unitz);
+        assertFalse(unitx.isAbleToRest());// Unit is attacking
+    }
+
+    @Test
+    public void testIsAbleToSprint(){
+        assertFalse(unity.isAbleToSprint());// Unit is not moving
+        unity.moveToAdjacent(new Vector(1,0,0));
+        assertTrue(unity.isAbleToSprint());
+        unity.sprint();
+        while(unity.isSprinting())
+            unity.advanceTime(0.2d);
+        assertFalse(unity.isAbleToSprint());// Unit has not enough stamina
+    }
+
+    @Test
+    public void testIsAbleToWork(){
+        assertTrue(unity.isAbleToWork());
+        unitx.attack(unitz);
+        assertFalse(unitx.isAbleToWork());// Unit is attacking
+        unitz.rest();
+        assertFalse(unitz.isAbleToWork());// Unit is in initial rest mode
+        while(unitz.isInitialRestMode())
+            unitz.advanceTime(0.2d);
+        assertTrue(unitz.isAbleToWork());// At least one hitpoint recovered => able to work
+    }
+
+    @Test
+    public void testIsAttacking(){
+        assertFalse(unitx.isAttacking());
+        unitx.attack(unitz);
+        assertTrue(unitx.isAttacking());
+    }
+
+    @Test
+    public void testIsDefaultActive(){
+        assertFalse(unitx.isDefaultActive());
+        unitx.setDefaultBehaviour();
+        assertTrue(unitx.isDefaultActive());
+    }
+
+    @Test
+    public void testIsInitialRestMode(){
+        assertFalse(unitx.isInitialRestMode());// Unit is not resting
+        unitx.rest();
+        assertTrue(unitx.isInitialRestMode());
+        int hp = unitx.getHitpoints();
+        while(unitx.getHitpoints()==hp)
+            unitx.advanceTime(0.2d);
+        assertFalse(unitx.isInitialRestMode());// At least one hitpoint recovered => not in initial rest mode
+    }
+
+    @Test
+    public void testIsMoving(){
+        assertFalse(unitx.isMoving());
+        unitx.moveToAdjacent(new Vector(1,1,0));
+        assertTrue(unitx.isMoving());
+    }
+
+    @Test
+    public void testIsSprinting(){
+        assertFalse(unitx.isSprinting());
+        unitx.moveToAdjacent(new Vector(1,1,0));
+        unitx.sprint();
+        assertTrue(unitx.isSprinting());
+    }
+
+    @Test
+    public void testIsValidAttack(){
     	assertTrue(unitx.isValidAttack(unitz));
-    	assertFalse(unitx.isValidAttack(unitx));
-    	assertFalse(unitx.isValidAttack(unity));
+    	assertFalse(unitx.isValidAttack(unitx));// Unit cannot attack himself
+    	assertFalse(unitx.isValidAttack(unity));// Unity is too far to attack
+        unitz.rest();
+        assertFalse(unitz.isValidAttack(unitx));// Unit is still in initial rest mode
+        unitx.attack(unitz);
+        assertFalse(unitx.isValidAttack(unitz));// Unit is still attacking
+        unity.terminate();
+        assertFalse(unitz.isValidAttack(unity));// Unity has no hitpoints
     }
 
 }

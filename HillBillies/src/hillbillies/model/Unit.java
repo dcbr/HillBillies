@@ -637,7 +637,7 @@ public class Unit {
 	 */
 	public double getCurrentSpeed(){
 		if(this.getCurrentActivity() != Activity.MOVE)
-			return ((double)0.0);
+			return (0d);
 		return this.currentSpeed;
 	}
 	/**
@@ -1780,6 +1780,33 @@ public class Unit {
 		setWorkDuration(getWorkingTime(this.getStrength()));
 	}
 	//endregion
+
+	//TODO: work this out
+	/**
+	 * Terminate this Unit.
+	 *
+	 * @post This Unit is terminated.
+	 * | new.isTerminated()
+	 * @post ...
+	 * | ...
+	 */
+	public void terminate() {
+	    this.isTerminated = true;
+		this.setHitpoints(0);
+	}
+	/**
+	 * Return a boolean indicating whether or not this Unit
+	 * is terminated.
+	 */
+	@Basic
+	@Raw
+	public boolean isTerminated() {
+	    return this.isTerminated;
+	}
+	/**
+	 * Variable registering whether this person is terminated.
+	 */
+	private boolean isTerminated = false;
 }
 
 	

@@ -232,7 +232,11 @@ public class Unit {
 	private Vector nextPosition, targetPosition;
 	
 	/**
-	 * Variable registering whether this unit is sprrinting.
+	 * Variable registering the current speed of this unit.
+	 */
+	private double currentSpeed = 0.0;
+	/**
+	 * Variable registering whether this unit is sprinting.
 	 */
 	private boolean isSprinting = false;
 
@@ -624,9 +628,7 @@ public class Unit {
 	public double getCurrentSpeed(){
 		if(this.getCurrentActivity() != Activity.MOVE)
 			return ((double)0.0);
-		Vector cpos = getPosition();
-		Vector difference = getNextPosition().difference(cpos);
-		return (this.isSprinting ? getSprintSpeed(difference) : getWalkingSpeed(difference));
+		return this.currentSpeed;
 	}
 	/**
 	 * Return the hitpoints a unit lose when he is taking damage.
@@ -932,6 +934,10 @@ public class Unit {
 		this.activityProgress = 0d;
 	}
 
+	@Raw private void setCurrentSpeed(double speed){
+		this.currentSpeed = speed;
+	}
+	
 	/**
 	 * Set current activity of this Unit to a random activity.
 	 * @post The new current activity of this new Unit is equal to
@@ -1287,16 +1293,18 @@ public class Unit {
 		
 		// Total
 		if (! isValidInitialStrength(strength))
-			strength = INITIAL_MIN_STRENGTH;
+			strength=INITIAL_MIN_STRENGTH;
+		this.setStrength(strength);
 		if (! isValidInitialAgility(agility))
 			agility = INITIAL_MIN_AGILITY;
+		this.setAgility(agility);
 		setAgility(agility);
 		if (! isValidInitialToughness(toughness))
 			toughness = INITIAL_MIN_TOUGHNESS;
-		setToughness(toughness);
+		this.setToughness(toughness);
 		if (! isValidInitialWeight(weight, strength, agility))
 			weight = INITIAL_MIN_WEIGHT;
-		setWeight(weight);
+		this.setWeight(weight);
 		// Nominal
 		this.setInitialStamina(stamina);
 		this.setInitialHitpoints(hitpoints);
@@ -1319,6 +1327,7 @@ public class Unit {
 
 		switch(getCurrentActivity()){
 			case MOVE:
+				System.out.println(this.getPosition().X());
 				if(this.isSprinting){
 					int newStamina = this.getStamina()-SPRINT_STAMINA_LOSS*getIntervalTicks(activityProgress, dt, SPRINT_STAMINA_LOSS_INTERVAL);
 					if(newStamina<=0){
@@ -1366,9 +1375,11 @@ public class Unit {
 						Vector difference = getNextPosition().difference(cpos);
 						double d = difference.length();
 						double v = this.isSprinting ? getSprintSpeed(difference) : getWalkingSpeed(difference);
+						this.setCurrentSpeed(v);
 						Vector dPos = difference.multiply(v/d*dt);
 						Vector velocity = difference.multiply(v/d);
 						Vector newPos = cpos.add(dPos);
+						System.out.println(newPos.add(getNextPosition().multiply(-1)).X());
 						if(newPos.equals(getNextPosition()) || getNextPosition().isInBetween(cpos,newPos))
 							newPos = getNextPosition();// Set correct position if newPos would surpass next position
 						setPosition(newPos);

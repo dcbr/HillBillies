@@ -269,11 +269,6 @@ public class Unit {
 	private boolean isAttacking = false;
 
 	/**
-	 * Variable registering whether this unit is defending.
-	 */
-	private boolean isDefending= false;
-
-	/**
 	 * Variable registering time each period a unit starts to is required time.
 	 */
 	private double restTimer = 0d;
@@ -336,14 +331,28 @@ public class Unit {
 	public static int getMaxStamina(int weight, int toughness) {
 		return ((int)Math.ceil(200*weight/100.0 * toughness/100.0));
 	}
+	
+	/**
+	 * Return the highest possible parameter for correct weight of this unit.
+	 * @param	weight
+	 * 			The weight to check against.
+	 * @param	param
+	 * 			The parameter to check against
+	 * @return 	The highest possible value for the parameter
+	 */
+	@Basic
+	public static int getMaxValueAgainstWeight(int weight, int param) {
+		return (2*weight-param);
+	}
+	
 	/**
 	 * Return the lowest possible value for weight of this unit.
 	 * @param	strength
 	 * 			The strength to check against.
 	 * @param	agility
 	 * 			The agility to check against.
-	 * @return 	The lowest possible value for weight of all
-	 *         	units is not below MIN_WEIGHT for all units.
+	 * @return 	The lowest possible value for weight
+	 * 			is not below MIN_WEIGHT for all units.
 	 *       	| result >= MIN_WEIGHT
 	 */
 	@Basic
@@ -841,14 +850,6 @@ public class Unit {
 
 	/**
 	 * Return a boolean indicating whether or not this person
-	 * is defending.
-	 */
-	@Basic @Raw
-	public boolean isDefending() {
-		return this.isDefending;
-	}
-	/**
-	 * Return a boolean indicating whether or not this person
 	 * is in its initial resting period.
 	 */
 	public boolean isInitialRestMode(){
@@ -911,11 +912,22 @@ public class Unit {
 	 *         agility.
 	 *       | if (isValidAgility(agility))
 	 *       |   then new.getAgility() == agility
+	 * @post   If the agility is to high for the weight, 
+	 * 		   the agility will be set on the highest possible value.
+	 * @post   If the weight of a unit is below the lowest possible value, 
+	 * 		   it will be set to that value.
+	 * 		 | if (this.getWeight() < getMinWeight(this.getStrength(), this.getAgility()))
+			 |	  (new this).getWeight == getMinWeight(getStrength(), getAgility());
 	 */
 	@Raw
 	public void setAgility(int agility) {
 		if (isValidAgility(agility))
 			this.agility = agility;
+		int minWeight = getMinWeight(this.getStrength(), this.getAgility());
+		if(minWeight > MAX_WEIGHT)
+			this.setAgility(getMaxValueAgainstWeight(MAX_WEIGHT, this.getStrength()));
+		if (this.getWeight() < minWeight)
+			this.setWeight(minWeight);
 	}
 
 	/**
@@ -1132,11 +1144,22 @@ public class Unit {
 	 *         strength.
 	 *       | if (isValidStrength(strength))
 	 *       |   then new.getStrength() == strength
+	 * @post   If the strength is to high for the weight, 
+	 * 		   the strength will be set on the highest possible value.
+	 * @post   If the weight of a unit is below the lowest possible value, 
+	 * 		   it will be set to that value.
+	 * 		 | if (this.getWeight() < getMinWeight(this.getStrength(), this.getAgility()))
+			 |	  (new this).getWeight == getMinWeight(getStrength(), getAgility());
 	 */
 	@Raw
 	public void setStrength(int strength) {
 		if (isValidStrength(strength))
 			this.strength = strength;
+		int minWeight = getMinWeight(this.getStrength(), this.getAgility());
+		if(minWeight > MAX_WEIGHT)
+			this.setStrength(getMaxValueAgainstWeight(MAX_WEIGHT, this.getAgility()));
+		if (this.getWeight()< minWeight)
+			this.setWeight(minWeight);
 	}
 
 	/**
@@ -1399,11 +1422,6 @@ public class Unit {
 				}
 				break;
 			case ATTACK:
-				if (this.isDefending){
-					this.stopDefending();
-					if(!this.isAttacking())
-						setCurrentActivity(Activity.NONE);
-				}
 				if (activityProgress > 1){
 					this.stopAttacking();
 					setCurrentActivity(Activity.NONE);// TODO: enum doing nothing
@@ -1586,26 +1604,11 @@ public class Unit {
 	 *
 	 * @param  attacker
 	 *         The attacker of this attack.
-	 * @post	This unit stops the default behaviour if it was doing this.
-	 * 			| new.isDoingBehaviour
-	 * @post 	The new activity of this unit is Attack.
-	 * 			| new.getCurrentActivity == Activity.Attack
-	 * @post	If a random number between 0 and 1 (1 excluded) is less then 
-	 * this.getDodgingProbability(attacker), the defender shall dodge the attack
-	 * by jumping to a random other place. With Math.abs(dx) = Math.abs(dy) <= 1, dz = 0.
-	 * | if ((randInt(0,99)/100.0) < this.getDodgingProbability(attacker))
-	 * | then new.getPosition()
-	 * @post	When a unit fails to dodge, it can block the attack if a random number 
-	 * between 0 and 1 (1 excluded) is less then this.getBlockingProbability(attacker).
-	 * If it fails to block, it will be damaged with this.getDamagingPoints(attacker).
-	 * | else if ( !((randInt(0,99)/100.0) < this.getBlockingProbability(attacker)))
-	 * | then new.getHitpoints()
+	 * @effect The unit first tries to dodge the attack, then blocks it. 
+	 * 			If it fails to dodge and block, this unit will lose hitpoins.
 	 */
 	public void defend(Unit attacker){
-		this.startDefending();
-		if(this.getStateDefault() ==2)
-			this.stopDoingDefault();
-		setCurrentActivity(Activity.ATTACK);
+		setCurrentActivity(this.getCurrentActivity());
 		//dodging
 		if ((randInt(0,99)/100.0) < this.getDodgingProbability(attacker)){
 			Boolean validDodge = false;
@@ -1639,25 +1642,7 @@ public class Unit {
 	private void stopAttacking(){
 		this.isAttacking = false;
 	}
-	
-	/**
-	 * Start defending.
-	 * @post   This unit is defending.
-	 *       | new.isDefending() == true
-	 */
-	public void startDefending(){
-		this.isDefending = true;
-	}
-	
-	/**
-	 * Stop defending.
-	 * @post   This unit is not defending.
-	 *       | new.isDefending() == false
-	 */
-	public void stopDefending(){
-		this.isDefending = false;
-	}
-
+		
 	//endregion
 
 	//region Moving

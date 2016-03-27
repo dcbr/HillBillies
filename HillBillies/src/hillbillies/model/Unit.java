@@ -962,6 +962,8 @@ public class Unit {
 	private void setCurrentActivity(Activity activity) {
 		this.activity = activity;
 		this.activityProgress = 0d;
+		if(activity!=Activity.MOVE)
+			stopSprint();
 	}
 
 	@Raw private void setCurrentSpeed(double speed){
@@ -1794,7 +1796,7 @@ public class Unit {
 		if(this.getStateDefault() == 3)
 			this.stateDefault -=1;
 		setCurrentActivity(Activity.WORK);
-		setWorkProgress(0);
+		setWorkProgress(0);// TODO: change workProgress to activityProgress
 		setWorkDuration(getWorkingTime(this.getStrength()));
 	}
 	//endregion

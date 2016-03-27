@@ -426,6 +426,48 @@ public class UnitTest {
         unitx.sprint();// Unit is exhausted => unable to sprint
     }
 
-    // TODO: tests voor rest en work
+    @Test
+    public void testRest(){
+        unitx.startDefaultBehaviour();
+        unitx.rest();
+        assertTrue(unitx.getCurrentActivity()==Activity.REST);
+        assertFalse(unitx.isDefaultActive());
+        int maxHp = Unit.getMaxHitpoints(unitx.getWeight(), unitx.getToughness());
+        int maxSt = Unit.getMaxStamina(unitx.getWeight(), unitx.getToughness());
+        while(unitx.getHitpoints()<maxHp || unitx.getStamina()<maxSt)
+            unitx.advanceTime(0.2);
+        assertTrue(unitx.getCurrentActivity()==Activity.NONE);
+        // Test sleep timer
+        for(int i=0;i<=5*60*3;i++)
+            unity.advanceTime(0.2);
+        assertTrue(unity.getCurrentActivity()==Activity.REST);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testRestIllegal() throws IllegalStateException{
+        unitx.work();
+        unitx.rest();// Unit is still working => unable to rest
+    }
+
+    @Test
+    public void testWork(){
+        unitx.startDefaultBehaviour();
+        unitx.work();
+        assertTrue(unitx.getCurrentActivity()==Activity.WORK);
+        assertFalse(unitx.isDefaultActive());
+        float duration = unitx.getWorkDuration();
+        double time = 0;
+        while(time<=duration){
+            time += 0.2;
+            unitx.advanceTime(0.2);
+        }
+        assertTrue(unitx.getCurrentActivity()==Activity.NONE);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testWorkIllegal() throws IllegalStateException{
+        unitx.rest();
+        unitx.work();// Unit is in initial rest mode => unable to work
+    }
 
 }

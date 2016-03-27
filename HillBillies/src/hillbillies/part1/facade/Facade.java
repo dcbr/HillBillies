@@ -472,7 +472,7 @@ public class Facade implements IFacade {
     @Override
     public void setDefaultBehaviorEnabled(Unit unit, boolean value) throws ModelException {
     	if (value)
-    		unit.startDefaultBehviour();
+    		unit.startDefaultBehaviour();
     	else unit.stopDefaultBehaviour();
     } 
 

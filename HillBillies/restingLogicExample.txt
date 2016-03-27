@@ -1,0 +1,57 @@
+maxHp			= 20
+getHitpoints		= 19
+restHitpoints		= 19.965
+activityProgress	= 23.562
+dt			= 0.154
+getRestHitpointsGain	= 1.86
+
+extraRestHitpoints	= 1.86
+extraHitpoints		= 2
+newHitpoints		= 21
+newRestHitpoints	= 21.825
+
+newHitpoints		= 20
+neededExtraRestHp	= 0.035
+neededTicks		= Math.ceil(0.0188) = 1
+neededTime		= 0.2 - 0.162 = 0.038
+extraTime		= 0.116
+
+----------------------------------------------------
+
+maxHp			= 20
+getHitpoints		= 19
+restHitpoints		= 19.44
+activityProgress	= 23.562
+dt			= 0.154
+getRestHitpointsGain	= 0.56
+
+extraRestHitpoints	= 0.56
+extraHitpoints		= 1
+newHitpoints		= 20
+newRestHitpoints	= 20.00
+
+newHitpoints		= 20
+neededExtraRestHp	= 0.56
+neededTicks		= Math.ceil(1) = 1 (kans op 2 door afrondingsfouten?)
+neededTime		= 0.2 - 0.162 = 0.038 (kans op 0.238 door afrondingsfouten)
+extraTime		= 0.116 (kans op -0.084 door afrondingsfouten)
+
+-----------------------------------------------------------------------------------
+
+maxHp			= 20
+getHitpoints		= 19
+restHitpoints		= 19.44
+activityProgress	= 23.562
+dt			= 0.038
+getRestHitpointsGain	= 0.56
+
+extraRestHitpoints	= 0.56
+extraHitpoints		= 1
+newHitpoints		= 20
+newRestHitpoints	= 20.00
+
+newHitpoints		= 20
+neededExtraRestHp	= 0.56
+neededTicks		= Math.ceil(1) = 1
+neededTime		= 0.2 - 0.162 = 0.038
+extraTime		= 0.0

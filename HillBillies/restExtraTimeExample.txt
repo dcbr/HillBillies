@@ -1,0 +1,28 @@
+maxHp			= 20
+toughness		= 628
+hitPoints 		= 19
+restHitpoints		= 2.9876
+
+activityProgress	= 1.192
+dt			= 0.156
+restHpIntervalTicks	= 2
+extraRestHitpoints	= 1.256
+extraHitpoints		= 2
+newHitpoints		= 21
+newRestHitpoints	= 4.2436
+
+extraTime		= 0.2
+extraTime should be	= 
+
+extraRestHitpoints / dt	= 8.0513 = extraHpPerSecond
+restHitpoints % 1	= 0.9876
+maxHp - hitPoints - ^^	= 0.0124 = neededHp
+neededHp / extraHpPerSec= 0.00154
+extraTime = dt - ^^	= 0.15446
+surplus			= 1.2563 - 0.0124 = 1.2439
+extraTime ?=		= 1.2439*1000/628 = 1.9807
+
+neededHp*1000/toughness	= 0.0197
+Math.ceil(^^)		= 1 = neededTicks
+0.2*neededTicks - activityProgress % 0.2 = 0.008
+=> extraTime = dt - ^^	= 0.148

@@ -171,6 +171,14 @@ public class Unit {
 	 */
 	public static final double REST_INTERVAL = 3*60;// Unit will rest every REST_INTERVAL seconds
 	/**
+	 * Constant reflecting the interval wherein a resting unit recovers getRestHitpointsGain() hitpoints.
+	 */
+	public static final double REST_HITPOINTS_GAIN_INTERVAL = 0.2d;
+	/**
+	 * Constant reflecting the interval wherein a resting unit recovers getRestStaminaGain() stamina.
+	 */
+	public static final double REST_STAMINA_GAIN_INTERVAL = 0.2d;
+	/**
 	 * Constant reflecting the duration of an attack.    
 	 */
 	public static final double ATTACK_DURATION = 1d;
@@ -724,7 +732,15 @@ public class Unit {
 	public Vector getPosition() {
 		return (this.position).clone();
 	}
-	 
+
+	private double getRestHitpointsGain(){
+		return this.getToughness()/200d;
+	}
+
+	private double getRestStaminaGain(){
+		return this.getToughness()/100d;
+	}
+
 	/**
 	 * Retrieve the Unit's sprinting speed
 	 * @param direction The direction the Unit is sprinting in, this is a vector with norm 1
@@ -1426,25 +1442,25 @@ public class Unit {
 				if(maxHp == this.getHitpoints() && maxSt==this.getStamina())
 					setCurrentActivity(Activity.NONE);
 				if(this.getHitpoints()<maxHp){
-					double extraRestHitpoints = getIntervalTicks(activityProgress, dt, 0.2d)*this.getToughness()/1000d;
-					int extraHitpoints = getIntervalTicks(restHitpoints, extraRestHitpoints, 1d);// TODO: make constants
+					double extraRestHitpoints = getIntervalTicks(activityProgress, dt, REST_HITPOINTS_GAIN_INTERVAL)*this.getRestHitpointsGain();
+					int extraHitpoints = getIntervalTicks(restHitpoints, extraRestHitpoints, 1d);
 					int newHitpoints = this.getHitpoints() + extraHitpoints;
 					double newRestHitpoints = restHitpoints + extraRestHitpoints;
 					if(newHitpoints>=maxHp) {
 						newHitpoints = maxHp;
-						double neededExtraRestHitpoints = maxHp - this.getHitpoints() - restHitpoints %1;
-						int neededTicks = (int)Math.ceil(neededExtraRestHitpoints*1000/this.getToughness());
-						double neededTime = 0.2d*neededTicks - activityProgress % 0.2;
+						double neededExtraRestHitpoints = maxHp - this.getHitpoints() - restHitpoints % 1;
+						int neededTicks = (int)Math.ceil(neededExtraRestHitpoints/this.getRestHitpointsGain());
+						double neededTime = REST_HITPOINTS_GAIN_INTERVAL*neededTicks - activityProgress % REST_HITPOINTS_GAIN_INTERVAL;
 						extraTime = dt - neededTime;
 						assert extraTime >= 0;
 					}
 					this.setHitpoints(newHitpoints);
 					restHitpoints = newRestHitpoints;
 				}
-				if((this.getHitpoints()==maxHp || extraTime > 0d) && this.getStamina()<maxSt){
+				if((this.getHitpoints()==maxHp && extraTime != 0d) && this.getStamina()<maxSt){
 					if(extraTime > 0d)
 						dt = extraTime;
-					double extraRestStamina = getIntervalTicks(activityProgress, dt, 0.2d)*this.getToughness()/500d;
+					double extraRestStamina = getIntervalTicks(activityProgress, dt, REST_STAMINA_GAIN_INTERVAL)*this.getRestStaminaGain();
 					int extraStamina = getIntervalTicks(restStamina, extraRestStamina, 1d);
 					int newStamina = this.getStamina() + extraStamina;
 					double newRestStamina = restStamina + extraRestStamina;
@@ -1484,7 +1500,7 @@ public class Unit {
 	 * 			| newTime == (prevProgress % delta) + dt
 	 * 			| result == (newTime - newTime % delta) / delta
 	 */
-	public int getIntervalTicks(double prevProgress, double dt, double delta){
+	public static int getIntervalTicks(double prevProgress, double dt, double delta){// TODO: move to utils? + find better name
 		double newTime = (prevProgress % delta) + dt;
 		return (int)((newTime - newTime % delta) / delta);
 	}
@@ -1512,7 +1528,7 @@ public class Unit {
 	 * @post	Default behaviour of this unit is activated.
 	 *       	| new.isDefaultActive() == true
 	 */
-	public void startDefaultBehviour(){
+	public void startDefaultBehaviour(){
 		this.defaultActive= true;
 	}
 	/**
@@ -1521,7 +1537,7 @@ public class Unit {
 	 * @post   Default behaviour of this unit is started.
 	 *       | new.getStateDefault()
 	 */
-	public void startDoingDefault(){
+	private void startDoingDefault(){
 		this.stateDefault = 3;
 	}
 	/**
@@ -1529,8 +1545,8 @@ public class Unit {
 	 *
 	 * @post   	Default behaviour of this unit is deactivated.
 	 *       	| new.isDefaultActive() == false
-	 * @post   	The new state of the default behaviour is equal to stopDoingDefault().
-	 * 			| new.isDoingDefault() ==  stopDoingDefault()
+	 * @post   	The new state of the default behaviour is equal to stopDoingDefault(). // TODO: dees klopt ni echt denk ik, want stopDoingDefault returned niks
+	 * 			| new.isDoingDefault() ==  stopDoingDefault() // TODO: en isDoingDefault() bestaat niet
 	 * @post   	The new current activity of this unit is equal to None.
 	 * 			| new.getCurrentActivity() == None
 	 */
@@ -1545,7 +1561,7 @@ public class Unit {
 	 * @post   Default behaviour of this unit is stopped.
 	 *       | new.getStateDefault()
 	 */
-	public void stopDoingDefault(){
+	private void stopDoingDefault(){
 		this.stopSprint();
 		this.stateDefault = 0;
 	}

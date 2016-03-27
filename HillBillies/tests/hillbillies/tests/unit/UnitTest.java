@@ -6,7 +6,6 @@ import hillbillies.utils.Vector;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
 
 import static org.junit.Assert.*;
 
@@ -268,7 +267,7 @@ public class UnitTest {
     @Test
     public void testIsDefaultActive(){
         assertFalse(unitx.isDefaultActive());
-        unitx.startDefaultBehviour();
+        unitx.startDefaultBehaviour();
         assertTrue(unitx.isDefaultActive());
     }
 
@@ -310,5 +309,28 @@ public class UnitTest {
         unity.terminate();
         assertFalse(unitz.isValidAttack(unity));// Unity has no hitpoints
     }
+
+    @Test
+    public void testGetIntervalTicks(){
+        assertEquals(2, Unit.getIntervalTicks(12.0258, 0.1824, 0.1));// From getIntervalTicksExample.txt
+        assertEquals(0, Unit.getIntervalTicks(12.2082, 0.0523, 0.1));// From getIntervalTicksExample.txt
+
+        assertEquals(2, Unit.getIntervalTicks(19.965, 1.86, 1d));// From restingLogicExample.txt
+        assertEquals(1, Unit.getIntervalTicks(23.562, 0.154, 0.2));// From restingLogicExample.txt
+        assertEquals(1, Unit.getIntervalTicks(19.44, 0.56, 1d));// From restingLogicExample.txt
+        assertEquals(1, Unit.getIntervalTicks(23.562, 0.038, 0.2));// From restingLogicExample.txt
+    }
+
+    @Test
+    public void testDefaultBehaviour(){
+        assertFalse(unitx.isDefaultActive());
+        unitx.startDefaultBehaviour();
+        assertTrue(unitx.isDefaultActive());
+        unitx.stopDefaultBehaviour();
+        assertFalse(unitx.isDefaultActive());
+        assertTrue(unitx.getCurrentActivity()==Activity.NONE);
+    }
+
+    // TODO: tests vanaf attack
 
 }

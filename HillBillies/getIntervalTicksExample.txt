@@ -1,0 +1,22 @@
+prevProgress	= 12.0258
+dt		= 0.1824
+delta		= 0.1
+
+=>
+
+newTime		= 0.0258 + 0.1824 = 0.2082
+newTime % delta	= 0.0082
+result		= 2
+
+
+Volgende iteratie:
+
+prevProgress	= 12.2082
+dt		= 0.0523
+delta		= 0.1
+
+=>
+
+newTime		= 0.0082 + 0.0523 = 0.0605
+newTime % delta	= 0.0605
+result		= 0

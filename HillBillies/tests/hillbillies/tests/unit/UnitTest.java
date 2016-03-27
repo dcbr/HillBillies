@@ -331,6 +331,101 @@ public class UnitTest {
         assertTrue(unitx.getCurrentActivity()==Activity.NONE);
     }
 
-    // TODO: tests vanaf attack
+    @Test
+    public void testFighting(){
+        Vector oldDefenderPosition = unitz.getPosition();
+        int oldDefenderHp = unitz.getHitpoints();
+        assertFalse(unitx.isAttacking());
+        unitx.startDefaultBehaviour();
+        unitx.attack(unitz);
+        assertFalse(unitx.isDefaultActive());
+        assertTrue(unitx.isAttacking());
+        assertEquals(Math.atan2(unitz.getPosition().Y()-unitx.getPosition().Y(),unitz.getPosition().X()-unitx.getPosition().X()), unitx.getOrientation(), Vector.EQUALS_PRECISION);
+        assertEquals(Math.atan2(unitx.getPosition().Y()-unitz.getPosition().Y(),unitx.getPosition().X()-unitz.getPosition().X()), unitz.getOrientation(), Vector.EQUALS_PRECISION);
+        assertTrue((!unitz.getPosition().equals(oldDefenderPosition) && unitz.getHitpoints()==oldDefenderHp) || // Unit dodged the attack
+                (unitz.getPosition().equals(oldDefenderPosition) && unitz.getHitpoints()==oldDefenderHp) || // Unit blocked the attack
+                (unitz.getPosition().equals(oldDefenderPosition) && unitz.getHitpoints()<oldDefenderHp) // Unit got damage
+        );
+        // Defending is instantaneous:
+        assertTrue(unitz.isAbleToWork() && unitz.isAbleToMove() && unitz.isAbleToRest());
+        // Attacking lasts 1s:
+        assertFalse(unitx.isAbleToWork() || unitx.isAbleToMove() || unitx.isAbleToRest());
+        for(int i=0;i<5;i++)
+            unitx.advanceTime(0.2);
+        assertTrue(unitx.isAbleToWork() && unitx.isAbleToMove() && unitx.isAbleToRest());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testIllegalAttack() throws IllegalArgumentException{
+        unitx.attack(unity);
+    }
+
+    @Test
+    public void testMove(){
+        // MoveToAdjacent
+        Vector direction = new Vector(1,0,0);
+        Vector target = unitx.getPosition().add(direction);
+        unitx.startDefaultBehaviour();
+        unitx.moveToAdjacent(direction);
+        assertTrue(unitx.isMoving());
+        assertFalse(unitx.isDefaultActive());
+        assertTrue(unitx.getNextPosition().equals(target));
+        while(!unitx.getPosition().equals(target))
+            unitx.advanceTime(0.2);
+        assertTrue(unitx.getPosition().equals(target));
+
+        // MoveToTarget
+        target = new Vector(20,20,1);
+        unitx.startDefaultBehaviour();
+        unitx.moveToTarget(target);
+        assertTrue(unitx.isMoving());
+        assertFalse(unitx.isDefaultActive());
+        while(!unitx.getPosition().equals(target))
+            unitx.advanceTime(0.2);
+        assertTrue(unitx.getPosition().equals(target));
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testIllegalMove() throws IllegalStateException{
+        unitx.rest();
+        unitx.moveToAdjacent(new Vector(1,0,0));// Unit is in initial rest mode => not able to move
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testIllegalMove2() throws IllegalArgumentException{
+        unitx.moveToAdjacent(new Vector(0,0,-1));
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testIllegalMove3() throws IllegalStateException{
+        unitx.rest();
+        unitx.moveToTarget(new Vector(1,1,1));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testIllegalMove4() throws IllegalArgumentException{
+        unitx.moveToTarget(new Vector(0,0,-1));
+    }
+
+    @Test
+    public void testSprinting(){
+        unitx.moveToTarget(new Vector(20,20,1));
+        unitx.sprint();
+        assertTrue(unitx.isSprinting());
+        unitx.advanceTime(0.2);
+        unitx.stopSprint();
+        assertFalse(unitx.isSprinting());
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testSprintingZeroStamina() throws IllegalStateException{
+        unitx.moveToTarget(new Vector(20,20,1));
+        unitx.sprint();
+        while(unitx.isSprinting())
+            unitx.advanceTime(0.2);
+        unitx.sprint();// Unit is exhausted => unable to sprint
+    }
+
+    // TODO: tests voor rest en work
 
 }

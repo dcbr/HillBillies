@@ -712,7 +712,7 @@ public class Unit {
 	@Basic
 	@Raw
 	public Vector getNextPosition(){
-		return this.nextPosition;
+		return this.nextPosition.clone();
 	}
 	
 	/**
@@ -1623,7 +1623,7 @@ public class Unit {
 		//dodging
 		if ((randInt(0,99)/100.0) < this.getDodgingProbability(attacker)){
 			Boolean validDodge = false;
-			while(! validDodge) {
+			while(! validDodge) {// TODO: in part2 replace this by a list of valid positions and choose a random element from that list
 				int dodgeX = randInt(-1, 1);
 				int dodgeY = randInt(-1, 1);
 				if ((dodgeX != 0 || dodgeY != 0) &&
@@ -1663,8 +1663,13 @@ public class Unit {
 	 *                  neighbouring cubes, each element of the array must have a value of (-)1 or 0.
 	 * @post	This unit stops the default behaviour if it was doing this
 	 * 			| new.isDoingBehaviour
+	 * @throws IllegalStateException
+	 * 			When this Unit is not able to move at this moment
+	 * 			| this.isAbleToMove() == false
+	 * @throws IllegalArgumentException
+	 * 			When the given direction points to an invalid position
+	 * 			| isValidPosition(this.getPosition().getCubeCenterCoordinates().add(direction)) == false
      */
-	//TODO: throws comment
 	public void moveToAdjacent(Vector direction) throws IllegalStateException, IllegalArgumentException{
 		if(this.getStateDefault()!=2){
 			if(!this.isAbleToMove() )
@@ -1705,7 +1710,7 @@ public class Unit {
 			this.stateDefault -=1;
 		
 		setCurrentActivity(Activity.MOVE);
-		this.targetPosition = targetPosition.getCubeCenterCoordinates();
+		this.targetPosition = targetPosition.getCubeCenterCoordinates();// TODO: make setter and getter for targetPosition and check for invalid positions
 	}
 	/**
 	 * Method to let the Unit sprint.

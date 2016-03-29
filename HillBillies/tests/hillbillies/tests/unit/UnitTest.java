@@ -430,7 +430,7 @@ public class UnitTest {
     public void testRest(){
         unitx.startDefaultBehaviour();
         unitx.rest();
-        assertTrue(unitx.isResting());
+        assertTrue(unitx.getCurrentActivity()==Activity.REST);
         assertFalse(unitx.isDefaultActive());
         int maxHp = Unit.getMaxHitpoints(unitx.getWeight(), unitx.getToughness());
         int maxSt = Unit.getMaxStamina(unitx.getWeight(), unitx.getToughness());
@@ -440,7 +440,7 @@ public class UnitTest {
         // Test sleep timer
         for(int i=0;i<=5*60*3;i++)
             unity.advanceTime(0.2);
-        assertTrue(unity.isResting());
+        assertTrue(unity.getCurrentActivity()==Activity.REST);
     }
 
     @Test(expected = IllegalStateException.class)
@@ -453,7 +453,7 @@ public class UnitTest {
     public void testWork(){
         unitx.startDefaultBehaviour();
         unitx.work();
-        assertTrue(unitx.isWorking());
+        assertTrue(unitx.getCurrentActivity()==Activity.WORK);
         assertFalse(unitx.isDefaultActive());
         float duration = unitx.getWorkDuration();
         double time = 0;

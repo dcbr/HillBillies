@@ -823,14 +823,14 @@ public class Unit {
 	 * is able to move.
 	 */
 	public boolean isAbleToMove(){
-		return !this.isInitialRestMode() && !this.isAttacking() && !this.isWorking();
+		return !this.isInitialRestMode() && this.getCurrentActivity()!=Activity.ATTACK && this.getCurrentActivity()!=Activity.WORK;
 	}
 	/**
 	 * Return a boolean indicating whether or not this person
 	 * is able to rest.
 	 */
 	public boolean isAbleToRest(){
-		return !this.isAttacking();
+		return this.getCurrentActivity()!=Activity.ATTACK;
 	}
 	/**
 	 * Return a boolean indicating whether or not this person
@@ -845,7 +845,7 @@ public class Unit {
 	 * is able to work.
 	 */
 	public boolean isAbleToWork(){
-		return !this.isInitialRestMode() && !this.isAttacking();
+		return !this.isInitialRestMode() && this.getCurrentActivity() != Activity.ATTACK;
 	}
 
 	/**
@@ -878,13 +878,6 @@ public class Unit {
 	 */
 	public boolean isMoving(){
 		return this.getCurrentActivity()==Activity.MOVE;
-	}
-
-	/**
-	 * Return a boolean indicating whether or not this unit is resting.
-     */
-	public boolean isResting(){
-		return this.getCurrentActivity()==Activity.REST;
 	}
 	/**
 	 * Return a boolean indicating whether or not this person
@@ -921,13 +914,6 @@ public class Unit {
 				(Math.abs(defender.getPosition().cubeY()-this.getPosition().cubeY())<=1) &&
 				(Math.abs(defender.getPosition().cubeZ()-this.getPosition().cubeZ())<=1);
 
-	}
-
-	/**
-	 * Return a boolean indicating whether or not this unit is working.
-     */
-	public boolean isWorking(){
-		return this.getCurrentActivity()==Activity.WORK;
 	}
 
 	//endregion

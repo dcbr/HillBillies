@@ -2,7 +2,7 @@ package hillbillies.model;
 
 import be.kuleuven.cs.som.annotate.*;
 import hillbillies.utils.Vector;
-import ogp.framework.util.ModelException;
+import hillbillies.activities.*;
 
 import static hillbillies.utils.Utils.randInt;
 
@@ -241,25 +241,11 @@ public class Unit {
 	 */
 	private Vector nextPosition, targetPosition;
 	
-	/**
-	 * Variable registering the current speed of this unit.
-	 */
-	private double currentSpeed = 0.0;
+
 	/**
 	 * Variable registering whether this unit is sprinting.
 	 */
 	private boolean isSprinting = false;
-
-	/**
-	 * Variable registering the work duration of this unit.
-	 */
-	private float workDuration = 0;
-
-	/**
-	 * Variable registering the work Progress of this unit.
-	 */
-	private float workProgress = 0;
-
 
 
 	/**
@@ -267,28 +253,11 @@ public class Unit {
 	 */
 	private Activity activity;
 
-	/**
-	 * Variable registering the duration of an activity progress of this unit.
-	 */
-	private double activityProgress = 0d;
 
 	/**
-	 * Variable registering whether this unit is attacking.
-	 */
-	private boolean isAttacking = false;
-
-	/**
-	 * Variable registering time each period a unit starts to is required time.
+	 * Variable registering the time passed since the unit's last rest.
 	 */
 	private double restTimer = 0d;
-	/**
-	 * Variable registering the hitpoints a unit recovered during the current rest period.
-	 */
-	private double restHitpoints = 0d;
-	/**
-	 * Variable registering the stamina points a unit recovered during the current rest period.
-	 */
-	private double restStamina = 0d;
 	//endregion
 
 	//region Static getters
@@ -370,17 +339,6 @@ public class Unit {
 		if (minWeight <= MIN_WEIGHT)
 			return (MIN_WEIGHT);
 		return minWeight;
-	}
-	/**
-	 * Return the time this unit shall be working.
-	 * @param	strength
-	 * 			The strength to check against.
-	 * @return 	The time a unit need to work is positive for all units.
-	 *       	| result >= 0
-	 */
-	@Basic
-	public static int getWorkingTime(int strength) {
-		return (500/strength);
 	}
 
 	//endregion
@@ -614,13 +572,7 @@ public class Unit {
 		return this.agility;
 	}
 
-	/**
-	 * Retrieve the Unit's base speed
-	 * @return
-	 */
-	private double getBaseSpeed(){
-		return 1.5*(this.getStrength()+this.getAgility())/(200*this.getWeight()/100);
-	}
+
 
 	/**
 	 * Return the probability a unit can block an attack.
@@ -638,16 +590,16 @@ public class Unit {
 	 * Return the current Activity of this unit.
 	 */
 	@Raw
-	public Activity getCurrentActivity() {
+	private Activity getCurrentActivity() {
 		return this.activity;
 	}
 	/**
 	 * Return the current speed of this unit.
 	 */
 	public double getCurrentSpeed(){
-		if(this.getCurrentActivity() != Activity.MOVE)
+		if(!this.isMoving())
 			return (0d);
-		return this.currentSpeed;
+		return ((Move)this.getCurrentActivity()).getCurrentSpeed();
 	}
 	/**
 	 * Return the hitpoints a unit lose when he is taking damage.
@@ -741,14 +693,7 @@ public class Unit {
 		return this.getToughness()/100d;
 	}
 
-	/**
-	 * Retrieve the Unit's sprinting speed
-	 * @param direction The direction the Unit is sprinting in, this is a vector with norm 1
-	 * @return
-	 */
-	private double getSprintSpeed(Vector direction){
-		return 2*this.getWalkingSpeed(direction);
-	}
+
 	/**
 	 * Return the stamina of this unit.
 	 */
@@ -780,16 +725,7 @@ public class Unit {
 		return this.toughness;
 	}
 
-	/**
-	 * Retrieve the Unit's walking speed
-	 * @param direction The direction the Unit is walking in, this is a vector with norm 1
-	 * @return
-	 */
-	private double getWalkingSpeed(Vector direction){
-		if(direction.Z()>0) return 1.2*this.getBaseSpeed();
-		else if(direction.Z()<0) return 0.5*this.getBaseSpeed();
-		else return this.getBaseSpeed();
-	}
+
 
 	/**
 	 * Return the weight of this unit.
@@ -820,20 +756,6 @@ public class Unit {
 	//region Checkers
 	/**
 	 * Return a boolean indicating whether or not this person
-	 * is able to move.
-	 */
-	public boolean isAbleToMove(){
-		return !this.isInitialRestMode() && this.getCurrentActivity()!=Activity.ATTACK && this.getCurrentActivity()!=Activity.WORK;
-	}
-	/**
-	 * Return a boolean indicating whether or not this person
-	 * is able to rest.
-	 */
-	public boolean isAbleToRest(){
-		return this.getCurrentActivity()!=Activity.ATTACK;
-	}
-	/**
-	 * Return a boolean indicating whether or not this person
 	 * is able to sprint.
 	 */
 	public boolean isAbleToSprint(){
@@ -842,19 +764,11 @@ public class Unit {
 
 	/**
 	 * Return a boolean indicating whether or not this person
-	 * is able to work.
-	 */
-	public boolean isAbleToWork(){
-		return !this.isInitialRestMode() && this.getCurrentActivity() != Activity.ATTACK;
-	}
-
-	/**
-	 * Return a boolean indicating whether or not this person
 	 * is attacking.
 	 */
-	@Basic @Raw
+	@Raw
 	public boolean isAttacking() {
-		return this.isAttacking;
+		return this.getCurrentActivity() instanceof Attack;
 	}
 
 	/**
@@ -862,7 +776,7 @@ public class Unit {
 	 */
 	@Basic
 	public boolean isDefaultActive(){
-		return this.defaultActive;
+		return this.getCurrentActivity().isDefault();
 	}
 
 	/**
@@ -870,50 +784,29 @@ public class Unit {
 	 * is in its initial resting period.
 	 */
 	public boolean isInitialRestMode(){
-		return this.getCurrentActivity()==Activity.REST && (this.restHitpoints+this.restStamina<1d);
+		return this.isResting() && ((Rest)this.getCurrentActivity()).isInitialRestMode();
 	}
 	/**
 	 * Return a boolean indicating whether or not this person
 	 * is moving.
 	 */
 	public boolean isMoving(){
-		return this.getCurrentActivity()==Activity.MOVE;
+		return this.getCurrentActivity() instanceof Move;
 	}
 	/**
 	 * Return a boolean indicating whether or not this person
 	 * is sprinting.
 	 */
 	public boolean isSprinting(){
-		return this.isSprinting;
+		return this.isMoving() && ((Move)this.getCurrentActivity()).isSprinting();
 	}
 
-	/**
-	 * Check whether an attack is a valid for any unit.
-	 *
-	 * @param  defender
-	 *         The defender to check.
-	 * @return 	is true if the position of the attackers cube lies next to the defenders cube
-	 * 			or is the same cube and the attacker do not attacks itself and
-	 * 			the attacker is not attacking another unit at the same time and
-	 * 			the attacker is not in the initial rest mode and
-	 * 			the defender has more hitpoints than MIN_HITPOINTS
-	 *       | result == (this.getId()!=defender.getId() &&
-	 *				!this.isAttacking &&
-	 *				!this.isInitialRestMode() &&
-	 *				(defender.getHitpoints()> MIN_HITPOINTS)
-	 * 				(Math.abs(defender.getPosition().cubeX()-this.getPosition().cubeX())<=1) &&
-	 *				(Math.abs(defender.getPosition().cubeY()-this.getPosition().cubeY())<=1) &&
-	 *				(Math.abs(defender.getPosition().cubeZ()-this.getPosition().cubeZ())<=1))
-	 */
-	public boolean isValidAttack(Unit defender) {
-		return this.getId()!=defender.getId() &&
-				!this.isAttacking() &&
-				!this.isInitialRestMode() &&
-				(defender.getHitpoints()> MIN_HITPOINTS) &&
-				(Math.abs(defender.getPosition().cubeX()-this.getPosition().cubeX())<=1) &&
-				(Math.abs(defender.getPosition().cubeY()-this.getPosition().cubeY())<=1) &&
-				(Math.abs(defender.getPosition().cubeZ()-this.getPosition().cubeZ())<=1);
+	public boolean isResting(){
+		return this.getCurrentActivity() instanceof Rest;
+	}
 
+	public boolean isWorking(){
+		return this.getCurrentActivity() instanceof Work;// TODO: check if currentActivity.isActive ?
 	}
 
 	//endregion
@@ -960,43 +853,15 @@ public class Unit {
 	 */
 	@Raw
 	private void setCurrentActivity(Activity activity) {
+		if(activity.getUnitId()!=this.getId())
+			throw new IllegalArgumentException("This activity is not bound to this unit.");
+		if(activity.isActive())
+			throw new IllegalArgumentException("This activity is already active.");
+		// TODO: check if current activity should be interrupted instead of being stopped
+		boolean isDefault = this.activity.isDefault();
+		this.activity.stop();
 		this.activity = activity;
-		this.activityProgress = 0d;
-		if(activity!=Activity.MOVE)
-			stopSprint();
-	}
-
-	@Raw private void setCurrentSpeed(double speed){
-		this.currentSpeed = speed;
-	}
-	
-	/**
-	 * Set current activity of this Unit to a random activity.
-	 * @post The new current activity of this new Unit is equal to
-	 * a random activity.
-	 * | new.getCurrentActivity()
-	 * @post The new state of the default behaviour is equal to startDoingDefault()
-	 * | new.isDoingDefault() == startDoingDefault()
-	 * @throws IllegalStateException * The default behaviour is not activated for this unit.
-	 * |   !this.isDefaultActive()
-	 */
-	public void setDefaultBehaviour() throws IllegalStateException{
-		if(!this.isDefaultActive())
-			throw new IllegalStateException("The default behaviour of unit is activated");
-		this.startDoingDefault();
-		int activity = randInt(0,2);
-		if (activity ==0){
-			this.moveToTarget(new Vector (Math.random()*(MAX_POSITION.X()-MIN_POSITION.X())+MIN_POSITION.X(),
-					Math.random()*(MAX_POSITION.Y()-MIN_POSITION.Y())+MIN_POSITION.Y(),
-					Math.random()*(MAX_POSITION.Z()-MIN_POSITION.Z())+MIN_POSITION.Z()));
-			if (this.isAbleToSprint() && randInt(0, 99) < 1){
-				this.sprint();
-			}
-		}
-		if (activity == 1)
-			this.work();
-		if (activity ==2)
-			this.rest();
+		this.activity.start(isDefault);
 	}
 
 	/**
@@ -1214,35 +1079,6 @@ public class Unit {
 		if (isValidWeight(weight, this.getStrength(), this.getAgility()))
 			this.weight = weight;
 	}
-
-	/**
-	 * Set the work duration of this unit to the given work duration.
-	 *
-	 * @param  workDuration
-	 *         The new work duration for this unit.
-	 * @post   The work duration of this new unit is equal to
-	 *         the given work duration.
-	 *       | new.getWorkDuration() == workDuration
-	 */
-	@Raw
-	private void setWorkDuration(float workDuration) {
-
-		this.workDuration = workDuration;
-	}
-
-	/**
-	 * Set the work progress of this unit to the given work progress.
-	 *
-	 * @param  workProgress
-	 *         The new work progress for this unit.
-	 * @post   The work progress of this new unit is equal to
-	 *         the given work progress.
-	 *       | new.getWorkProgress() == workProgress
-	 */
-	@Raw
-	private void setWorkProgress(float workProgress) {
-		this.workProgress = workProgress;
-	}
 	//endregion
 
 	//region Constructors
@@ -1368,123 +1204,7 @@ public class Unit {
 			rest();
 		}
 
-		switch(getCurrentActivity()){
-			case MOVE:
-				if(this.isSprinting){
-					int newStamina = this.getStamina()-SPRINT_STAMINA_LOSS*getIntervalTicks(activityProgress, dt, SPRINT_STAMINA_LOSS_INTERVAL);
-					if(newStamina<=0){
-						newStamina = 0;
-						stopSprint();
-					}
-					this.setStamina(newStamina);
-				}
-				Vector cpos = getPosition();
-				if(targetPosition!=null){
-						int dx = 0, dy = 0, dz = 0;
-						if (targetPosition.cubeX() - cpos.cubeX() < 0)
-							dx = -1;
-						else if(targetPosition.cubeX() - cpos.cubeX() > 0)
-							dx = 1;
-						if (targetPosition.cubeY() - cpos.cubeY() < 0)
-							dy = -1;
-						else if(targetPosition.cubeY() - cpos.cubeY() > 0)
-							dy = 1;
-						if (targetPosition.cubeZ() - cpos.cubeZ() < 0)
-							dz = -1;
-						else if(targetPosition.cubeZ() - cpos.cubeZ() > 0)
-							dz = 1;
-						this.stateDefault +=1;
-							moveToAdjacent(new Vector(dx, dy, dz));
-				}
-				if(getNextPosition()!=null){
-					if(getNextPosition().equals(cpos)){
-						setNextPosition(null);
-						setCurrentActivity(Activity.NONE);
-					}					
-					else{
-						Vector difference = getNextPosition().difference(cpos);
-						double d = difference.length();
-						double v = this.isSprinting ? getSprintSpeed(difference) : getWalkingSpeed(difference);
-						this.setCurrentSpeed(v);
-						Vector dPos = difference.multiply(v/d*dt);
-						Vector velocity = difference.multiply(v/d);
-						Vector newPos = cpos.add(dPos);
-						for(int i=0;i< 3;i++){
-				            if(getNextPosition().isInBetween(i,cpos,newPos)){
-				            		double[] a = newPos.asArray();
-				            		a[i] = getNextPosition().get(i);
-				            		newPos = new Vector(a);
-				            }
-						}
-						setPosition(newPos);
-						setOrientation((float)Math.atan2(velocity.Y(),velocity.X()));
-					}
-				}	
-				
-				if(this.getStateDefault()==2 && !this.isSprinting &&this.isAbleToSprint() &&randInt(0, 99) < 1)
-					this.sprint();
-				break;
-			case WORK:
-				if (activityProgress >= this.getWorkDuration())
-					setCurrentActivity(Activity.NONE);
-				else{
-					this.setWorkProgress(((float) activityProgress)/ (this.getWorkDuration()));
-				}
-				break;
-			case ATTACK:
-				if (activityProgress > 1){
-					this.stopAttacking();
-					setCurrentActivity(Activity.NONE);// TODO: enum doing nothing
-				}
-				break;
-			case REST:
-				int maxHp = getMaxHitpoints(this.getWeight(), this.getToughness());
-				int maxSt = getMaxStamina(this.getWeight(), this.getToughness());
-				double extraTime = -1d;
-				if(maxHp == this.getHitpoints() && maxSt==this.getStamina())
-					setCurrentActivity(Activity.NONE);
-				if(this.getHitpoints()<maxHp){
-					double extraRestHitpoints = getIntervalTicks(activityProgress, dt, REST_HITPOINTS_GAIN_INTERVAL)*this.getRestHitpointsGain();
-					int extraHitpoints = getIntervalTicks(restHitpoints, extraRestHitpoints, 1d);
-					int newHitpoints = this.getHitpoints() + extraHitpoints;
-					double newRestHitpoints = restHitpoints + extraRestHitpoints;
-					if(newHitpoints>=maxHp) {
-						newHitpoints = maxHp;
-						double neededExtraRestHitpoints = maxHp - this.getHitpoints() - restHitpoints % 1;
-						int neededTicks = (int)Math.ceil(neededExtraRestHitpoints/this.getRestHitpointsGain());
-						double neededTime = REST_HITPOINTS_GAIN_INTERVAL*neededTicks - activityProgress % REST_HITPOINTS_GAIN_INTERVAL;
-						extraTime = dt - neededTime;
-						assert extraTime >= 0;
-					}
-					this.setHitpoints(newHitpoints);
-					restHitpoints = newRestHitpoints;
-				}
-				if((this.getHitpoints()==maxHp && extraTime != 0d) && this.getStamina()<maxSt){
-					if(extraTime > 0d)
-						dt = extraTime;
-					double extraRestStamina = getIntervalTicks(activityProgress, dt, REST_STAMINA_GAIN_INTERVAL)*this.getRestStaminaGain();
-					int extraStamina = getIntervalTicks(restStamina, extraRestStamina, 1d);
-					int newStamina = this.getStamina() + extraStamina;
-					double newRestStamina = restStamina + extraRestStamina;
-					if(newStamina>=maxSt){
-						newStamina = maxSt;
-						newRestStamina = 0;
-						restHitpoints = 0;
-						setCurrentActivity(Activity.NONE);
-					}
-					this.setStamina(newStamina);
-					restStamina = newRestStamina;
-				}
-				
-				break;
-			case NONE:
-				if(this.isDefaultActive())
-					this.setDefaultBehaviour();
-				break;
-
-		}
-		activityProgress += dt;
-
+		this.getCurrentActivity().advanceTime(dt);
 
 	}
 
@@ -1510,11 +1230,7 @@ public class Unit {
 	//endregion
 
 	//region Default behaviour
-	/**
-	 * Variable registering whether the default behaviour of this unit is activated.
-	 */
-	private boolean defaultActive = false;
-	
+
 	/**
 	 * Variable registering the state of the default behaviour.
 	 */
@@ -1531,7 +1247,7 @@ public class Unit {
 	 *       	| new.isDefaultActive() == true
 	 */
 	public void startDefaultBehaviour(){
-		this.defaultActive= true;
+		this.getCurrentActivity().setDefault(true);
 	}
 	/**
 	 * Start the default behaviour of this unit.
@@ -1554,8 +1270,8 @@ public class Unit {
 	 */
 	public void stopDefaultBehaviour(){
 		this.stopDoingDefault();
-		this.defaultActive = false;
-		this.setCurrentActivity(Activity.NONE);
+		this.getCurrentActivity().setDefault(false);
+		this.setCurrentActivity(new None(this));
 	}
 	/**
 	 * Stop the default behaviour of this unit.
@@ -1593,23 +1309,13 @@ public class Unit {
 	 * 			| !this.isValidAttack(defender)	
 	 */
 	public void attack(Unit defender) throws IllegalArgumentException{
-		if(this.getStateDefault()!=2){
+		/*if(this.getStateDefault()!=2){
 			if (!this.isValidAttack(defender))
 				throw new IllegalArgumentException("Cannot attack that unit");
 		}
 		if(this.getStateDefault() ==2)
-			this.stopDoingDefault();
-		this.startAttacking();
-		//Orientation
-		double dx = (defender.getPosition().X()-this.getPosition().X());
-		double dy = (defender.getPosition().Y()-this.getPosition().Y());
-		defender.setOrientation((float)Math.atan2(-dy, -dx));
-		this.setOrientation((float)Math.atan2(dy, dx));
-
-		defender.defend(this);
-		setCurrentActivity(Activity.ATTACK);
-
-
+			this.stopDoingDefault();*/
+		setCurrentActivity(new Attack(this, defender));
 	}
 	
 	/**
@@ -1621,7 +1327,7 @@ public class Unit {
 	 * 			If it fails to dodge and block, this unit will lose hitpoins.
 	 */
 	public void defend(Unit attacker){
-		setCurrentActivity(this.getCurrentActivity());
+		setCurrentActivity(this.getCurrentActivity());// TODO: check if this is still correct
 		//dodging
 		if ((randInt(0,99)/100.0) < this.getDodgingProbability(attacker)){
 			Boolean validDodge = false;
@@ -1637,23 +1343,6 @@ public class Unit {
 		}// fails to block
 		else if (!((randInt(0,99)/100.0) < this.getBlockingProbability(attacker)))
 			this.setHitpoints(this.getHitpoints()- this.getDamagingPoints(attacker));
-	}
-	/**
-	 * Start attacking.
-	 * @post   This unit is attacking.
-	 *       | new.isAttacking() == true
-	 */
-	private void startAttacking(){
-		this.isAttacking = true;
-	}
-	/**
-	 * Stop attacking.
-	 * @post   This unit is not attacking.
-	 *       | new.isAttacking() == false
-	 */
-
-	private void stopAttacking(){
-		this.isAttacking = false;
 	}
 		
 	//endregion
@@ -1754,18 +1443,16 @@ public class Unit {
 	 * | !this.isAbleToRest()
 	 */
 	public void rest() throws IllegalStateException{
-		if(this.getStateDefault()!=2){
+		/*if(this.getStateDefault()!=2){
 			if(!isAbleToRest())
 				throw new IllegalStateException("This unit cannot rest at this moment");
 		}
 		if(this.getStateDefault() ==2)
 			this.stopDoingDefault();
 		if(this.getStateDefault() == 3)
-			this.stateDefault -=1;
-		setCurrentActivity(Activity.REST);
-		this.restTimer = 0d;// TODO: verify when the restTimer should be reset
-		this.restHitpoints = 0d;
-		this.restStamina = 0d;
+			this.stateDefault -=1;*/
+		setCurrentActivity(new Rest(this));
+		this.restTimer = 0d;// TODO: this is done by the Rest class
 	}
 
 	//endregion
@@ -1787,17 +1474,15 @@ public class Unit {
 	 * | !this.isAbleToWork()
 	 */
 	public void work() throws IllegalStateException{
-		if(this.getStateDefault()!=2){
+		/*if(this.getStateDefault()!=2){
 			if(!this.isAbleToWork())
 				throw new IllegalStateException("Unit is not able to work at this moment");
 		}
 		if(this.getStateDefault() ==2)
 			this.stopDoingDefault();
 		if(this.getStateDefault() == 3)
-			this.stateDefault -=1;
-		setCurrentActivity(Activity.WORK);
-		setWorkProgress(0);// TODO: change workProgress to activityProgress
-		setWorkDuration(getWorkingTime(this.getStrength()));
+			this.stateDefault -=1;*/
+		setCurrentActivity(new Work(this));
 	}
 	//endregion
 

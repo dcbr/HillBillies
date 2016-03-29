@@ -1,6 +1,5 @@
 package hillbillies.tests.unit;
 
-import hillbillies.model.Activity;
 import hillbillies.model.Unit;
 import hillbillies.utils.Vector;
 import org.junit.Before;

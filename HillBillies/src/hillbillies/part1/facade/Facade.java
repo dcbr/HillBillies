@@ -402,7 +402,7 @@ public class Facade implements IFacade {
      */
     @Override
     public boolean isWorking(Unit unit) throws ModelException {
-        return (unit.getCurrentActivity() == Activity.WORK);
+        return unit.isWorking();
     }
 
     /**
@@ -458,7 +458,7 @@ public class Facade implements IFacade {
      */
     @Override
     public boolean isResting(Unit unit) throws ModelException {
-        return (unit.getCurrentActivity() == Activity.REST);
+        return unit.isResting();
     }
 
     /**

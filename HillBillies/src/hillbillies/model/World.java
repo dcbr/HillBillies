@@ -1,8 +1,14 @@
 package hillbillies.model;
 
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import be.kuleuven.cs.som.annotate.*;
 import hillbillies.utils.Vector;
+import hillbillies.model.Cube;;
 
 /**
  * Class representing a Hillbilly world
@@ -84,10 +90,19 @@ public class World {
 			throws IllegalArgumentException {
 		if (! isValidTerrainMatrix(terrainMatrix))
 			throw new IllegalArgumentException();
+		Map<Vector, Cube> CubeMap = new HashMap<Vector , Cube>();
 		this.terrainMatrix = terrainMatrix;
 		setNbCubesX(terrainMatrix.length);
 		setNbCubesY(terrainMatrix[0].length);
 		setNbCubesZ(terrainMatrix[0][0].length);
+		for(int x = 0; x< getNbCubesX(); x++){
+			for(int y = 0; y< getNbCubesY(); y++){
+				for(int z = 0; z< getNbCubesZ(); z++){
+					Vector position = new Vector(x,y,z);
+					CubeMap.put(position, new Cube(this,position,Terrain.fromId(terrainMatrix[x][y][z]));
+				}
+			}
+		}
 		
 		
 	}

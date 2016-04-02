@@ -14,7 +14,7 @@ import hillbillies.utils.Vector;
  */
 public abstract class WorldObject {
 
-    protected World world;
+    protected IWorld world;
 
     /**
      * Initialize this new WorldObject with given position.
@@ -26,7 +26,7 @@ public abstract class WorldObject {
      * the given position.
      * | this.setPosition(position)
      */
-    public WorldObject(World world, Vector position){
+    public WorldObject(IWorld world, Vector position){
         this.world = world;
         this.setPosition(position);
     }
@@ -65,7 +65,7 @@ public abstract class WorldObject {
      * | result == this.world.isValidPosition(position)
      */
     public boolean isValidPosition(Vector position) {
-        return this.world.isValidPosition(position) && this.validatePosition(position);
+        return position!= null && this.world.isValidPosition(position) && this.validatePosition(position);
     }
     /**
      * Set the position of this WorldObject to the given position.

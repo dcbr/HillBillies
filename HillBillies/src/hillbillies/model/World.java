@@ -6,14 +6,14 @@ import java.util.Map;
 
 import be.kuleuven.cs.som.annotate.*;
 import hillbillies.utils.Vector;
-import hillbillies.model.Cube;;
+import hillbillies.model.Cube;
 
 /**
  * Class representing a Hillbilly world
  * @author Kenneth & Bram
  * @version 1.0
  */
-public class World {
+public class World implements IWorld {
 /** TO BE ADDED TO CLASS HEADING
  * @invar  The Terrain Matrix of each World must be a valid Terrain Matrix for any
  *         World.
@@ -55,7 +55,7 @@ public class World {
 	 * Check whether the given Terrain Matrix is a valid Terrain Matrix for
 	 * any World.
 	 *  
-	 * @param  Terrain Matrix
+	 * @param  terrainTypes
 	 *         The Terrain Matrix to check.
 	 * @return 
 	 *       | result == 

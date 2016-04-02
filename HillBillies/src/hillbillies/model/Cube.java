@@ -3,6 +3,8 @@ package hillbillies.model;
 import be.kuleuven.cs.som.annotate.*;
 import hillbillies.utils.Vector;
 
+import java.util.List;
+
 /**
  * Created by Bram on 1-4-2016.
  */
@@ -12,6 +14,7 @@ public class Cube extends WorldObject {
      * Constant reflecting the length of a cube side.
      */
     public static final double CUBE_SIDE_LENGTH = 1;
+
 
 
     public Cube(World world, Vector position){
@@ -104,4 +107,51 @@ public class Cube extends WorldObject {
     public boolean isPassable(){
         return this.getTerrain().isPassable();
     }
+
+    /** TO BE ADDED TO CLASS HEADING
+     * @invar Each Cube can have its materials as materials.
+     * | canHaveAsMaterials(this.getMaterials())
+     */
+    /**
+     * Initialize this new Cube with given materials.
+     *
+     * @param materials
+     * The materials for this new Cube.
+     * @post The materials of this new Cube is equal to the given
+     * materials.
+     * | new.getMaterials() == materials
+     * @throws IllegalArgumentException
+     * This new Cube cannot have the given materials as its materials.
+     * | ! canHaveAsMaterials(this.getMaterials())
+     */
+    public Cube(List<Material> materials) throws IllegalArgumentException {
+        if (! canHaveAsMaterials(materials))
+            throw new IllegalArgumentException();
+        this.materials = materials;
+    }
+    /**
+     * Return the materials of this Cube.
+     */
+    @Basic
+    @Raw
+    @Immutable
+    public List<Material> getMaterials() {
+        return this.materials;
+    }
+    /**
+     * Check whether this Cube can have the given materials as its materials.
+     *
+     * @param materials
+     * The materials to check.
+     * @return
+     * | result ==
+     */
+    @Raw
+    public boolean canHaveAsMaterials(List<Material> materials) {
+        return false;
+    }
+    /**
+     * Variable registering the materials of this Cube.
+     */
+    private final List<Material> materials;
 }

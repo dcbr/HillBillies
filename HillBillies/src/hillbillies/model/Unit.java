@@ -1189,7 +1189,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	 * @effect This Unit is initialized with the given name and position and the default initial values for its other properties
 	 * 			| this(name, position, INITIAL_MIN_STRENGTH, INITIAL_MIN_AGILITY, INITIAL_MIN_TOUGHNESS, INITIAL_MIN_WEIGHT, INITIAL_MIN_STAMINA, INITIAL_MIN_HITPOINTS)
 	 */
-	public Unit(World world, String name, Vector position) throws IllegalArgumentException {
+	public Unit(IWorld world, String name, Vector position) throws IllegalArgumentException {
 		this(world, name, position, INITIAL_MIN_STRENGTH, INITIAL_MIN_AGILITY, INITIAL_MIN_TOUGHNESS, INITIAL_MIN_WEIGHT, INITIAL_MIN_STAMINA, INITIAL_MIN_HITPOINTS);
 	}
 
@@ -1263,7 +1263,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	 *         hitpoints.
 	 *       | new.getHitpoints() == hitpoints
 	 */
-	public Unit(World world, String name, Vector position, int strength, int agility, int toughness, int weight, int stamina, int hitpoints) throws IllegalArgumentException {
+	public Unit(IWorld world, String name, Vector position, int strength, int agility, int toughness, int weight, int stamina, int hitpoints) throws IllegalArgumentException {
 		super(world, position.add(Cube.CUBE_SIDE_LENGTH/2));
 
 		this.Id = ID;

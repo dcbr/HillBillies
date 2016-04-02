@@ -2,6 +2,7 @@ package hillbillies.utils;
 
 import be.kuleuven.cs.som.annotate.Basic;
 import be.kuleuven.cs.som.annotate.Immutable;
+import hillbillies.model.Cube;
 import hillbillies.model.Unit;
 
 import java.util.Arrays;
@@ -17,9 +18,9 @@ public class Vector {
 	 */
     public static final double EQUALS_PRECISION = 1e-7;
 	/**
-	 * Constant reflecting the length of a cube side.    
+	 * Constant reflecting the length of a cube side.
 	 */
-    public static final double CUBE_SIDE_LENGTH = Unit.CUBE_SIDE_LENGTH;
+    public static final double CUBE_SIDE_LENGTH = Cube.CUBE_SIDE_LENGTH;
 	/**
 	 * Constant reflecting the index of x.    
 	 */

@@ -5,14 +5,14 @@ import java.util.List;
 
 import hillbillies.utils.Vector;
 
-public class LobbyWorld {
+public class LobbyWorld implements IWorld {
 	
 	private final List<Faction> factions = new ArrayList<>();
 	public final static LobbyWorld lobby = new LobbyWorld();
 	public LobbyWorld() {
 
 	}
-	public boolean isVallidPosition(Vector position){
+	public boolean isValidPosition(Vector position){
 		return true;
 	}
 	

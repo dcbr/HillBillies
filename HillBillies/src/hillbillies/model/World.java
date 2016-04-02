@@ -1,9 +1,7 @@
 package hillbillies.model;
 
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import be.kuleuven.cs.som.annotate.*;
@@ -24,7 +22,7 @@ public class World {
 	
 	private static final int MAX_UNITS = 100;
 	private static final int MAX_FACTIONS = 5;
-	private static final int MAX_UNITS_PER_FACTION = 50;
+
 
 
 	/**
@@ -35,8 +33,7 @@ public class World {
 	 * Constant reflecting the maximum position in the units world.
 	 */// TODO: change this to getMaxPosition since the World's dimensions are variable
 	public static final Vector MAX_POSITION = new Vector(Cube.CUBE_SIDE_LENGTH * 50, Cube.CUBE_SIDE_LENGTH * 50, Cube.CUBE_SIDE_LENGTH * 50);
-	
-	
+
 
 	/**
 	 * Initialize this new World with given Terrain Matrix.
@@ -52,14 +49,7 @@ public class World {
 		this.setTerrainMatrix(terrainTypes);
 	}
 	
-	
-	/**
-	 * Return the Terrain Matrix of this World.
-	 */
-	@Basic @Raw
-	public int[][][] getTerrainMatrix() {
-		return this.terrainMatrix;
-	}
+
 	
 	/**
 	 * Check whether the given Terrain Matrix is a valid Terrain Matrix for
@@ -104,18 +94,21 @@ public class World {
 	@Raw
 	public void setTerrainMatrix(int[][][] terrainMatrix) 
 			throws IllegalArgumentException {
-		if (! isValidTerrainMatrix(terrainMatrix))
-			throw new IllegalArgumentException();
 		Map<Vector, Cube> CubeMap = new HashMap<Vector , Cube>();
-		this.terrainMatrix = terrainMatrix;
 		setNbCubesX(terrainMatrix.length);
 		setNbCubesY(terrainMatrix[0].length);
 		setNbCubesZ(terrainMatrix[0][0].length);
 		for(int x = 0; x< getNbCubesX(); x++){
 			for(int y = 0; y< getNbCubesY(); y++){
+				if (terrainMatrix[x].length != getNbCubesY()){
+					throw new IllegalArgumentException();
+				}
 				for(int z = 0; z< getNbCubesZ(); z++){
+					if (terrainMatrix[x][y].length != getNbCubesZ()){
+						throw new IllegalArgumentException();
+					}
 					Vector position = new Vector(x,y,z);
-					CubeMap.put(position, new Cube(this,position,Terrain.fromId(terrainMatrix[x][y][z]));
+					CubeMap.put(position, new Cube(this,position,Terrain.fromId(terrainMatrix[x][y][z])));
 				}
 			}
 		}
@@ -123,11 +116,7 @@ public class World {
 		
 	}
 	
-	/**
-	 * Variable registering the Terrain Matrix of this World.
-	 */
-	private int[][][] terrainMatrix;
-	
+
 	private int NbCubesX;
 	private int NbCubesY;
 	private int NbCubesZ;
@@ -159,5 +148,8 @@ public class World {
 	public Vector getMaxPosition(){
 		return new Vector(Cube.CUBE_SIDE_LENGTH * getNbCubesX(), Cube.CUBE_SIDE_LENGTH * getNbCubesY(), Cube.CUBE_SIDE_LENGTH * getNbCubesZ());
 	}
-
+	
+	public void spawnUnit(){
+		
+	}
 }

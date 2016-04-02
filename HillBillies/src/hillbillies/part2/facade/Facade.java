@@ -2,7 +2,10 @@ package hillbillies.part2.facade;
 
 import hillbillies.model.Unit;
 import hillbillies.model.World;
+import hillbillies.model.Faction;
+import hillbillies.model.LobbyWorld;
 import hillbillies.part2.listener.TerrainChangeListener;
+import hillbillies.utils.Vector;
 import ogp.framework.util.ModelException;
 
 import java.util.Set;
@@ -354,7 +357,7 @@ public class Facade implements IFacade {
      */
     @Override
     public Unit createUnit(String name, int[] initialPosition, int weight, int agility, int strength, int toughness, boolean enableDefaultBehavior) throws ModelException {
-        return null;
+        return new Unit(LobbyWorld.lobby,name, new Vector(initialPosition), weight, agility, strength, toughness, enableDefaultBehavior);
     }
 
     /**

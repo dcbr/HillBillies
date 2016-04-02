@@ -25,8 +25,16 @@ public class World {
 	private static final int MAX_UNITS = 100;
 	private static final int MAX_FACTIONS = 5;
 	private static final int MAX_UNITS_PER_FACTION = 50;
-	
-	
+
+
+	/**
+	 * Constant reflecting the minimum position in this world.
+	 */
+	public static final Vector MIN_POSITION = new Vector(Cube.CUBE_SIDE_LENGTH * 0, Cube.CUBE_SIDE_LENGTH * 0, Cube.CUBE_SIDE_LENGTH * 0);
+	/**
+	 * Constant reflecting the maximum position in the units world.
+	 */// TODO: change this to getMaxPosition since the World's dimensions are variable
+	public static final Vector MAX_POSITION = new Vector(Cube.CUBE_SIDE_LENGTH * 50, Cube.CUBE_SIDE_LENGTH * 50, Cube.CUBE_SIDE_LENGTH * 50);
 	
 	
 
@@ -67,9 +75,17 @@ public class World {
 		return false;
 	}
 
+	/**
+	 * Check whether the given position is a valid position for
+	 * any WorldObject.
+	 *
+	 * @param position The position to check.
+	 * @return True when each coordinate of position is within the predefined bounds of MIN_POSITION and getMaxPosition()
+	 * | result == position.isInBetween(MIN_POSITION, getMaxPosition())
+	 */
 	public boolean isValidPosition(Vector position){
-		//TODO
-		return false;
+		//TODO: probably move this to WorldObject?
+		return position.isInBetween(MIN_POSITION, this.getMaxPosition());
 	}
 	
 	/**
@@ -80,7 +96,7 @@ public class World {
 	 * @post   The Terrain Matrix of this new World is equal to
 	 *         the given Terrain Matrix.
 	 *       | new.getTerrainMatrix() == terrainTypes
-	 * @throws ExceptionName_Java
+	 * @throws IllegalArgumentException
 	 *         The given Terrain Matrix is not a valid Terrain Matrix for any
 	 *         World.
 	 *       | ! isValidTerrainMatrix(getTerrainMatrix())
@@ -136,7 +152,12 @@ public class World {
 	public int getNbCubesZ(){
 		return this.NbCubesZ;
 	}
-	
-	
+
+	/**
+	 * Get the maximum position in this world.
+     */
+	public Vector getMaxPosition(){
+		return new Vector(Cube.CUBE_SIDE_LENGTH * getNbCubesX(), Cube.CUBE_SIDE_LENGTH * getNbCubesY(), Cube.CUBE_SIDE_LENGTH * getNbCubesZ());
+	}
 
 }

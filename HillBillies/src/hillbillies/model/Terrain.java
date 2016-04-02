@@ -25,7 +25,7 @@ public enum Terrain {
         return this.id;
     }
 
-    public static Terrain getTerrainFromId(int id){
+    public static Terrain fromId(int id){
         return Terrain.values()[id];
     }
 }

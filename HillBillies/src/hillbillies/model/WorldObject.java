@@ -53,7 +53,7 @@ public abstract class WorldObject {
     @Basic
     @Raw
     public Vector getPosition() {
-        return this.position;
+        return this.position.clone();
     }
     /**
      * Check whether the given position is a valid position for

@@ -6,10 +6,21 @@ import hillbillies.utils.Vector;
 /**
  * Created by Bram on 1-4-2016.
  */
-public abstract class Cube extends WorldObject {
+public class Cube extends WorldObject {
+
+    /**
+     * Constant reflecting the length of a cube side.
+     */
+    public static final double CUBE_SIDE_LENGTH = 1;
+
 
     public Cube(World world, Vector position){
         this(world, position, null);// Null will result in the default Terrain type -> Terrain.AIR
+    }
+
+    @Override
+    public void advanceTime(double dt) {
+        // TODO
     }
 
     /**
@@ -18,9 +29,9 @@ public abstract class Cube extends WorldObject {
      * @param world The world this new Cube belongs to.
      * @param position  The position of this new Cube.
      * @param terrain The terrain for this new Cube.
-     * @post This Cube is initialized as a new WorldObject with given
-     * position in the given world.
-     * | super(world, position)
+     * @effect This new Cube is initialized as a new WorldObject with
+     *         given position in the given world.
+     *       | super(world, position)
      * @post If the given terrain is a valid terrain for any Cube,
      * the terrain of this new Cube is equal to the given
      * terrain. Otherwise, the terrain of this new Cube is equal

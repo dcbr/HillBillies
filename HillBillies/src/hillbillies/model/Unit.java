@@ -16,9 +16,6 @@ import static hillbillies.utils.Utils.randInt;
  * @invar The name of each Unit must be a valid name for any
  * Unit.
  * | isValidName(getName())
- * @invar The position of each Unit must be a valid position for any
- * Unit.
- * | isValidPosition(getPosition())
  * @invar  The strength of each unit must be a valid strength for any
  *         unit.
  *       | isValidStrength(getStrength())
@@ -41,7 +38,7 @@ import static hillbillies.utils.Utils.randInt;
  * Unit.
  * | isValidOrientation(getOrientation())
  */
-public class Unit {// TODO: extend WorldObject
+public class Unit extends WorldObject {// TODO: extend WorldObject
 
 	//region Constants
 
@@ -53,18 +50,6 @@ public class Unit {// TODO: extend WorldObject
 	 * Constant reflecting the allowed name pattern    
 	 */
     private static final String ALLOWED_NAME_PATTERN = "[a-zA-Z \"']+";
-	/**
-	 * Constant reflecting the length of a cube side.    
-	 */
-    public static final double CUBE_SIDE_LENGTH = 1;
-	/**
-	 * Constant reflecting the minimum position in the units world.    
-	 */
-    public static final Vector MIN_POSITION = new Vector(CUBE_SIDE_LENGTH * 0, CUBE_SIDE_LENGTH * 0, CUBE_SIDE_LENGTH * 0);
-	/**
-	 * Constant reflecting the maximum position in the units world.    
-	 */
-    public static final Vector MAX_POSITION = new Vector(CUBE_SIDE_LENGTH * 50, CUBE_SIDE_LENGTH * 50, CUBE_SIDE_LENGTH * 50);
 	/**
 	 * Constant reflecting the minimum strength of a unit.    
 	 */
@@ -195,11 +180,6 @@ public class Unit {// TODO: extend WorldObject
 	 * Variable registering the name of this Unit.
 	 */
 	private String name;
-
-	/**
-	 * Variable registering the position of this Unit.
-	 */
-	private Vector position;
 
 	/**
 	 * Variable registering the strength of this unit.
@@ -526,22 +506,6 @@ public class Unit {// TODO: extend WorldObject
 		return (orientation >= MIN_ORIENTATION && orientation <= MAX_ORIENTATION);
 	}
     /**
-     * Check whether the given position is a valid position for
-     * any Unit.
-     *
-     * @param position
-     * The position to check.
-     * @return True when each coordinate of position is within the predefined bounds of MIN_POSITION and MAX_POSITION
-     * | isValid == true
-     * | for(int i = 0 ; i<position.length ; i++){
-     * |    isValid == (isValid && position[i] >= MIN_POSITION[i] && position[i] <= MAX_POSITION[i])
-     * | }
-     * | result == isValid
-     */
-    public static boolean isValidPosition(Vector position) {
-        return position.isInBetween(MIN_POSITION, MAX_POSITION);
-    }
-    /**
 	 * Check whether the given stamina is a valid stamina for
 	 * any unit.
 	 *
@@ -722,15 +686,6 @@ public class Unit {// TODO: extend WorldObject
 	@Raw
 	public float getOrientation() {
 		return this.orientation;
-	}
-
-	/**
-	 * Return the position of this Unit.
-	 */
-	@Basic
-	@Raw
-	public Vector getPosition() {
-		return (this.position).clone();
 	}
 
 	private double getRestHitpointsGain(){
@@ -986,9 +941,9 @@ public class Unit {// TODO: extend WorldObject
 		this.startDoingDefault();
 		int activity = randInt(0,2);
 		if (activity ==0){
-			this.moveToTarget(new Vector (Math.random()*(MAX_POSITION.X()-MIN_POSITION.X())+MIN_POSITION.X(),
-					Math.random()*(MAX_POSITION.Y()-MIN_POSITION.Y())+MIN_POSITION.Y(),
-					Math.random()*(MAX_POSITION.Z()-MIN_POSITION.Z())+MIN_POSITION.Z()));
+			this.moveToTarget(new Vector (Math.random()*(world.getMaxPosition().X()-world.MIN_POSITION.X())+world.MIN_POSITION.X(),
+					Math.random()*(world.getMaxPosition().Y()-world.MIN_POSITION.Y())+world.MIN_POSITION.Y(),
+					Math.random()*(world.getMaxPosition().Z()-world.MIN_POSITION.Z())+world.MIN_POSITION.Z()));
 			if (this.isAbleToSprint() && randInt(0, 99) < 1){
 				this.sprint();
 			}
@@ -1115,25 +1070,6 @@ public class Unit {// TODO: extend WorldObject
 	}
 
 	/**
-	 * Set the position of this Unit to the given position.
-	 *
-	 * @param position
-	 * The new position for this Unit.
-	 * @post The position of this new Unit is equal to
-	 * the given position.
-	 * | new.getPosition() == position
-	 * @throws IllegalArgumentException * The given position is not a valid position for any
-	 * Unit.
-	 * | ! isValidPosition(getPosition())
-	 */
-	@Raw
-	public void setPosition(Vector position) throws IllegalArgumentException {
-		if (! isValidPosition(position))
-			throw new IllegalArgumentException();
-		this.position = position;
-	}
-
-	/**
 	 * Set the stamina of this unit to the given stamina.
 	 *
 	 * @param  	stamina
@@ -1253,8 +1189,8 @@ public class Unit {// TODO: extend WorldObject
 	 * @effect This Unit is initialized with the given name and position and the default initial values for its other properties
 	 * 			| this(name, position, INITIAL_MIN_STRENGTH, INITIAL_MIN_AGILITY, INITIAL_MIN_TOUGHNESS, INITIAL_MIN_WEIGHT, INITIAL_MIN_STAMINA, INITIAL_MIN_HITPOINTS)
 	 */
-	public Unit(String name, Vector position) throws IllegalArgumentException {
-		this(name, position, INITIAL_MIN_STRENGTH, INITIAL_MIN_AGILITY, INITIAL_MIN_TOUGHNESS, INITIAL_MIN_WEIGHT, INITIAL_MIN_STAMINA, INITIAL_MIN_HITPOINTS);
+	public Unit(World world, String name, Vector position) throws IllegalArgumentException {
+		this(world, name, position, INITIAL_MIN_STRENGTH, INITIAL_MIN_AGILITY, INITIAL_MIN_TOUGHNESS, INITIAL_MIN_WEIGHT, INITIAL_MIN_STAMINA, INITIAL_MIN_HITPOINTS);
 	}
 
 	/**
@@ -1280,12 +1216,12 @@ public class Unit {// TODO: extend WorldObject
 	 *       | isValidInitialStamina(stamina)
 	 * @pre    The given hitpoints must be valid initial hitpoints for any unit.
 	 *       | isValidInitialHitpoints(hitpoints)
+	 * @effect This new Unit is initialized as a new WorldObject with
+	 *         given position in the given world.
+	 *       | super(world, position)
 	 * @effect The name of this new Unit is set to
 	 * the given name.
 	 * | this.setName(name)
-	 * @effect The position of this new Unit is set to
-	 * the given position.
-	 * | this.setPosition(position)
 	 * @effect The orientation of this new Unit is set to the default orientation.
 	 * 			| this.setOrientation(INITIAL_ORIENTATION)
 	 * @post The Id of this new Unit is equal to ID.
@@ -1327,12 +1263,13 @@ public class Unit {// TODO: extend WorldObject
 	 *         hitpoints.
 	 *       | new.getHitpoints() == hitpoints
 	 */
-	public Unit(String name, Vector position, int strength, int agility, int toughness, int weight, int stamina, int hitpoints) throws IllegalArgumentException {
+	public Unit(World world, String name, Vector position, int strength, int agility, int toughness, int weight, int stamina, int hitpoints) throws IllegalArgumentException {
+		super(world, position.add(Cube.CUBE_SIDE_LENGTH/2));
+
 		this.Id = ID;
 		ID++;
 		// Defensive
 		this.setName(name);
-		this.setPosition((position.add(0.5)));
 		
 		// Total
 		if (! isValidInitialStrength(strength))
@@ -1486,6 +1423,11 @@ public class Unit {// TODO: extend WorldObject
 		activityProgress += dt;
 
 
+	}
+
+	@Override
+	protected boolean validatePosition(Vector position) {
+		return false;// TODO: check if standing on solid cube and this cube is passable
 	}
 
 	/**

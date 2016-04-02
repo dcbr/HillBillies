@@ -2,6 +2,7 @@ package hillbillies.model;
 
 
 import be.kuleuven.cs.som.annotate.*;
+import hillbillies.utils.Vector;
 
 /**
  * Class representing a Hillbilly world
@@ -56,6 +57,11 @@ public class World {
 	 *       | result == 
 	*/
 	public static boolean isValidTerrainMatrix(int[][][] terrainTypes) {
+		//TODO
+		return false;
+	}
+
+	public boolean isValidPosition(Vector position){
 		//TODO
 		return false;
 	}

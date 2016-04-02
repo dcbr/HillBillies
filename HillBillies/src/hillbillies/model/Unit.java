@@ -41,7 +41,7 @@ import static hillbillies.utils.Utils.randInt;
  * Unit.
  * | isValidOrientation(getOrientation())
  */
-public class Unit {
+public class Unit {// TODO: extend WorldObject
 
 	//region Constants
 

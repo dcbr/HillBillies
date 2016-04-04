@@ -4,6 +4,8 @@ import be.kuleuven.cs.som.annotate.*;
 import hillbillies.utils.Vector;
 import hillbillies.activities.*;
 
+import java.util.Stack;
+
 import static hillbillies.utils.Utils.randInt;
 
 /**
@@ -685,14 +687,6 @@ public class Unit {
 		return (this.position).clone();
 	}
 
-	private double getRestHitpointsGain(){
-		return this.getToughness()/200d;
-	}
-
-	private double getRestStaminaGain(){
-		return this.getToughness()/100d;
-	}
-
 
 	/**
 	 * Return the stamina of this unit.
@@ -733,22 +727,6 @@ public class Unit {
 	@Basic @Raw
 	public int getWeight() {
 		return this.weight;
-	}
-
-	/**
-	 * Return the work duration of this unit.
-	 */
-	@Raw
-	public float getWorkDuration() {
-		return this.workDuration;
-	}
-
-	/**
-	 * Return the work progress of this unit.
-	 */
-	@Raw
-	public float getWorkProgress() {
-		return this.workProgress;
 	}
 
 	//endregion
@@ -1199,9 +1177,11 @@ public class Unit {
 
 	public void advanceTime(double dt){
 		// Defensively without documentation
-		restTimer += dt;
-		if(restTimer >= REST_INTERVAL && this.isAbleToRest()){
-			rest();
+		if(!this.isResting()) {
+			restTimer += dt;
+			if (restTimer >= REST_INTERVAL && this.isAbleToRest()) {
+				rest();
+			}
 		}
 
 		this.getCurrentActivity().advanceTime(dt);
@@ -1512,6 +1492,90 @@ public class Unit {
 	 * Variable registering whether this person is terminated.
 	 */
 	private boolean isTerminated = false;
+
+	public final ActivityController activityController = new ActivityController();
+
+	public final class ActivityController{
+
+		public final None NONE = new None(Unit.this);
+		public final Rest REST = new Rest(Unit.this);
+
+		private Stack<Activity> activityStack;
+
+		private ActivityController(){
+			this.activityStack = new Stack<>();
+			this.activityStack.push(NONE);
+			this.getCurrentActivity().start();
+		}
+
+		public void requestNewActivity(Activity activity) throws IllegalArgumentException{// TODO: add sender to check origin of call
+			if(activity.getUnitId()!=Unit.this.getId())
+				throw new IllegalArgumentException("This activity is not bound to this unit.");
+			if(activity.isActive())
+				throw new IllegalArgumentException("This activity is already active.");
+
+			if(this.getCurrentActivity().shouldInterrupt(activity)){
+				this.getCurrentActivity().interrupt();
+			}else{
+				this.getCurrentActivity().stop();
+				this.activityStack.pop();
+			}
+			this.activityStack.push(activity);
+			this.getCurrentActivity().start();
+		}
+
+		public void requestActivityFinish(Activity activity) throws IllegalArgumentException{
+			if(activity.getUnitId()!=Unit.this.getId())
+				throw new IllegalArgumentException("This activity is not bound to this unit.");
+			if(activity!=this.getCurrentActivity() || !activity.isActive())
+				throw new IllegalArgumentException("This activity is not currently active.");
+			if(this.activityStack.size()==1)
+				throw new IllegalStateException("Since this is the last activity in stack, it can not be finished.");
+			this.getCurrentActivity().stop();
+			this.activityStack.pop();
+			this.getCurrentActivity().start();// Resume previous activity in stack
+		}
+
+		private Activity getCurrentActivity(){
+			return this.activityStack.peek();
+		}
+
+		public void advanceTime(double dt){
+			if(!this.isResting()) {
+				restTimer += dt;
+				if (restTimer >= REST_INTERVAL && REST.isAbleTo()) {
+					rest();
+				}
+			}
+
+			this.getCurrentActivity().advanceTime(dt);
+		}
+
+		/**
+		 * General method to check whether this Unit is executing an activity of given kind.
+		 * @param activity The kind of activity to check for
+         * @return True if this Unit's current Activity is of the same kind as activity AND this Activity is active.
+         */
+		public boolean isExecuting(Class<? extends Activity> activity){
+			return this.getCurrentActivity().isActive() && activity.isInstance(this.getCurrentActivity());
+		}
+
+		public boolean isAttacking(){
+			return this.isExecuting(Attack.class);
+		}
+
+		public boolean isMoving(){
+			return this.isExecuting(Move.class);
+		}
+
+		public boolean isResting(){
+			return this.isExecuting(Rest.class);
+		}
+
+		public boolean isWorking(){
+			return this.isExecuting(Work.class);
+		}
+	}
 }
 
 	

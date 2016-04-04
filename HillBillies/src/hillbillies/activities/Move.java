@@ -18,7 +18,7 @@ import static hillbillies.utils.Utils.randInt;
  * @version 1.0
  */
 public class Move extends Activity {
-
+//TODO: fix this class
     /**
      * Variable registering the next position and target position of this unit.
      */
@@ -117,6 +117,11 @@ public class Move extends Activity {
     @Override
     public boolean isAbleTo() {
         return !unit.isInitialRestMode() && !unit.isAttacking() && !unit.isWorking();
+    }
+
+    @Override
+    public boolean shouldInterrupt(Activity activity) {
+        return activity instanceof Attack;
     }
 
     @Override

@@ -41,6 +41,11 @@ public class None extends Activity {
     }
 
     @Override
+    public boolean shouldInterrupt(Activity activity) {
+        return false;
+    }
+
+    @Override
     public String toString() {
         return "none";
     }
@@ -58,7 +63,7 @@ public class None extends Activity {
     public void setDefaultBehaviour() throws IllegalStateException{
         if(!this.isDefault())
             throw new IllegalStateException("The default behaviour of unit is not activated");
-        this.startDoingDefault();
+        //this.startDoingDefault();
         int activity = randInt(0,2);
         switch(activity) {
             case 0:

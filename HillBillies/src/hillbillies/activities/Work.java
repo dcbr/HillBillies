@@ -43,7 +43,7 @@ public class Work extends Activity {
     @Override
     public void advanceActivity(double dt) {
         if (this.activityProgress >= this.workDuration)
-            unit.setCurrentActivity(new None(unit));
+            unit.activityController.requestActivityFinish(this);
     }
 
     /**
@@ -56,10 +56,18 @@ public class Work extends Activity {
     }
 
     @Override
+    public boolean shouldInterrupt(Activity activity) {
+        return activity instanceof Attack;
+    }
+
+    @Override
     public String toString() {
         return "work";
     }
 
+    /**
+     * Return the work duration of this unit.
+     */
     public float getWorkDuration(){
         return this.workDuration;
     }

@@ -66,6 +66,9 @@ public abstract class Activity {
 
     public abstract boolean isAbleTo();
 
+    //TODO: add shouldCancel method?
+    public abstract boolean shouldInterrupt(Activity activity);
+
     public void setDefault(boolean enable){
         this.isDefault = enable;
     }

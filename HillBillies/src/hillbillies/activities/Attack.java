@@ -22,7 +22,7 @@ public class Attack extends Activity{
         unit.setOrientation((float)Math.atan2(dy, dx));
 
         defender.defend(unit);// TODO: maybe move defend code to this class too
-        setCurrentActivity(Activity.ATTACK);
+        //setCurrentActivity(Activity.ATTACK);
     }
 
     @Override
@@ -39,7 +39,7 @@ public class Attack extends Activity{
     public void advanceActivity(double dt) {
         if (activityProgress > 1){
             //this.stopAttacking();
-            unit.setCurrentActivity(new None(unit));// TODO: enum doing nothing
+            unit.activityController.requestActivityFinish(this);
         }
     }
 
@@ -73,5 +73,10 @@ public class Attack extends Activity{
                 (Math.abs(defender.getPosition().cubeX()-unit.getPosition().cubeX())<=1) &&
                 (Math.abs(defender.getPosition().cubeY()-unit.getPosition().cubeY())<=1) &&
                 (Math.abs(defender.getPosition().cubeZ()-unit.getPosition().cubeZ())<=1);
+    }
+
+    @Override
+    public boolean shouldInterrupt(Activity activity) {
+        return false;
     }
 }

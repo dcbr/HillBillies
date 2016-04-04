@@ -45,16 +45,16 @@ public class Rest extends Activity {
         int maxSt = Unit.getMaxStamina(unit.getWeight(), unit.getToughness());
         double extraTime = -1d;
         if(maxHp == unit.getHitpoints() && maxSt==unit.getStamina())
-            unit.setCurrentActivity(new None(unit));
+            unit.activityController.requestActivityFinish(this);
         if(unit.getHitpoints()<maxHp){
-            double extraRestHitpoints = Unit.getIntervalTicks(activityProgress, dt, Unit.REST_HITPOINTS_GAIN_INTERVAL)*unit.getRestHitpointsGain();
+            double extraRestHitpoints = Unit.getIntervalTicks(activityProgress, dt, Unit.REST_HITPOINTS_GAIN_INTERVAL)*this.getRestHitpointsGain();
             int extraHitpoints = Unit.getIntervalTicks(restHitpoints, extraRestHitpoints, 1d);
             int newHitpoints = unit.getHitpoints() + extraHitpoints;
             double newRestHitpoints = restHitpoints + extraRestHitpoints;
             if(newHitpoints>=maxHp) {
                 newHitpoints = maxHp;
                 double neededExtraRestHitpoints = maxHp - unit.getHitpoints() - restHitpoints % 1;
-                int neededTicks = (int)Math.ceil(neededExtraRestHitpoints/unit.getRestHitpointsGain());
+                int neededTicks = (int)Math.ceil(neededExtraRestHitpoints/this.getRestHitpointsGain());
                 double neededTime = Unit.REST_HITPOINTS_GAIN_INTERVAL*neededTicks - activityProgress % Unit.REST_HITPOINTS_GAIN_INTERVAL;
                 extraTime = dt - neededTime;
                 assert extraTime >= 0;
@@ -65,18 +65,20 @@ public class Rest extends Activity {
         if((unit.getHitpoints()==maxHp && extraTime != 0d) && unit.getStamina()<maxSt){
             if(extraTime > 0d)
                 dt = extraTime;
-            double extraRestStamina = Unit.getIntervalTicks(activityProgress, dt, Unit.REST_STAMINA_GAIN_INTERVAL)*unit.getRestStaminaGain();
+            double extraRestStamina = Unit.getIntervalTicks(activityProgress, dt, Unit.REST_STAMINA_GAIN_INTERVAL)*this.getRestStaminaGain();
             int extraStamina = Unit.getIntervalTicks(restStamina, extraRestStamina, 1d);
             int newStamina = unit.getStamina() + extraStamina;
             double newRestStamina = restStamina + extraRestStamina;
             if(newStamina>=maxSt){
                 newStamina = maxSt;
                 newRestStamina = 0;
-                restHitpoints = 0;
-                unit.setCurrentActivity(new None(unit));
             }
             unit.setStamina(newStamina);
             restStamina = newRestStamina;
+            if(newStamina == maxSt){
+                restHitpoints = 0;
+                unit.activityController.requestActivityFinish(this);
+            }
         }
     }
 
@@ -90,11 +92,24 @@ public class Rest extends Activity {
     }
 
     @Override
+    public boolean shouldInterrupt(Activity activity) {
+        return false;
+    }
+
+    @Override
     public String toString() {
         return "rest";
     }
 
     public boolean isInitialRestMode(){
         return this.isActive() && (this.restHitpoints + this.restStamina < 1d);
+    }
+
+    private double getRestHitpointsGain(){
+        return unit.getToughness()/200d;
+    }
+
+    private double getRestStaminaGain(){
+        return unit.getToughness()/100d;
     }
 }

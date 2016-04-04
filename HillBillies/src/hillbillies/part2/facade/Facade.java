@@ -357,7 +357,10 @@ public class Facade implements IFacade {
      */
     @Override
     public Unit createUnit(String name, int[] initialPosition, int weight, int agility, int strength, int toughness, boolean enableDefaultBehavior) throws ModelException {
-        return new Unit(LobbyWorld.lobby,name, new Vector(initialPosition), weight, agility, strength, toughness, enableDefaultBehavior);
+        Unit unit = new Unit(LobbyWorld.lobby, name, new Vector(initialPosition), strength, agility, toughness, weight);
+        if(enableDefaultBehavior)
+            unit.startDefaultBehaviour();
+        return unit;
     }
 
     /**

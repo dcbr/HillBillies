@@ -19,7 +19,7 @@ import static hillbillies.utils.Utils.randInt;
  * | canHaveAsWeight(this.getWeight())
  *
  */
-public class Material {
+public class Material implements IWorldObject {
 
     /**
      * Constant reflecting the minimum weight of each Material.
@@ -72,6 +72,7 @@ public class Material {
         this.weight = randInt(MIN_WEIGHT, MAX_WEIGHT);
     }
 
+    @Override
     public void advanceTime(double dt) {
         // TODO: falling
     }
@@ -102,6 +103,7 @@ public class Material {
      * @return The position of this Material.
      *          This position equals the position of this Material's current owner.
      */
+    @Override
     public Vector getPosition(){
         return this.owner.getPosition();
     }
@@ -112,6 +114,7 @@ public class Material {
     @Basic
     @Raw
     @Immutable
+    @Override
     public World getWorld() {
         return this.world;
     }
@@ -162,10 +165,10 @@ public class Material {
     public boolean isValidOwner(WorldObject owner) {
         if(owner instanceof Cube){
             // TODO: check if Cube doesn't contain other Materials
-            return owner.world == this.world;
+            return owner.getWorld() == this.world;
         }else if(owner instanceof Unit){
             // TODO: check if Unit doesn't carry other Materials
-            return owner.world == this.world;
+            return owner.getWorld() == this.world;
         }
         return false;
     }
@@ -193,6 +196,7 @@ public class Material {
      * @post ...
      * | ...
      */
+    @Override
     public void terminate() {
         this.isTerminated = true;
     }
@@ -202,6 +206,7 @@ public class Material {
      */
     @Basic
     @Raw
+    @Override
     public boolean isTerminated() {
         return this.isTerminated;
     }

@@ -37,6 +37,9 @@ import static hillbillies.utils.Utils.randInt;
  * @invar The orientation of each Unit must be a valid orientation for any
  * Unit.
  * | isValidOrientation(getOrientation())
+ * @invar The faction of each Unit must be a valid faction for any
+ * Unit.
+ * | isValidFaction(getFaction())
  */
 public class Unit extends WorldObject {// TODO: extend WorldObject
 
@@ -941,9 +944,9 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 		this.startDoingDefault();
 		int activity = randInt(0,2);
 		if (activity ==0){
-			this.moveToTarget(new Vector (Math.random()*(world.getMaxPosition().X()-world.MIN_POSITION.X())+world.MIN_POSITION.X(),
-					Math.random()*(world.getMaxPosition().Y()-world.MIN_POSITION.Y())+world.MIN_POSITION.Y(),
-					Math.random()*(world.getMaxPosition().Z()-world.MIN_POSITION.Z())+world.MIN_POSITION.Z()));
+			this.moveToTarget(new Vector (Math.random()*(getWorld().getMaxPosition().X()-getWorld().getMinPosition().X())+getWorld().getMinPosition().X(),
+					Math.random()*(getWorld().getMaxPosition().Y()-getWorld().getMinPosition().Y())+getWorld().getMinPosition().Y(),
+					Math.random()*(getWorld().getMaxPosition().Z()-getWorld().getMinPosition().Z())+getWorld().getMinPosition().Z()));
 			if (this.isAbleToSprint() && randInt(0, 99) < 1){
 				this.sprint();
 			}
@@ -1183,7 +1186,9 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 
 	//region Constructors
 	/**
-	 * Initialize this new Unit with given name and position. All other properties are set to their default initial values.
+	 * Initialize this new Unit with given name and position in the given world. All other properties are set to their
+	 * default initial values.
+	 * @param world The world this new Unit belongs to
 	 * @param name The name of this new Unit
 	 * @param position The position of this new Unit
 	 * @effect This Unit is initialized with the given name and position and the default initial values for its other properties
@@ -1194,8 +1199,24 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	}
 
 	/**
+	 * Initialize this new Unit with given name, position, strength, agility, toughness and weight in the given world.
+	 * @param world The world this new Unit belongs to
+	 * @param name The name for this new Unit
+	 * @param position The position of this new Unit in the given world.
+	 * @param strength The strength of this new Unit
+	 * @param agility The agility of this new Unit
+	 * @param toughness The toughness of this new Unit
+     * @param weight The weight of this new Unit
+	 * @effect This Unit is initialized with the given properties and the maximum values for its remaining properties (stamina and hitpoints)
+	 * 			| this(world, name, position, strength, agility, toughness, weight, getMaxStamina(weight, toughness), getMaxHitpoints(weight, toughness)
+     */
+	public Unit(IWorld world, String name, Vector position, int strength, int agility, int toughness, int weight){
+		this(world, name, position, strength, agility, toughness, weight, getMaxStamina(weight, toughness), getMaxHitpoints(weight, toughness));
+	}
+
+	/**
 	 * Initialize this new Unit with given name, position, strength, agility, toughness, weight, stamina and hitpoints.
-	 *
+	 * @param world The world this new Unit belongs to
 	 * @param name
 	 * The name for this new Unit.
 	 * @param position
@@ -1219,6 +1240,11 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	 * @effect This new Unit is initialized as a new WorldObject with
 	 *         given position in the given world.
 	 *       | super(world, position)
+	 * @effect This new Unit is added to the given world. This world will
+	 * 			put the Unit in a Faction related to that world.
+	 * 			| world.addUnit(this) // TODO
+	 * @post	This new Unit belongs to a Faction related to the given world.
+	 * 			| world.getFactions().contains(this.getFaction()) == true // TODO
 	 * @effect The name of this new Unit is set to
 	 * the given name.
 	 * | this.setName(name)
@@ -1265,6 +1291,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	 */
 	public Unit(IWorld world, String name, Vector position, int strength, int agility, int toughness, int weight, int stamina, int hitpoints) throws IllegalArgumentException {
 		super(world, position.add(Cube.CUBE_SIDE_LENGTH/2));
+		world.addUnit(this);
 
 		this.Id = ID;
 		ID++;
@@ -1769,6 +1796,49 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	 * Variable registering whether this person is terminated.
 	 */
 	private boolean isTerminated = false;
+
+
+	/**
+	 * Return the faction of this Unit.
+	*/
+	@Basic
+	@Raw
+	public Faction getFaction() {
+	    return this.faction;
+	}
+	/**
+	 * Check whether the given faction is a valid faction for
+	 * any Unit.
+	 *
+	 * @param faction
+	 * The faction to check.
+	 * @return
+	 * | result ==
+	 */
+	 public boolean isValidFaction(Faction faction) {
+	    return true;// TODO: check if the Unit's world contains this faction
+	 }
+	 /**
+	  * Set the faction of this Unit to the given faction.
+	  *
+	  * @param faction
+	  * The new faction for this Unit.
+	  * @pre The given faction must be a valid faction for any
+	  * Unit.
+	  * | isValidFaction(faction)
+	  * @post The faction of this Unit is equal to the given
+	  * faction.
+	  * | new.getFaction() == faction
+	  */
+	 @Raw
+	 public void setFaction(Faction faction) {
+	    assert isValidFaction(faction);
+	    this.faction = faction;
+	 }
+	 /**
+	  * Variable registering the faction of this Unit.
+	  */
+	 private Faction faction;
 }
 
 	

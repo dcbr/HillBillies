@@ -177,7 +177,7 @@ public class World implements IWorld {
 
 		Faction f;
 		if(this.factions.size()<MAX_FACTIONS) {
-			f = new Faction();
+			f = new Faction(); //TODO: "Units that belong to other factions act autonomously" =?= startDefault?
 			this.factions.add(f);
 		}else {
 			f = getFactionWithLeastUnits();
@@ -407,21 +407,21 @@ public class World implements IWorld {
 	}
 	
 	@Override
-	public Vector getValidatePosition(){
+	public Vector getSpawnPosition(){
 		double x = randDouble(this.getMinPosition().X(), this.getMaxPosition().X());
 		double y = randDouble(this.getMinPosition().Y(), this.getMaxPosition().Y());
 		double z = randDouble(this.getMinPosition().Z(), this.getMaxPosition().Z());
 		Vector position = new Vector(x,y,z).getCubeCoordinates();
-		if(validatePosition(position))
+		if(CorrectSpawnPosition(position))
 			return position;	
 		else
-			return getValidatePosition();
+			return getSpawnPosition();
 	}
 	
 	
-	protected boolean validatePosition(Vector position) {
+	protected boolean CorrectSpawnPosition(Vector position) {
 		if(this.isCubePassable(position) && (position.cubeZ() ==0 || !this.isCubePassable(new Vector(position.X(),position.Y(),position.Z()-1))))
-			return true;// TODO: check if standing on solid cube and this cube is passable
+			return true;
 		return false;
 	}
 }

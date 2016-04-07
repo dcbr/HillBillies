@@ -1,6 +1,8 @@
 package hillbillies.model;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import hillbillies.utils.Vector;
 
@@ -42,6 +44,8 @@ public interface IWorld {
     
     public boolean isCubePassable(Vector vector);
     
-    public Vector getValidatePosition();
+    public Vector getSpawnPosition();
+    
+    final Set<Unit> units = new HashSet <>();
 
 }

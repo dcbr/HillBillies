@@ -6,6 +6,9 @@ import ogp.framework.util.ModelException;
 
 import static hillbillies.utils.Utils.*;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * Class representing a Hillbilly unit
  * @author Kenneth & Bram
@@ -85,6 +88,10 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	 * Constant reflecting the maximum weight of a unit.    
 	 */
     public static final int MAX_WEIGHT = 200;
+	/**
+	 * Constant reflecting the maximum XP of a unit.    
+	 */
+    public static final int MAX_XP = 10;
 	/**
 	 * Constant reflecting the minimum stamina of a unit.    
 	 */
@@ -861,7 +868,8 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	 *				(defender.getHitpoints()> MIN_HITPOINTS)
 	 * 				(Math.abs(defender.getPosition().cubeX()-this.getPosition().cubeX())<=1) &&
 	 *				(Math.abs(defender.getPosition().cubeY()-this.getPosition().cubeY())<=1) &&
-	 *				(Math.abs(defender.getPosition().cubeZ()-this.getPosition().cubeZ())<=1))
+	 *				(Math.abs(defender.getPosition().cubeZ()-this.getPosition().cubeZ())<=1)) &&
+	 *				this.getFaction() != defender.getFaction()
 	 */
 	public boolean isValidAttack(Unit defender) {
 		return this.getId()!=defender.getId() &&
@@ -870,7 +878,8 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 				(defender.getHitpoints()> MIN_HITPOINTS) &&
 				(Math.abs(defender.getPosition().cubeX()-this.getPosition().cubeX())<=1) &&
 				(Math.abs(defender.getPosition().cubeY()-this.getPosition().cubeY())<=1) &&
-				(Math.abs(defender.getPosition().cubeZ()-this.getPosition().cubeZ())<=1);
+				(Math.abs(defender.getPosition().cubeZ()-this.getPosition().cubeZ())<=1) &&
+				this.getFaction() != defender.getFaction();
 
 	}
 
@@ -942,6 +951,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 		if(!this.isDefaultActive())
 			throw new IllegalStateException("The default behaviour of unit is activated");
 		this.startDoingDefault();
+		//TODO: fight	
 		int activity = randInt(0,2);
 		if (activity ==0){
 			this.moveToTarget(new Vector (Math.random()*(getWorld().getMaxPosition().X()-getWorld().getMinPosition().X())+getWorld().getMinPosition().X(),
@@ -1186,7 +1196,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 
 	//region Constructors
 	public Unit(IWorld world) throws IllegalArgumentException{	//TODO: Random value for hitpoints and stamina
-		this(world, "Unnamed Unit", world.getValidatePosition(), randInt(INITIAL_MIN_STRENGTH, INITIAL_MAX_STRENGTH),
+		this(world, "Unnamed Unit", world.getSpawnPosition(), randInt(INITIAL_MIN_STRENGTH, INITIAL_MAX_STRENGTH),
 				randInt(INITIAL_MIN_AGILITY, INITIAL_MAX_AGILITY), randInt(INITIAL_MIN_TOUGHNESS, INITIAL_MAX_TOUGHNESS),
 				randInt(getInitialMinWeight(INITIAL_MIN_STRENGTH,INITIAL_MIN_AGILITY), INITIAL_MAX_WEIGHT) );
 	}
@@ -1463,6 +1473,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 		IWorld world = this.getWorld();
 		if(world.isCubePassable(position) && (position.cubeZ() ==0 || !world.isCubePassable(new Vector(position.X(),position.Y(),position.Z()-1))))
 			return true;// TODO: check if standing on solid cube and this cube is passable
+		//TODO: bij dodging (defend) is het niet verplicht om op solid te staan, moet enkel passable zijn
 		return false;
 	}
 
@@ -1492,6 +1503,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	 * Variable registering whether the default behaviour of this unit is activated.
 	 */
 	private boolean defaultActive = false;
+	
 	
 	/**
 	 * Variable registering the state of the default behaviour.
@@ -1567,6 +1579,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	 * 			| new.isDoingBehaviour
 	 * @effect	The defender defends this attack
 	 * 			| defender.defend(this)
+	 * @effect	If the attack is successfully, the attacker gains FIGHT_POINTS, else, the defender gains them.
 	 * @throws	IllegalArgumentException * the attacker is not able to attack this unit.
 	 * 			| !this.isValidAttack(defender)	
 	 */
@@ -1585,9 +1598,13 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 		this.setOrientation((float)Math.atan2(dy, dx));
 
 		defender.defend(this);
+		if(isSuccessFulAttack){
+			this.addXP(FIGHT_POINTS);
+			isSuccessFulAttack = false;
+		}
+		else
+			defender.addXP(FIGHT_POINTS);
 		setCurrentActivity(Activity.ATTACK);
-
-
 	}
 	
 	/**
@@ -1613,8 +1630,10 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 				}
 			}
 		}// fails to block
-		else if (!((randInt(0,99)/100.0) < this.getBlockingProbability(attacker)))
+		else if (!((randInt(0,99)/100.0) < this.getBlockingProbability(attacker))){
 			this.setHitpoints(this.getHitpoints()- this.getDamagingPoints(attacker));
+			isSuccessFulAttack = true;
+		}
 	}
 	/**
 	 * Start attacking.
@@ -1634,6 +1653,17 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 		this.isAttacking = false;
 	}
 		
+	/**
+	 * Variable registering whether an attack is successful.
+	 */
+	private boolean isSuccessFulAttack = false;
+	/**
+	 * Return a boolean indicating whether or not an attack is successful.
+	 */
+	@Basic
+	private boolean isSuccessFulAttack() {
+	    return this.isSuccessFulAttack;
+	}
 	//endregion
 
 	//region Moving
@@ -1844,21 +1874,60 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	    assert isValidFaction(faction);
 	    this.faction = faction;
 	 }
-	 /**
-	  * Variable registering the faction of this Unit.
-	  */
-	 private Faction faction;
+	/**
+	 * Variable registering the faction of this Unit.
+	 */
+	private Faction faction;
 	 
-	 private Vector getValidatePosition(IWorld world){
-		 double x = randDouble(world.getMinPosition().X(), world.getMaxPosition().X());
-		 double y = randDouble(world.getMinPosition().Y(), world.getMaxPosition().Y());
-		 double z = randDouble(world.getMinPosition().Z(), world.getMaxPosition().Z());
-		 Vector position = new Vector(x,y,z).getCubeCoordinates();
-		 if(validatePosition(position))
-			 return position;	
-		 else
-			 return getValidatePosition(world);
-	 }
+	private Vector getValidatePosition(IWorld world){
+		double x = randDouble(world.getMinPosition().X(), world.getMaxPosition().X());
+		double y = randDouble(world.getMinPosition().Y(), world.getMaxPosition().Y());
+		double z = randDouble(world.getMinPosition().Z(), world.getMaxPosition().Z());
+		Vector position = new Vector(x,y,z).getCubeCoordinates();
+		if(validatePosition(position))
+			return position;	
+		else
+			return getValidatePosition(world);
+	}
+	 
+	//region XP points
+	/**
+	 * Constant reflecting XP gaining after a fight.    
+	 */
+	private static final int FIGHT_POINTS = 20;
+	/**
+	 * Variable registering the experience points of this unit.
+	 */
+	private int experiencePoints = 0;
+	
+	private void addXP(int xp){ //TODO: toevoegen bij methodes waar en hoeveel xp wordt verdient
+		experiencePoints += xp;
+		if(experiencePoints >= MAX_XP){
+			List<String> attributes = Arrays.asList("Strength","Agility","Toughness");
+			if(getStrength() == MAX_STRENGTH)
+				attributes.remove("Strength");
+			if(getAgility() == MAX_AGILITY)
+				attributes.remove("Agility");
+			if(getToughness() == MAX_TOUGHNESS)
+				attributes.remove("Toughness");
+			int size = attributes.size();
+			if(size == 0)
+				experiencePoints = MAX_XP -1;
+			else{
+				String attribute = attributes.get(randInt(0, size-1));
+				if (attribute == "Strength")
+					setStrength(getStrength()+1);
+				else if (attribute == "Agility")
+					setAgility(getAgility()+1);
+				else
+					setToughness(getToughness()+1);			
+			}
+		}
+	}
+	//endregion
+	
+	//region falling
+	
 }
 
 	

@@ -1,6 +1,8 @@
 package hillbillies.model;
 
 
+import static hillbillies.utils.Utils.randDouble;
+
 import java.util.*;
 
 import be.kuleuven.cs.som.annotate.*;
@@ -84,7 +86,7 @@ public class World implements IWorld {
 	@Raw
 	public void setTerrainMatrix(int[][][] terrainMatrix) 
 			throws IllegalArgumentException {
-		Map<Vector, Cube> CubeMap = new HashMap<Vector , Cube>();
+		//Map<Vector, Cube> CubeMap = new HashMap<Vector , Cube>();
 		setNbCubesX(terrainMatrix.length);
 		setNbCubesY(terrainMatrix[0].length);
 		setNbCubesZ(terrainMatrix[0][0].length);
@@ -168,7 +170,7 @@ public class World implements IWorld {
 	 */
 	@Override
 	public void addUnit(Unit unit){
-		assert canHaveAsUnit(unit);
+		assert canHaveAsUnit(unit);//TODO: check MAX_UNITS?
 		// Bind unit to this world
 		unit.setWorld(this);
 		units.add(unit);
@@ -395,4 +397,31 @@ public class World implements IWorld {
 	 * | (! unit.isTerminated()) )
 	 */
 	private final Set<Unit> units = new HashSet <>(MAX_UNITS);
+	
+	private Map<Vector, Cube> CubeMap = new HashMap<Vector , Cube>();
+	
+	
+	@Override
+	public boolean isCubePassable(Vector vector){
+		return CubeMap.get(vector).isPassable();
+	}
+	
+	@Override
+	public Vector getValidatePosition(){
+		double x = randDouble(this.getMinPosition().X(), this.getMaxPosition().X());
+		double y = randDouble(this.getMinPosition().Y(), this.getMaxPosition().Y());
+		double z = randDouble(this.getMinPosition().Z(), this.getMaxPosition().Z());
+		Vector position = new Vector(x,y,z).getCubeCoordinates();
+		if(validatePosition(position))
+			return position;	
+		else
+			return getValidatePosition();
+	}
+	
+	
+	protected boolean validatePosition(Vector position) {
+		if(this.isCubePassable(position) && (position.cubeZ() ==0 || !this.isCubePassable(new Vector(position.X(),position.Y(),position.Z()-1))))
+			return true;// TODO: check if standing on solid cube and this cube is passable
+		return false;
+	}
 }

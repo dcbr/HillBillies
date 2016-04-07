@@ -4,7 +4,7 @@ import be.kuleuven.cs.som.annotate.*;
 import hillbillies.utils.Vector;
 import ogp.framework.util.ModelException;
 
-import static hillbillies.utils.Utils.randInt;
+import static hillbillies.utils.Utils.*;
 
 /**
  * Class representing a Hillbilly unit
@@ -1185,6 +1185,12 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	//endregion
 
 	//region Constructors
+	public Unit(IWorld world) throws IllegalArgumentException{	//TODO: Random value for hitpoints and stamina
+		this(world, "Unnamed Unit", world.getValidatePosition(), randInt(INITIAL_MIN_STRENGTH, INITIAL_MAX_STRENGTH),
+				randInt(INITIAL_MIN_AGILITY, INITIAL_MAX_AGILITY), randInt(INITIAL_MIN_TOUGHNESS, INITIAL_MAX_TOUGHNESS),
+				randInt(getInitialMinWeight(INITIAL_MIN_STRENGTH,INITIAL_MIN_AGILITY), INITIAL_MAX_WEIGHT) );
+	}
+	
 	/**
 	 * Initialize this new Unit with given name and position in the given world. All other properties are set to their
 	 * default initial values.
@@ -1454,7 +1460,10 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 
 	@Override
 	protected boolean validatePosition(Vector position) {
-		return false;// TODO: check if standing on solid cube and this cube is passable
+		IWorld world = this.getWorld();
+		if(world.isCubePassable(position) && (position.cubeZ() ==0 || !world.isCubePassable(new Vector(position.X(),position.Y(),position.Z()-1))))
+			return true;// TODO: check if standing on solid cube and this cube is passable
+		return false;
 	}
 
 	/**
@@ -1839,6 +1848,17 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	  * Variable registering the faction of this Unit.
 	  */
 	 private Faction faction;
+	 
+	 private Vector getValidatePosition(IWorld world){
+		 double x = randDouble(world.getMinPosition().X(), world.getMaxPosition().X());
+		 double y = randDouble(world.getMinPosition().Y(), world.getMaxPosition().Y());
+		 double z = randDouble(world.getMinPosition().Z(), world.getMaxPosition().Z());
+		 Vector position = new Vector(x,y,z).getCubeCoordinates();
+		 if(validatePosition(position))
+			 return position;	
+		 else
+			 return getValidatePosition(world);
+	 }
 }
 
 	

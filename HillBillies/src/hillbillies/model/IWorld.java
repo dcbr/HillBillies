@@ -1,5 +1,7 @@
 package hillbillies.model;
 
+import java.util.Map;
+
 import hillbillies.utils.Vector;
 
 /**
@@ -37,5 +39,9 @@ public interface IWorld {
      * | (unit != null) && (unit.getWorld() == this)
      */
     public void addUnit(Unit unit);
+    
+    public boolean isCubePassable(Vector vector);
+    
+    public Vector getValidatePosition();
 
 }

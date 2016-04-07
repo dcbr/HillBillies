@@ -1,7 +1,9 @@
 package hillbillies.model;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import hillbillies.utils.Vector;
 
@@ -67,6 +69,10 @@ public class LobbyWorld implements IWorld {
 	
 	private void addNewFaction(Unit unit){
 		this.factions.add(new Faction(unit));
+	}
+	@Override
+	public boolean isCubePassable(Vector vector){
+		return true;
 	}
 
 }

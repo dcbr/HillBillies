@@ -2,8 +2,6 @@ package hillbillies.model;
 
 import be.kuleuven.cs.som.annotate.*;
 import hillbillies.utils.Vector;
-import ogp.framework.util.ModelException;
-
 import static hillbillies.utils.Utils.*;
 
 import java.util.Arrays;
@@ -788,14 +786,14 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	 * is able to move.
 	 */
 	public boolean isAbleToMove(){
-		return !this.isInitialRestMode() && this.getCurrentActivity()!=Activity.ATTACK && this.getCurrentActivity()!=Activity.WORK;
+		return !this.isInitialRestMode() && this.getCurrentActivity()!=Activity.ATTACK && this.getCurrentActivity()!=Activity.WORK && this.getCurrentActivity()!=Activity.FALLING;
 	}
 	/**
 	 * Return a boolean indicating whether or not this person
 	 * is able to rest.
 	 */
 	public boolean isAbleToRest(){
-		return this.getCurrentActivity()!=Activity.ATTACK;
+		return this.getCurrentActivity()!=Activity.ATTACK && this.getCurrentActivity()!=Activity.FALLING;
 	}
 	/**
 	 * Return a boolean indicating whether or not this person
@@ -810,7 +808,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	 * is able to work.
 	 */
 	public boolean isAbleToWork(){
-		return !this.isInitialRestMode() && this.getCurrentActivity() != Activity.ATTACK;
+		return !this.isInitialRestMode() && this.getCurrentActivity() != Activity.ATTACK && this.getCurrentActivity()!=Activity.FALLING;
 	}
 
 	/**
@@ -869,7 +867,9 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	 * 				(Math.abs(defender.getPosition().cubeX()-this.getPosition().cubeX())<=1) &&
 	 *				(Math.abs(defender.getPosition().cubeY()-this.getPosition().cubeY())<=1) &&
 	 *				(Math.abs(defender.getPosition().cubeZ()-this.getPosition().cubeZ())<=1)) &&
-	 *				this.getFaction() != defender.getFaction()
+	 *				this.getFaction() != defender.getFaction() &&
+	 *				this.getCurrentActivity()!=Activity.FALLING &&
+	 *				defender.getCurrentActivity()!=Activity.FALLING
 	 */
 	public boolean isValidAttack(Unit defender) {
 		return this.getId()!=defender.getId() &&
@@ -879,7 +879,9 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 				(Math.abs(defender.getPosition().cubeX()-this.getPosition().cubeX())<=1) &&
 				(Math.abs(defender.getPosition().cubeY()-this.getPosition().cubeY())<=1) &&
 				(Math.abs(defender.getPosition().cubeZ()-this.getPosition().cubeZ())<=1) &&
-				this.getFaction() != defender.getFaction();
+				this.getFaction() != defender.getFaction() &&
+				defender.getCurrentActivity()!=Activity.FALLING &&
+				this.getCurrentActivity()!=Activity.FALLING;
 
 	}
 
@@ -1341,13 +1343,17 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 
 	//region AdvanceTime
 
+	@Override
 	public void advanceTime(double dt){
 		// Defensively without documentation
 		restTimer += dt;
 		if(restTimer >= REST_INTERVAL && this.isAbleToRest()){
 			rest();
 		}
-
+		if (getCurrentActivity() != Activity.FALLING && getCurrentActivity() != Activity.MOVE && !validatePosition(getPosition())){
+			falling(); //TODO: bij move telkens controleren of hij opeens moet vallen als er een blok veranderd naar passable
+		}
+		
 		switch(getCurrentActivity()){
 			case MOVE:
 				if(this.isSprinting){
@@ -1404,6 +1410,28 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 				if(this.getStateDefault()==2 && !this.isSprinting &&this.isAbleToSprint() &&randInt(0, 99) < 1)
 					this.sprint();
 				break;
+				
+			case FALLING:
+				Vector cPos = getPosition();
+				Vector cPosCube = cPos.getCubeCenterCoordinates();
+				if (cPos == cPosCube && validatePosition(cPos)){
+					setCurrentSpeed(0);
+					setCurrentActivity(Activity.NONE);
+					setHitpoints((int)(getHitpoints()-(fallingLevel-cPos.Z())));
+					fallingLevel = 0;
+				}
+				else{
+					double speed = getCurrentSpeed();
+					Vector nextPos = cPos.add(new Vector(0,0,-speed*dt));
+					if (validatePosition(cPos) && (cPosCube.isInBetween(2, cPos, nextPos)||cPos.Z() <= cPosCube.Z() ))
+							setPosition(cPosCube);							
+					else if(nextPos.getCubeCenterCoordinates().isInBetween(2, cPos, nextPos) && validatePosition(nextPos))
+						setPosition(nextPos.getCubeCenterCoordinates());
+					else
+						setPosition(nextPos);
+				}	
+				break;
+					
 			case WORK:
 				if (activityProgress >= this.getWorkDuration())
 					setCurrentActivity(Activity.NONE);
@@ -1411,12 +1439,14 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 					this.setWorkProgress(((float) activityProgress)/ (this.getWorkDuration()));
 				}
 				break;
+				
 			case ATTACK:
 				if (activityProgress > 1){
 					this.stopAttacking();
-					setCurrentActivity(Activity.NONE);// TODO: enum doing nothing
+					setCurrentActivity(Activity.NONE);
 				}
 				break;
+				
 			case REST:
 				int maxHp = getMaxHitpoints(this.getWeight(), this.getToughness());
 				int maxSt = getMaxStamina(this.getWeight(), this.getToughness());
@@ -1455,8 +1485,8 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 					this.setStamina(newStamina);
 					restStamina = newRestStamina;
 				}
-				
 				break;
+				
 			case NONE:
 				if(this.isDefaultActive())
 					this.setDefaultBehaviour();
@@ -1471,12 +1501,19 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	@Override
 	protected boolean validatePosition(Vector position) {
 		IWorld world = this.getWorld();
-		if(world.isCubePassable(position) && (position.cubeZ() ==0 || !world.isCubePassable(new Vector(position.X(),position.Y(),position.Z()-1))))
+		if(world.isValidPosition(position) && world.isCubePassable(position) && (position.cubeZ() ==0 || !world.isCubePassable(new Vector(position.X(),position.Y(),position.Z()-1))))
 			return true;// TODO: check if standing on solid cube and this cube is passable
-		//TODO: bij dodging (defend) is het niet verplicht om op solid te staan, moet enkel passable zijn
+		//TODO: ook niet controleren van boven en naastliggende cubes?
 		return false;
 	}
 
+	private boolean isValidDodgePos(Vector position){
+		IWorld world = this.getWorld();
+		if(world.isValidPosition(position) && world.isCubePassable(position))
+			return true;		
+		return false;
+	}
+	
 	/**
 	 * This method returns how many times the specified time-interval (delta) is contained in newTime.
 	 * Where newTime is calculated as
@@ -1537,10 +1574,10 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	 *
 	 * @post   	Default behaviour of this unit is deactivated.
 	 *       	| new.isDefaultActive() == false
-	 * @post   	The new state of the default behaviour is equal to stopDoingDefault(). // TODO: dees klopt ni echt denk ik, want stopDoingDefault returned niks
-	 * 			| new.isDoingDefault() ==  stopDoingDefault() // TODO: en isDoingDefault() bestaat niet
+	 * @post   	The unit stops doing the default. 
+	 * 			| this.stopDoingDefault()
 	 * @post   	The new current activity of this unit is equal to None.
-	 * 			| new.getCurrentActivity() == None
+	 * 			| new.getCurrentActivity() == NONE.
 	 */
 	public void stopDefaultBehaviour(){
 		this.stopDoingDefault();
@@ -1623,8 +1660,9 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 			while(! validDodge) {// TODO: in part2 replace this by a list of valid positions and choose a random element from that list
 				int dodgeX = randInt(-1, 1);
 				int dodgeY = randInt(-1, 1);
+				Vector newPos = this.getPosition().add(new Vector(dodgeX, dodgeY, 0));
 				if ((dodgeX != 0 || dodgeY != 0) &&
-						(isValidPosition(this.getPosition().add(new Vector(dodgeX, dodgeY, 0))))) {
+						(isValidDodgePos(newPos))) {
 					validDodge = true;
 					this.setPosition(getPosition().add(new Vector(dodgeX,dodgeY,0)));
 				}
@@ -1818,6 +1856,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	 * @post ...
 	 * | ...
 	 */
+	@Override
 	public void terminate() {
 	    this.isTerminated = true;
 		this.setHitpoints(0);
@@ -1826,6 +1865,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	 * Return a boolean indicating whether or not this Unit
 	 * is terminated.
 	 */
+	@Override
 	@Basic
 	@Raw
 	public boolean isTerminated() {
@@ -1879,16 +1919,16 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	 */
 	private Faction faction;
 	 
-	private Vector getValidatePosition(IWorld world){
-		double x = randDouble(world.getMinPosition().X(), world.getMaxPosition().X());
-		double y = randDouble(world.getMinPosition().Y(), world.getMaxPosition().Y());
-		double z = randDouble(world.getMinPosition().Z(), world.getMaxPosition().Z());
-		Vector position = new Vector(x,y,z).getCubeCoordinates();
-		if(validatePosition(position))
-			return position;	
-		else
-			return getValidatePosition(world);
-	}
+//	private Vector getValidatePosition(IWorld world){
+//		double x = randDouble(world.getMinPosition().X(), world.getMaxPosition().X());
+//		double y = randDouble(world.getMinPosition().Y(), world.getMaxPosition().Y());
+//		double z = randDouble(world.getMinPosition().Z(), world.getMaxPosition().Z());
+//		Vector position = new Vector(x,y,z).getCubeCoordinates();
+//		if(validatePosition(position))
+//			return position;	
+//		else
+//			return getValidatePosition(world);
+//	}
 	 
 	//region XP points
 	/**
@@ -1927,7 +1967,15 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	//endregion
 	
 	//region falling
+	public void falling(){
+		setCurrentSpeed(3d);
+		Vector pos = getPosition();
+		setPosition(new Vector(pos.getCubeCenterCoordinates().X(),pos.getCubeCenterCoordinates().Y(), pos.Z() ));
+		this.fallingLevel = getPosition().cubeZ();
+		setCurrentActivity(Activity.FALLING);
+	}
 	
+	private int fallingLevel = 0;
 }
 
 	

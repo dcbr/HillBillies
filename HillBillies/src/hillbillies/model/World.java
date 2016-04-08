@@ -420,7 +420,7 @@ public class World implements IWorld {
 	
 	
 	protected boolean CorrectSpawnPosition(Vector position) {
-		if(this.isCubePassable(position) && (position.cubeZ() ==0 || !this.isCubePassable(new Vector(position.X(),position.Y(),position.Z()-1))))
+		if(this.isValidPosition(position) && this.isCubePassable(position) && (position.cubeZ() ==0 || !this.isCubePassable(new Vector(position.X(),position.Y(),position.Z()-1))))
 			return true;
 		return false;
 	}

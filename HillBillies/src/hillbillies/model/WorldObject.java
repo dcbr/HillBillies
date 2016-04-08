@@ -92,7 +92,8 @@ public abstract class WorldObject implements IWorldObject {
     /**
      * Return the world of this WorldObject.
      */
-    @Basic
+    @Override
+	@Basic
     @Raw
     public IWorld getWorld() {
         return this.world;

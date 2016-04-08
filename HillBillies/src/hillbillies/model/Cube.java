@@ -318,14 +318,16 @@ public class Cube extends WorldObject {
      * @post ...
      * | ...
      */
-    public void terminate() {
+    @Override
+	public void terminate() {
         this.isTerminated = true;
     }
     /**
      * Return a boolean indicating whether or not this Cube
      * is terminated.
      */
-    @Basic
+    @Override
+	@Basic
     @Raw
     public boolean isTerminated() {
         return this.isTerminated;

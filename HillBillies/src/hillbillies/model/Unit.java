@@ -4,8 +4,9 @@ import be.kuleuven.cs.som.annotate.*;
 import hillbillies.utils.Vector;
 import static hillbillies.utils.Utils.*;
 
-import java.util.Arrays;
-import java.util.List;
+import java.nio.file.Path;
+import java.util.*;
+import java.util.stream.Stream;
 
 /**
  * Class representing a Hillbilly unit
@@ -1365,22 +1366,28 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 					this.setStamina(newStamina);
 				}
 				Vector cpos = getPosition();
+				if(!lastPosition.difference(cpos.getCubeCoordinates()).equals(new Vector(0,0,0))){
+					lastPosition = cpos;
+					this.addXP(1);
+				}
 				if(targetPosition!=null){
-						int dx = 0, dy = 0, dz = 0;
-						if (targetPosition.cubeX() - cpos.cubeX() < 0)
-							dx = -1;
-						else if(targetPosition.cubeX() - cpos.cubeX() > 0)
-							dx = 1;
-						if (targetPosition.cubeY() - cpos.cubeY() < 0)
-							dy = -1;
-						else if(targetPosition.cubeY() - cpos.cubeY() > 0)
-							dy = 1;
-						if (targetPosition.cubeZ() - cpos.cubeZ() < 0)
-							dz = -1;
-						else if(targetPosition.cubeZ() - cpos.cubeZ() > 0)
-							dz = 1;
-						this.stateDefault +=1;
-							moveToAdjacent(new Vector(dx, dy, dz));
+					Queue<PathStep> path = new LinkedList<>();
+					path.add(new PathStep(cpos.getCubeCoordinates(),0));
+					Iterator<PathStep> pathIterator = path.iterator();
+					// TODO: make separate class Path implementing Queue and Iterator
+					while(!path.stream().anyMatch(pathStep -> pathStep.getPosition().equals(cpos.getCubeCoordinates())) &&
+							path.iterator().hasNext()){
+						path = searchPath(path, path.iterator().next());// TODO: gaat dit niet telkens gewoon het eerste teruggeven?
+					}
+					if(path.stream().anyMatch(pathStep -> pathStep.getPosition().equals(cpos.getCubeCoordinates()))){
+						Stream<PathStep> nextPathSteps = path.stream().filter(pathStep -> getWorld().getDirectlyAdjacentCubes(cpos).contains(getWorld().getCube(pathStep.getPosition())));
+						// TODO: extra voorwaarde, maar wordt te lelijk met al die streams en filters -> maak klasse Path
+					}else{
+						moveToAdjacent(0,0,0);
+						targetPosition = null;
+					}
+					this.stateDefault +=1;
+					moveToAdjacent(new Vector(dx, dy, dz));
 				}
 				if(getNextPosition()!=null){
 					if(getNextPosition().equals(cpos)){
@@ -1501,9 +1508,14 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	@Override
 	protected boolean validatePosition(Vector position) {
 		IWorld world = this.getWorld();
-		if(world.isValidPosition(position) && world.isCubePassable(position) && (position.cubeZ() ==0 || !world.isCubePassable(new Vector(position.X(),position.Y(),position.Z()-1))))
-			return true;// TODO: check if standing on solid cube and this cube is passable
-		//TODO: ook niet controleren van boven en naastliggende cubes?
+		// world.isValidPosition(position) wordt al gecontroleerd in isValidPosition
+		if(world.isCubePassable(position)){
+			if(position.cubeZ() == 0)
+				return true;
+			for(Cube cube : world.getDirectlyAdjacentCubes(position))
+				if(!world.isCubePassable(cube.getPosition()))
+					return true;
+		}
 		return false;
 	}
 
@@ -1729,6 +1741,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 			this.stateDefault -=1;
 		// setNextPosition throws the exception
 		this.setNextPosition(this.getPosition().getCubeCenterCoordinates().add(direction));
+		this.lastPosition = this.getPosition();
 		setCurrentActivity(Activity.MOVE);	
 	}
 	
@@ -1781,6 +1794,31 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 		this.isSprinting = false;
 	}
 
+	private Vector lastPosition;
+
+	private class PathStep{
+		private final Vector position;
+		private final int n;
+
+		public PathStep(Vector position, int n){
+			this.position = position.clone();
+			this.n = n;
+		}
+
+		public Vector getPosition(){
+			return this.position;
+		}
+
+		public int getN(){
+			return this.n;
+		}
+	}
+
+	private Queue<PathStep> searchPath(Queue<PathStep> path, PathStep start){
+		Stream<Cube> nextCubes = getWorld().getDirectlyAdjacentCubes(start.getPosition()).stream().filter(cube -> isValidPosition(cube.getPosition()));
+		nextCubes.forEach(cube -> path.add(new PathStep(cube.getPosition(), start.getN()+1)));
+		return path;
+	}
 	//endregion
 	/**
 	 * Method to let the Unit rest.

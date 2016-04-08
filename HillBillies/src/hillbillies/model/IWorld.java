@@ -44,7 +44,9 @@ public interface IWorld {
     public boolean isCubePassable(Vector vector);
     
     public Vector getSpawnPosition();
+
+    public Set<Cube> getDirectlyAdjacentCubes(Vector position);
     
-    final Set<Unit> units = new HashSet <>();
+    final Set<Unit> units = new HashSet <>();// Voor wat dient dees?
 
 }

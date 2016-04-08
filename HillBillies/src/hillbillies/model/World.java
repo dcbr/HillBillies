@@ -66,7 +66,6 @@ public class World implements IWorld {
 	 */
 	@Override
 	public boolean isValidPosition(Vector position){
-		//TODO: probably move this to WorldObject?
 		return position.isInBetween(this.getMinPosition(), this.getMaxPosition());
 	}
 	
@@ -403,7 +402,7 @@ public class World implements IWorld {
 	
 	@Override
 	public boolean isCubePassable(Vector vector){
-		return CubeMap.get(vector).isPassable();
+		return getCube(vector).isPassable();
 	}
 	
 	@Override
@@ -423,5 +422,46 @@ public class World implements IWorld {
 		if(this.isValidPosition(position) && this.isCubePassable(position) && (position.cubeZ() ==0 || !this.isCubePassable(new Vector(position.X(),position.Y(),position.Z()-1))))
 			return true;
 		return false;
+	}
+
+	public Cube getCube(Vector cubeCoordinates){
+		if(!isValidPosition(cubeCoordinates))
+			throw new IllegalArgumentException("The given coordinates do not reference a valid position.");
+		return this.CubeMap.get(cubeCoordinates);
+	}
+
+	@Override
+	public Set<Cube> getDirectlyAdjacentCubes(Vector cubeCoordinates){
+		Set<Cube> adjacentCubes = new HashSet<>(6);
+		for(int i=0;i<6;i++){
+			double sign = Math.pow(-1, i);// i odd -> -1 ; i even -> 1
+			int dx = ((i + 1) % 3) % 2;// 0 -> 1 ; 1 -> 0 ; 2 -> 0 ; 3 -> 1 ; 4 -> 0 ; 5 -> 0
+			int dy = (i % 3) % 2;// 0 -> 0 ; 1 -> 1 ; 2 -> 0 ; 3 -> 0 ; 4 -> 1 ; 5 -> 0
+			int dz = ((i + 2) % 3) % 2;// 0 -> 0 ; 1 -> 0 ; 2 -> 1 ; 3 -> 0 ; 4 -> 0 ; 5 -> 1
+			Vector pos = cubeCoordinates.add(new Vector(dx, dy, dz).multiply(sign));
+			if (isValidPosition(pos))
+				adjacentCubes.add(getCube(pos));
+		}
+		return adjacentCubes;
+	}
+
+	public Set<Cube> getDirectlyAdjacentCubes(Cube cube){
+		return getDirectlyAdjacentCubes(cube.getPosition());
+	}
+
+	public void advanceTime(double dt){
+		unitsByCubePosition.clear();
+		for(Unit unit : units){
+			unit.advanceTime(dt);
+			if(!unitsByCubePosition.containsKey(unit.getPosition().getCubeCoordinates()))
+				unitsByCubePosition.put(unit.getPosition().getCubeCoordinates(), new HashSet<>());
+			unitsByCubePosition.get(unit.getPosition().getCubeCoordinates()).add(unit);
+		}
+	}
+
+	private final Map<Vector, Set<Unit>> unitsByCubePosition = new HashMap<>();
+
+	public Set<Unit> getUnitsInCube(Cube cube){
+		return unitsByCubePosition.getOrDefault(cube.getPosition(), new HashSet<>());
 	}
 }

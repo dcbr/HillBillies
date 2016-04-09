@@ -4,6 +4,8 @@ import hillbillies.model.Unit;
 import hillbillies.model.World;
 import hillbillies.model.Faction;
 import hillbillies.model.LobbyWorld;
+import hillbillies.model.Log;
+import hillbillies.model.Boulder;
 import hillbillies.part2.listener.TerrainChangeListener;
 import hillbillies.utils.Vector;
 import ogp.framework.util.ModelException;

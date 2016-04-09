@@ -1371,17 +1371,14 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 					this.addXP(1);
 				}
 				if(targetPosition!=null){
-					Queue<PathStep> path = new LinkedList<>();
-					path.add(new PathStep(cpos.getCubeCoordinates(),0));
-					Iterator<PathStep> pathIterator = path.iterator();
+					Path path = new Path(cpos.getCubeCoordinates());
 					// TODO: make separate class Path implementing Queue and Iterator
-					while(!path.stream().anyMatch(pathStep -> pathStep.getPosition().equals(cpos.getCubeCoordinates())) &&
-							path.iterator().hasNext()){
-						path = searchPath(path, path.iterator().next());// TODO: gaat dit niet telkens gewoon het eerste teruggeven?
+					while(!path.contains(cpos.getCubeCoordinates()) && path.hasNext()){
+						searchPath(path, path.getNext());// TODO: gaat dit niet telkens gewoon het eerste teruggeven?
 					}
-					if(path.stream().anyMatch(pathStep -> pathStep.getPosition().equals(cpos.getCubeCoordinates()))){
-						Stream<PathStep> nextPathSteps = path.stream().filter(pathStep -> getWorld().getDirectlyAdjacentCubes(cpos).contains(getWorld().getCube(pathStep.getPosition())));
-						// TODO: extra voorwaarde, maar wordt te lelijk met al die streams en filters -> maak klasse Path
+					if(path.contains(cpos.getCubeCoordinates())){
+						Vector next = path.getNextPositionWithLowestN(getWorld().getDirectlyAdjacentCubesPositions(cpos.getCubeCoordinates()));
+						moveToAdjacent(next.difference(cpos.getCubeCoordinates()));
 					}else{
 						moveToAdjacent(0,0,0);
 						targetPosition = null;
@@ -1796,28 +1793,56 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 
 	private Vector lastPosition;
 
-	private class PathStep{
-		private final Vector position;
-		private final int n;
+	private class Path{
 
-		public PathStep(Vector position, int n){
-			this.position = position.clone();
-			this.n = n;
+		private final ArrayDeque<Map.Entry<Vector, Integer>> path = new ArrayDeque<>();
+		private final HashMap<Vector, Integer> lowestNByPosition = new HashMap<>();
+		private final Iterator<Map.Entry<Vector, Integer>> pathIterator = path.iterator();
+
+		public Path(Vector targetPosition){
+			path.add(new HashMap.SimpleEntry<>(targetPosition, 0));
 		}
 
-		public Vector getPosition(){
-			return this.position;
+		public boolean contains(Vector position){
+			return lowestNByPosition.containsKey(position);
 		}
 
-		public int getN(){
-			return this.n;
+		public void add(Vector position, int n){
+			// n is hier n0+1 uit de opgave
+			// => enkel toevoegen indien er een n' bestaat waarvoor geldt dat n'+1>n=n0+1
+			// Dat is equivalent met NIET toevoegen als er een n' bestaat waarvoor geldt dat n'+1<=n=n0+1 of n'<=n0
+			if (lowestNByPosition.getOrDefault(position, n) + 1 > n) {
+				lowestNByPosition.put(position, n);
+				path.add(new AbstractMap.SimpleEntry<>(position, n));
+			}
+		}
+
+		public boolean hasNext(){
+			return !path.isEmpty();
+		}
+
+		public Map.Entry<Vector, Integer> getNext(){
+			Map.Entry<Vector, Integer> entry = path.remove();
+			// TODO: update lowestNByPosition in some way
+			return entry;
+		}
+
+		public Vector getNextPositionWithLowestN(Set<Vector> nextPositions){
+			Vector next = null;
+			int lowestN = -1;
+			for(Vector nextPosition : nextPositions){
+				if(lowestNByPosition.containsKey(nextPosition) && (lowestN==-1 || lowestNByPosition.get(nextPosition)<lowestN)){
+					lowestN = lowestNByPosition.get(nextPosition);
+					next = nextPosition;
+				}
+			}
+			return next;
 		}
 	}
 
-	private Queue<PathStep> searchPath(Queue<PathStep> path, PathStep start){
-		Stream<Cube> nextCubes = getWorld().getDirectlyAdjacentCubes(start.getPosition()).stream().filter(cube -> isValidPosition(cube.getPosition()));
-		nextCubes.forEach(cube -> path.add(new PathStep(cube.getPosition(), start.getN()+1)));
-		return path;
+	private void searchPath(Path path, Map.Entry<Vector, Integer> start){
+		Stream<Cube> nextCubes = getWorld().getDirectlyAdjacentCubes(start.getKey()).stream().filter(cube -> isValidPosition(cube.getPosition()));
+		nextCubes.forEach(cube -> path.add(cube.getPosition(), start.getValue()+1));
 	}
 	//endregion
 	/**

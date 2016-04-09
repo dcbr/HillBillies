@@ -46,6 +46,8 @@ public interface IWorld {
     public Vector getSpawnPosition();
 
     public Set<Cube> getDirectlyAdjacentCubes(Vector position);
+
+    public Set<Vector> getDirectlyAdjacentCubesPositions(Vector cubeCoordinates);
     
     final Set<Unit> units = new HashSet <>();// Voor wat dient dees?
 

@@ -434,11 +434,7 @@ public class World implements IWorld {
 	public Set<Cube> getDirectlyAdjacentCubes(Vector cubeCoordinates){
 		Set<Cube> adjacentCubes = new HashSet<>(6);
 		for(int i=0;i<6;i++){
-			double sign = Math.pow(-1, i);// i odd -> -1 ; i even -> 1
-			int dx = ((i + 1) % 3) % 2;// 0 -> 1 ; 1 -> 0 ; 2 -> 0 ; 3 -> 1 ; 4 -> 0 ; 5 -> 0
-			int dy = (i % 3) % 2;// 0 -> 0 ; 1 -> 1 ; 2 -> 0 ; 3 -> 0 ; 4 -> 1 ; 5 -> 0
-			int dz = ((i + 2) % 3) % 2;// 0 -> 0 ; 1 -> 0 ; 2 -> 1 ; 3 -> 0 ; 4 -> 0 ; 5 -> 1
-			Vector pos = cubeCoordinates.add(new Vector(dx, dy, dz).multiply(sign));
+			Vector pos = cubeCoordinates.add(getNextAdjacentDirection(i));
 			if (isValidPosition(pos))
 				adjacentCubes.add(getCube(pos));
 		}
@@ -447,6 +443,29 @@ public class World implements IWorld {
 
 	public Set<Cube> getDirectlyAdjacentCubes(Cube cube){
 		return getDirectlyAdjacentCubes(cube.getPosition());
+	}
+
+	@Override
+	public Set<Vector> getDirectlyAdjacentCubesPositions(Vector cubeCoordinates){
+		Set<Vector> adjacentCubes = new HashSet<>(6);
+		for(int i=0;i<6;i++){
+			Vector pos = cubeCoordinates.add(getNextAdjacentDirection(i));
+			if (isValidPosition(pos))
+				adjacentCubes.add(pos);
+		}
+		return adjacentCubes;
+	}
+
+	public Set<Vector> getDirectlyAdjacentCubesPositions(Cube cube){
+		return getDirectlyAdjacentCubesPositions(cube.getPosition());
+	}
+
+	private Vector getNextAdjacentDirection(int i){
+		double sign = Math.pow(-1, i);// i odd -> -1 ; i even -> 1
+		int dx = ((i + 1) % 3) % 2;// 0 -> 1 ; 1 -> 0 ; 2 -> 0 ; 3 -> 1 ; 4 -> 0 ; 5 -> 0
+		int dy = (i % 3) % 2;// 0 -> 0 ; 1 -> 1 ; 2 -> 0 ; 3 -> 0 ; 4 -> 1 ; 5 -> 0
+		int dz = ((i + 2) % 3) % 2;// 0 -> 0 ; 1 -> 0 ; 2 -> 1 ; 3 -> 0 ; 4 -> 0 ; 5 -> 1
+		return new Vector(dx, dy, dz).multiply(sign);
 	}
 
 	public void advanceTime(double dt){

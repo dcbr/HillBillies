@@ -1,5 +1,8 @@
 package hillbillies.utils;
 
+import hillbillies.model.IWorld;
+import hillbillies.model.World;
+
 import java.util.concurrent.ThreadLocalRandom;
 
 /**

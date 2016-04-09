@@ -1,9 +1,11 @@
 package hillbillies.model;
 
 import be.kuleuven.cs.som.annotate.*;
+import hillbillies.part2.listener.TerrainChangeListener;
 import hillbillies.utils.Vector;
 
 import java.util.*;
+import java.util.function.BiConsumer;
 
 /**
  * Created by Bram on 1-4-2016.
@@ -15,10 +17,11 @@ public class Cube extends WorldObject {
      */
     public static final double CUBE_SIDE_LENGTH = 1;
 
+    private BiConsumer<Terrain, Cube> terrainChangeListener;
 
 
-    public Cube(World world, Vector position){
-        this(world, position, null);// Null will result in the default Terrain type -> Terrain.AIR
+    public Cube(World world, Vector position, BiConsumer<Terrain, Cube> terrainChangeListener){
+        this(world, position, null, terrainChangeListener);// Null will result in the default Terrain type -> Terrain.AIR
     }
 
     @Override
@@ -45,11 +48,12 @@ public class Cube extends WorldObject {
      * @post This new cube has no materials yet.
      * | new.getNbMaterials() == 0
      */
-    public Cube(World world, Vector position, Terrain terrain){
+    public Cube(World world, Vector position, Terrain terrain, BiConsumer<Terrain, Cube> terrainChangeListener){
         super(world, position);
         if (! isValidTerrain(terrain))
             terrain = Terrain.AIR;
         setTerrain(terrain);
+        this.terrainChangeListener = terrainChangeListener;
     }
 
     @Override
@@ -99,12 +103,14 @@ public class Cube extends WorldObject {
     public void setTerrain(Terrain terrain) {
     	if (!isValidTerrain(terrain))
             terrain = Terrain.AIR;
+        Terrain oldTerrain = this.terrain;
         this.terrain = terrain;
         if(!this.isPassable() && this.materials.size()>0){
             for(Material material : this.materials)
                 material.terminate();
             this.materials.clear();
         }
+        this.terrainChangeListener.accept(oldTerrain, this);
     }
     /**
      * Variable registering the terrain of this Cube.

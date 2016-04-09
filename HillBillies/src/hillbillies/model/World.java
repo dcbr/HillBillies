@@ -6,6 +6,8 @@ import static hillbillies.utils.Utils.randDouble;
 import java.util.*;
 
 import be.kuleuven.cs.som.annotate.*;
+import hillbillies.part2.listener.TerrainChangeListener;
+import hillbillies.util.ConnectedToBorder;
 import hillbillies.utils.Vector;
 
 /**
@@ -23,7 +25,7 @@ public class World implements IWorld {
 	private static final int MAX_UNITS = 100;
 	private static final int MAX_FACTIONS = 5;
 
-
+	private TerrainChangeListener terrainChangeListener;
 
 
 	/**
@@ -35,9 +37,11 @@ public class World implements IWorld {
 	 *         the given Terrain Matrix.
 	 *       | this.setTerrainMatrix(terrainTypes)
 	 */
-	public World(int[][][] terrainTypes)
+	public World(int[][][] terrainTypes, TerrainChangeListener terrainChangeListener)// TODO: terrainChangeListener, see Facade
 			throws IllegalArgumentException {
 		this.setTerrainMatrix(terrainTypes);
+		this.terrainChangeListener = terrainChangeListener;
+		connectedToBorder = new ConnectedToBorder(this.getNbCubesX(),this.getNbCubesY(),this.getNbCubesZ());
 	}
 	
 
@@ -83,7 +87,7 @@ public class World implements IWorld {
 	 *       | ! isValidTerrainMatrix(getTerrainMatrix())
 	 */
 	@Raw
-	public void setTerrainMatrix(int[][][] terrainMatrix) 
+	public void setTerrainMatrix(int[][][] terrainMatrix)
 			throws IllegalArgumentException {
 		//Map<Vector, Cube> CubeMap = new HashMap<Vector , Cube>();
 		setNbCubesX(terrainMatrix.length);
@@ -99,7 +103,7 @@ public class World implements IWorld {
 						throw new IllegalArgumentException();
 					}
 					Vector position = new Vector(x,y,z);
-					CubeMap.put(position, new Cube(this,position,Terrain.fromId(terrainMatrix[x][y][z])));
+					CubeMap.put(position, new Cube(this, position, Terrain.fromId(terrainMatrix[x][y][z]), this::onTerrainChange));
 				}
 			}
 		}
@@ -396,6 +400,14 @@ public class World implements IWorld {
 	 * | (! unit.isTerminated()) )
 	 */
 	private final Set<Unit> units = new HashSet <>(MAX_UNITS);
+
+	public Set<Unit> getUnits(){
+		return new HashSet<>(units);
+	}
+
+	public Set<Faction> getFactions(){
+		return new HashSet<>(factions);
+	}
 	
 	private Map<Vector, Cube> CubeMap = new HashMap<Vector , Cube>();
 	
@@ -418,13 +430,21 @@ public class World implements IWorld {
 	}
 	
 	
-	protected boolean CorrectSpawnPosition(Vector position) {
+	protected boolean CorrectSpawnPosition(Vector position) {// TODO: waarom dit niet vervangen door unit.isValidPosition?
 		if(this.isValidPosition(position) && this.isCubePassable(position) && (position.cubeZ() ==0 || !this.isCubePassable(new Vector(position.X(),position.Y(),position.Z()-1))))
 			return true;
 		return false;
 	}
 
-	public Cube getCube(Vector cubeCoordinates){
+	/**
+	 * Get the Cube at the corresponding position.
+	 * @param cubeCoordinates The position of the cube
+	 * @return The Cube associated with this position
+	 * @throws IllegalArgumentException
+	 * 			When the given position is not a valid position in this World.
+	 * 			| !isValidPosition(cubeCoordinates)
+     */
+	public Cube getCube(Vector cubeCoordinates) throws IllegalArgumentException{
 		if(!isValidPosition(cubeCoordinates))
 			throw new IllegalArgumentException("The given coordinates do not reference a valid position.");
 		return this.CubeMap.get(cubeCoordinates);
@@ -482,5 +502,18 @@ public class World implements IWorld {
 
 	public Set<Unit> getUnitsInCube(Cube cube){
 		return unitsByCubePosition.getOrDefault(cube.getPosition(), new HashSet<>());
+	}
+
+	public final ConnectedToBorder connectedToBorder;
+
+	public void onTerrainChange(Terrain oldTerrain, Cube cube){
+		int x = (int)cube.getPosition().X();
+		int y = (int)cube.getPosition().Y();
+		int z = (int)cube.getPosition().Z();
+		terrainChangeListener.notifyTerrainChanged(x,y,z);
+		if(cube.isPassable() && !oldTerrain.isPassable())
+			connectedToBorder.changeSolidToPassable(x,y,z);
+		else if(!cube.isPassable() && oldTerrain.isPassable())
+			connectedToBorder.changePassableToSolid(x,y,z);
 	}
 }

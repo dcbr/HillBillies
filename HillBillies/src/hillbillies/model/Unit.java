@@ -843,6 +843,9 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	public boolean isMoving(){
 		return this.getCurrentActivity()==Activity.MOVE;
 	}
+	public boolean isResting(){
+		return this.getCurrentActivity()==Activity.REST;
+	}
 	/**
 	 * Return a boolean indicating whether or not this person
 	 * is sprinting.
@@ -884,6 +887,10 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 				defender.getCurrentActivity()!=Activity.FALLING &&
 				this.getCurrentActivity()!=Activity.FALLING;
 
+	}
+
+	public boolean isWorking(){
+		return this.getCurrentActivity() == Activity.WORK;
 	}
 
 	//endregion
@@ -1384,7 +1391,6 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 						targetPosition = null;
 					}
 					this.stateDefault +=1;
-					moveToAdjacent(new Vector(dx, dy, dz));
 				}
 				if(getNextPosition()!=null){
 					if(getNextPosition().equals(cpos)){

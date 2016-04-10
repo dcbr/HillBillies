@@ -1463,7 +1463,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 					fallingLevel = 0;
 				}
 				else{
-					double speed = getCurrentSpeed();// TODO: moet dees ni constante snelheid = 3 zijn?
+					double speed = getCurrentSpeed();
 					Vector nextPos = cPos.add(new Vector(0,0,-speed*dt));
 					if (validatePosition(cPos) && (cPosCube.isInBetween(2, cPos, nextPos)||cPos.Z() <= cPosCube.Z() ))
 							setPosition(cPosCube);							
@@ -2219,8 +2219,10 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 			if(getToughness() == MAX_TOUGHNESS)
 				attributes.remove("Toughness");
 			int size = attributes.size();
-			if(size == 0)
+			if(size == 0){
+				experiencePoints = MAX_XP-1;
 				return; //TODO: experiencePoints gelijk zetten aan MAX_XP-1 of laten opbouwen naar oneindig?
+			}
 			else{
 				String attribute = attributes.get(randInt(0, size-1));
 				if (attribute == "Strength")

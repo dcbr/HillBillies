@@ -961,8 +961,16 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 		if(!this.isDefaultActive())
 			throw new IllegalStateException("The default behaviour of unit is activated");
 		this.startDoingDefault();
-		//TODO: fight	
-		int activity = randInt(0,2);
+		List<Cube> AdjCubes = new ArrayList<Cube>(this.getWorld().getDirectlyAdjacentCubes(this.getPosition().getCubeCoordinates()));
+		List<Unit> units = new ArrayList<>();
+		for (int i = 0; i < AdjCubes.size(); i++){
+			units.addAll(this.getWorld().getUnitsInCube(AdjCubes.get(i)));
+		}
+		units.removeIf(unit -> this.getFaction() == unit.getFaction());
+		int nb = 2;
+		if (units.size() > 0)
+			nb +=1;
+		int activity = randInt(0,nb);
 		if (activity ==0){
 			this.moveToTarget(new Vector (Math.random()*(getWorld().getMaxPosition().X()-getWorld().getMinPosition().X())+getWorld().getMinPosition().X(),
 					Math.random()*(getWorld().getMaxPosition().Y()-getWorld().getMinPosition().Y())+getWorld().getMinPosition().Y(),
@@ -975,6 +983,9 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 			this.work();
 		if (activity ==2)
 			this.rest();
+		if (activity == 3){
+			this.attack(units.get(randInt(0,units.size()-1)));
+		}
 	}
 
 	/**
@@ -2008,10 +2019,21 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	 * Variable registering the experience points of this unit.
 	 */
 	private int experiencePoints = 0;
-	
+	/**
+	 * Add XP by the units current XP.
+	 * @param xp
+	 * The to be added xp.
+	 * @effect	...
+	 * 			| this.getXP() += xp.
+	 * @effect 	...
+	 * 			|while (this.getXP() >= MAX_XP && 
+	 * 			|	(this.getStrength() != MAX_STRENGTH || this.getAgility() != MAX_AGILITY || this.getToughness() != MAX_TOUGHNESS)
+	 * 			|		( (new this).getStrength() || (new this).getAgility() || (new this).Toughness()) 
+	 * 			| 		&& (new this).getXP()
+	 */
 	private void addXP(int xp){ //TODO: toevoegen bij methodes waar en hoeveel xp wordt verdient
 		experiencePoints += xp;
-		if(experiencePoints >= MAX_XP){
+		while (experiencePoints >= MAX_XP){
 			List<String> attributes = Arrays.asList("Strength","Agility","Toughness");
 			if(getStrength() == MAX_STRENGTH)
 				attributes.remove("Strength");
@@ -2021,7 +2043,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 				attributes.remove("Toughness");
 			int size = attributes.size();
 			if(size == 0)
-				experiencePoints = MAX_XP -1;
+				return; //TODO: experiencePoints gelijk zetten aan MAX_XP-1 of laten opbouwen naar oneindig?
 			else{
 				String attribute = attributes.get(randInt(0, size-1));
 				if (attribute == "Strength")
@@ -2033,10 +2055,33 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 			}
 		}
 	}
+	
+	/**
+	 * Return the XP of this unit.
+	 */
+	@Basic
+	public int getXP(){
+		return experiencePoints;
+	}
 	//endregion
 	
 	//region falling
+	/**
+	 * Method to let this unit fall.
+	 * @post	THe units stops its default behaviour when he was doing it.
+	 * 			|new.isDoingBehaviour
+	 * @effect	The unit's speed is changed
+	 * 			|new.getCurrentSpeed()
+	 * @effect	The units position is set to the center of the cube.
+	 * 			|new.getPosition()
+	 * @effect	The units current activity is changed to FALLING
+	 * 			|new.getCurrentActivity()
+	 * @effect	THe falling level is set to the Units Z Cube coordinate.
+	 * 			|this.fallingLevel = getPosition().cubeZ()
+	 */
 	public void falling(){
+		if(this.getStateDefault() ==2)
+			this.stopDoingDefault();
 		setCurrentSpeed(3d);
 		Vector pos = getPosition();
 		setPosition(new Vector(pos.getCubeCenterCoordinates().X(),pos.getCubeCenterCoordinates().Y(), pos.Z() ));
@@ -2044,6 +2089,9 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 		setCurrentActivity(Activity.FALLING);
 	}
 	
+	/**
+	 * Variable registering the starting falling level of this unit.
+	 */
 	private int fallingLevel = 0;
 }
 

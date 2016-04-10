@@ -49,6 +49,8 @@ public interface IWorld {
 
     public Set<Vector> getDirectlyAdjacentCubesPositions(Vector cubeCoordinates);
     
-    final Set<Unit> units = new HashSet <>();// Voor wat dient dees?
+    //final Set<Unit> units = new HashSet <>();// Voor wat dient dees?
+    
+    public Set<Unit> getUnitsInCube(Cube cube);
 
 }

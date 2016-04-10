@@ -242,7 +242,7 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public int getExperiencePoints(Unit unit) throws ModelException {
-        return unit.getXp();//TODO
+        return unit.getXP();//TODO: toevoegen wanneer hoeveel wordt verdient
     }
 
     /**
@@ -258,6 +258,7 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
     @Override
     public void workAt(Unit unit, int x, int y, int z) throws ModelException {
         // TODO: eerst moven naar target en dan werken?
+    	// units works on current pos or neighboring cube.
     }
 
     /**

@@ -30,7 +30,27 @@ public final class Utils {
             throw new IllegalArgumentException();
         return ThreadLocalRandom.current().nextInt(min, max + 1);
     }
+    
+    /**
+     * Returns a random double between min inclusive and max exclusive.
+     *
+     * @param 	min
+     * 			Minimum value
+     * @param 	max
+     * 			Maximum value.
+     * @throws  IllegalArgumentException
+     *          min is greater than max
+     * 			| (max < min)
+     * @return  A random double between min included and max excluded).
+     *          | min <= result < max
+     */
+    public static double randDouble(double min, double max) throws IllegalArgumentException {
+        if (max < min)
+            throw new IllegalArgumentException();
+        return ThreadLocalRandom.current().nextDouble(min, max);
+    }
 
+    
     public static final class ArrayConvert{
         public static double[] intToDouble(int[] array){
             double[] result = new double[array.length];

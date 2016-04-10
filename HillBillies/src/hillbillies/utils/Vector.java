@@ -270,6 +270,21 @@ public class Vector {
         return true;
     }
 
+    @Override
+    public boolean equals(Object other) throws NullPointerException {
+        if(other instanceof Vector)
+            return equals((Vector)other);
+        return false;
+    }
+
+    @Override
+    public int hashCode(){
+        int hashCode = 17;
+        for(double d : vectorList)
+            hashCode = hashCode*31 + Double.valueOf(d).hashCode();
+        return hashCode;
+    }
+
     /**
      * @return The dimension of this Vector.
      */

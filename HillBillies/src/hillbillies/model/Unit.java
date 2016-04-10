@@ -1483,13 +1483,13 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 					}else if(this.getWorkCube().getTerrain()==Terrain.WORKSHOP && this.getWorkCube().containsLogs() && this.getWorkCube().containsBoulders()){
 						// TODO: increase unit's weight and toughness and terminate boulder and log at workCube
 					}else if(this.getWorkCube().containsBoulders()){
-						// TODO: pick up Boulder
+						//this.setCarriedMaterial();// TODO: pick up Boulder
 					}else if(this.getWorkCube().containsLogs()){
-						// TODO: pick up Log
+						//this.setCarriedMaterial();// TODO: pick up Log
 					}else if(this.getWorkCube().getTerrain() == Terrain.WOOD){
-						// TODO: collapse cube
+						//this.getWorld().collapse(this.getWorkCube());
 					}else if(this.getWorkCube().getTerrain() == Terrain.ROCK){
-						// TODO: collapse cube
+						//this.getWorld().collapse(this.getWorkCube());//TODO: change collapse to cube itself
 					}
 					setCurrentActivity(Activity.NONE);
 					this.addXP(WORK_POINTS);
@@ -1560,10 +1560,10 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	protected boolean validatePosition(Vector position) {
 		IWorld world = this.getWorld();
 		// world.isValidPosition(position) wordt al gecontroleerd in isValidPosition
-		if(world.isCubePassable(position)){
+		if(world.isCubePassable(position.getCubeCoordinates())){
 			if(position.cubeZ() == 0)
 				return true;
-			for(Cube cube : world.getDirectlyAdjacentCubes(position))
+			for(Cube cube : world.getDirectlyAdjacentCubes(position.getCubeCoordinates()))
 				if(!world.isCubePassable(cube.getPosition()))
 					return true;
 		}

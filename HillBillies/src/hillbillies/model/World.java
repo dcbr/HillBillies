@@ -518,7 +518,7 @@ public class World implements IWorld {
 		}
 	}
 
-	private void collapse(Vector coordinate) {
+	public void collapse(Vector coordinate) {
 		Vector CubeCoor = new Vector(coordinate.cubeX(),coordinate.cubeY(),coordinate.cubeZ());
 		Cube cube  = getCube(CubeCoor);
 		Terrain cubeTerrain = cube.getTerrain();

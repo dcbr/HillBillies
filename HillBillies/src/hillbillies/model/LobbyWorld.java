@@ -1,9 +1,6 @@
 package hillbillies.model;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import hillbillies.utils.Vector;
 
@@ -73,6 +70,30 @@ public class LobbyWorld implements IWorld {
 	@Override
 	public boolean isCubePassable(Vector vector){
 		return true;
+	}
+
+	@Override
+	@Deprecated
+	public Vector getSpawnPosition() {
+		throw new NoSuchMethodError("This method is not supported by the lobby.");
+	}
+
+	@Override
+	@Deprecated
+	public Set<Cube> getDirectlyAdjacentCubes(Vector position) {
+		throw new NoSuchMethodError("This method is not supported by the lobby.");
+	}
+
+	@Override
+	@Deprecated
+	public Set<Vector> getDirectlyAdjacentCubesPositions(Vector cubeCoordinates) {
+		throw new NoSuchMethodError("This method is not supported by the lobby.");
+	}
+
+	@Override
+	@Deprecated
+	public Set<Unit> getUnitsInCube(Cube cube) {
+		throw new NoSuchMethodError("This method is not supported by the lobby.");
 	}
 
 }

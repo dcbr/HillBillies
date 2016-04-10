@@ -10,5 +10,6 @@ public enum Activity {
     WORK,
     REST,
     ATTACK,
+    FALLING,
     NONE
 }

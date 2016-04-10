@@ -979,8 +979,11 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 				this.sprint();
 			}
 		}
-		if (activity == 1)
-			this.work();
+		if (activity == 1) {
+			List<Vector> workPositions = getWorld().getDirectlyAdjacentCubesPositions(this.getPosition());
+			workPositions.add(this.getPosition());
+			this.work(workPositions.get(randInt(0,workPositions.size()-1)));
+		}
 		if (activity ==2)
 			this.rest();
 		if (activity == 3){
@@ -1410,9 +1413,8 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 				}
 				if(targetPosition!=null){
 					Path path = new Path(cpos.getCubeCoordinates());
-					// TODO: make separate class Path implementing Queue and Iterator
 					while(!path.contains(cpos.getCubeCoordinates()) && path.hasNext()){
-						searchPath(path, path.getNext());// TODO: gaat dit niet telkens gewoon het eerste teruggeven?
+						searchPath(path, path.getNext());
 					}
 					if(path.contains(cpos.getCubeCoordinates())){
 						Vector next = path.getNextPositionWithLowestN(getWorld().getDirectlyAdjacentCubesPositions(cpos.getCubeCoordinates()));
@@ -1900,7 +1902,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 			return entry;
 		}
 
-		public Vector getNextPositionWithLowestN(Set<Vector> nextPositions){
+		public Vector getNextPositionWithLowestN(List<Vector> nextPositions){
 			Vector next = null;
 			int lowestN = -1;
 			for(Vector nextPosition : nextPositions){

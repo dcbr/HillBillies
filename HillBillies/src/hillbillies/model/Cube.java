@@ -52,14 +52,14 @@ public class Cube extends WorldObject {
         super(world, position);
         if (! isValidTerrain(terrain))
             terrain = Terrain.AIR;
-        setTerrain(terrain);
         this.terrainChangeListener = terrainChangeListener;
+        setTerrain(terrain);
     }
 
     @Override
     protected boolean validatePosition(Vector position){
         // TODO
-        return false;
+        return this.getWorld().getCube(position)==null || this.getWorld().getCube(position)==this;
     }
 
     /**

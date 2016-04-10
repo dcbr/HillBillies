@@ -72,6 +72,7 @@ public class Material implements IWorldObject {
         if (! canHaveAsWorld(world))
             throw new IllegalArgumentException();
         this.world = world;
+        world.addMaterial(this);
         this.setOwner(owner);
         this.weight = randInt(MIN_WEIGHT, MAX_WEIGHT);
     }
@@ -235,6 +236,7 @@ public class Material implements IWorldObject {
     @Override
     public void terminate() {
         this.isTerminated = true;
+        this.getWorld().removeMaterial(this);
     }
     /**
      * Return a boolean indicating whether or not this Material

@@ -14,6 +14,9 @@ import hillbillies.utils.Vector;
  * Class representing a Hillbilly world
  * @author Kenneth & Bram
  * @version 1.0
+ *
+ * @invar Each world must have proper materials.
+ * | hasProperMaterials()
  */
 public class World implements IWorld {
 /** TO BE ADDED TO CLASS HEADING
@@ -36,12 +39,17 @@ public class World implements IWorld {
 	 * @effect The Terrain Matrix of this new World is set to
 	 *         the given Terrain Matrix.
 	 *       | this.setTerrainMatrix(terrainTypes)
+	 * @post This new world has no materials yet.
+	 * | new.getNbMaterials() == 0
 	 */
 	public World(int[][][] terrainTypes, TerrainChangeListener terrainChangeListener)// TODO: terrainChangeListener, see Facade
 			throws IllegalArgumentException {
-		this.setTerrainMatrix(terrainTypes);
 		this.terrainChangeListener = terrainChangeListener;
+		setNbCubesX(terrainTypes.length);
+		setNbCubesY(terrainTypes[0].length);
+		setNbCubesZ(terrainTypes[0][0].length);
 		connectedToBorder = new ConnectedToBorder(this.getNbCubesX(),this.getNbCubesY(),this.getNbCubesZ());
+		this.setTerrainMatrix(terrainTypes);
 	}
 	
 
@@ -90,9 +98,6 @@ public class World implements IWorld {
 	public void setTerrainMatrix(int[][][] terrainMatrix)
 			throws IllegalArgumentException {
 		//Map<Vector, Cube> CubeMap = new HashMap<Vector , Cube>();
-		setNbCubesX(terrainMatrix.length);
-		setNbCubesY(terrainMatrix[0].length);
-		setNbCubesZ(terrainMatrix[0][0].length);
 		for(int x = 0; x< getNbCubesX(); x++){
 			for(int y = 0; y< getNbCubesY(); y++){
 				if (terrainMatrix[x].length != getNbCubesY()){
@@ -104,8 +109,6 @@ public class World implements IWorld {
 					}
 					Vector position = new Vector(x,y,z);
 					CubeMap.put(position, new Cube(this, position, Terrain.fromId(terrainMatrix[x][y][z]), this::onTerrainChange));
-					if(this.getCube(new Vector(x,y,z)).isPassable())
-						connectedToBorder.changeSolidToPassable(x, y, z);
 				}
 			}
 		}
@@ -468,8 +471,8 @@ public class World implements IWorld {
 	}
 
 	@Override
-	public Set<Vector> getDirectlyAdjacentCubesPositions(Vector cubeCoordinates){
-		Set<Vector> adjacentCubes = new HashSet<>(6);
+	public List<Vector> getDirectlyAdjacentCubesPositions(Vector cubeCoordinates){
+		List<Vector> adjacentCubes = new ArrayList<>(6);
 		for(int i=0;i<6;i++){
 			Vector pos = cubeCoordinates.add(getNextAdjacentDirection(i));
 			if (isValidPosition(pos))
@@ -478,7 +481,7 @@ public class World implements IWorld {
 		return adjacentCubes;
 	}
 
-	public Set<Vector> getDirectlyAdjacentCubesPositions(Cube cube){
+	public List<Vector> getDirectlyAdjacentCubesPositions(Cube cube){
 		return getDirectlyAdjacentCubesPositions(cube.getPosition());
 	}
 
@@ -498,17 +501,20 @@ public class World implements IWorld {
 				unitsByCubePosition.put(unit.getPosition().getCubeCoordinates(), new HashSet<>());
 			unitsByCubePosition.get(unit.getPosition().getCubeCoordinates()).add(unit);
 		}
+		for(Material m : materials){
+			m.advanceTime(dt);
+		}
 		//COLLAPSING CUBES
 		for (Vector cube : CollapsingCubes.keySet()){
 			double time = CollapsingCubes.get(cube);
 			if (time >= 5d){
 				collapse(cube);
 				CollapsingCubes.remove(cube);
-				
+
 			}
 			else
 				CollapsingCubes.replace(cube, time+dt);
-			
+
 		}
 	}
 
@@ -519,21 +525,21 @@ public class World implements IWorld {
 		if (cubeTerrain == Terrain.ROCK){
 			if (randInt(0, 99) < 25)
 				cubeTerrain = Terrain.AIR;
-				new Log(this,cube);	
+				new Log(this,cube);
 		}
 		else if (cubeTerrain == Terrain.WOOD){
 			if (randInt(0, 99) < 25)
 				cubeTerrain = Terrain.AIR;
-				new Boulder(this,cube);	
+				new Boulder(this,cube);
 		}
-		cubeTerrain = Terrain.AIR;	
+		cubeTerrain = Terrain.AIR;
 		List<int[]> changingCubes = connectedToBorder.changeSolidToPassable(coordinate.cubeX(), coordinate.cubeY(), coordinate.cubeZ());
 		for (int[] coord : changingCubes){
 			Vector coordi = new Vector(coord[0], coord[1], coord[2]);
-			if(!CollapsingCubes.containsValue(coordi)) 
+			if(!CollapsingCubes.containsValue(coordi))
 					CollapsingCubes.put(coordi, 0d);
 		}
-		
+
 	}
 
 
@@ -550,25 +556,148 @@ public class World implements IWorld {
 		int x = (int)cube.getPosition().X();
 		int y = (int)cube.getPosition().Y();
 		int z = (int)cube.getPosition().Z();
-		terrainChangeListener.notifyTerrainChanged(x,y,z);
-		if(cube.isPassable() && !oldTerrain.isPassable())
-			connectedToBorder.changeSolidToPassable(x,y,z);
-		else if(!cube.isPassable() && oldTerrain.isPassable())
-			connectedToBorder.changePassableToSolid(x,y,z);
+		if(oldTerrain!=null) {
+			terrainChangeListener.notifyTerrainChanged(x, y, z);
+			if (cube.isPassable() && !oldTerrain.isPassable())
+				connectedToBorder.changeSolidToPassable(x, y, z);
+			else if (!cube.isPassable() && oldTerrain.isPassable())
+				connectedToBorder.changePassableToSolid(x, y, z);
+		}else if(cube.isPassable()){
+			connectedToBorder.changeSolidToPassable(x, y, z);
+		}
 	}
 	
+	/**
+	 * Check whether this world has the given material as one of its
+	 * materials.
+	 *
+	 * @param material
+	 * The material to check.
+	 */
+	@Basic
+	@Raw
+	public boolean hasAsMaterial(@Raw Material material) {
+		return materials.contains(material);
+	}
+	/**
+	 * Check whether this world can have the given material
+	 * as one of its materials.
+	 *
+	 * @param material
+	 * The material to check.
+	 * @return True if and only if the given material is effective.
+	 * | result ==
+	 * | (material != null)
+	 */
+	@Raw
+	public boolean canHaveAsMaterial(Material material) {
+		return (material != null);
+	}
+	/**
+	 * Check whether this world has proper materials attached to it.
+	 *
+	 * @return True if and only if this world can have each of the
+	 * materials attached to it as one of its materials,
+	 * and if each of these materials references this world as
+	 * the world to which they are attached.
+	 * | for each material in Material:
+	 * | if (hasAsMaterial(material))
+	 * | then canHaveAsMaterial(material) &&
+	 * | (material.getWorld() == this)
+	 */
+	public boolean hasProperMaterials() {
+		for (Material material: materials) {
+			if (!canHaveAsMaterial(material))
+			    return false;
+			if (material.getWorld() != this)
+			    return false;
+		}
+		return true;
+	}
+	/**
+	 * Return the number of materials associated with this world.
+	 *
+	 * @return The total number of materials collected in this world.
+	 * | result ==
+	 * | card({material:Material | hasAsMaterial({material)})
+	 */
+	public int getNbMaterials() {
+		return materials.size();
+	}
+	/**
+	 * Add the given material to the set of materials of this world.
+	 *
+	 * @param material
+	 * The material to be added.
+	 * @pre The given material is effective and already references
+	 * this world.
+	 * | (material != null) && (material.getWorld() == this)
+	 * @post This world has the given material as one of its materials.
+	 * | new.hasAsMaterial(material)
+	 */
+	public void addMaterial(@Raw Material material) {
+		assert(material != null) && (material.getWorld() == this);
+		materials.add(material);
+	}
+	/**
+	 * Remove the given material from the set of materials of this world.
+	 *
+	 * @param material
+	 * The material to be removed.
+	 * @pre This world has the given material as one of
+	 * its materials, and the given material is terminated.
+	 * | this.hasAsMaterial(material) &&
+	 * | (material.isTerminated())
+	 * @post This world no longer has the given material as
+	 * one of its materials.
+	 * | ! new.hasAsMaterial(material)
+	 */
+	@Raw
+	public void removeMaterial(Material material) {
+		assert this.hasAsMaterial(material) && (material.isTerminated());
+		materials.remove(material);
+	}
+	/**
+	 * Variable referencing a set collecting all the materials
+	 * of this world.
+	 *
+	 * @invar The referenced set is effective.
+	 * | materials != null
+	 * @invar Each material registered in the referenced list is
+	 * effective and not yet terminated.
+	 * | for each material in materials:
+	 * | ( (material != null) &&
+	 * | (! material.isTerminated()) )
+	 */
+	private final Set<Material> materials = new HashSet<>();
+
+	public Set<Material> getMaterials(){
+		return new HashSet<>(materials);
+	}
+
+	public Set<Log> getLogs(){
+		Set<? extends Material> logs = this.getMaterials();
+		logs.removeIf(m -> !(m instanceof Log));
+		return ((Set<Log>)logs);
+	}
+
+	public Set<Boulder> getBoulders(){
+		Set<? extends Material> boulders = this.getMaterials();
+		boulders.removeIf(m -> !(m instanceof Boulder));
+		return ((Set<Boulder>)boulders);
+	}
 	public void checkWorld(){
 		for(int x = 0; x < this.getNbCubesX(); x++){
 			for(int y = 0; y < this.getNbCubesX(); y++){
 				for(int z = 0; z < this.getNbCubesX(); z++){
 					if( !connectedToBorder.isSolidConnectedToBorder(x, y, z))
 						CollapsingCubes.put(new Vector(x,y,z), 0d);
-						
+
 				}
 			}
 		}
 	}
-	
+
 	private Map<Vector, Double> CollapsingCubes = new HashMap<Vector , Double>();
-	
+
 }

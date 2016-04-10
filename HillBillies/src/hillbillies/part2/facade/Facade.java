@@ -1,5 +1,6 @@
 package hillbillies.part2.facade;
 
+import be.kuleuven.cs.som.annotate.Model;
 import hillbillies.model.*;
 import hillbillies.part2.listener.TerrainChangeListener;
 import hillbillies.utils.Utils;
@@ -257,8 +258,11 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public void workAt(Unit unit, int x, int y, int z) throws ModelException {
-        // TODO: eerst moven naar target en dan werken?
-    	// units works on current pos or neighboring cube.
+        try{
+            unit.work(new Vector(x,y,z));
+        }catch(IllegalArgumentException e){
+            throw new ModelException("The target cube is not a neighbouring cube.", e);
+        }
     }
 
     /**
@@ -319,7 +323,7 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public Set<Boulder> getBoulders(World world) throws ModelException {
-        return null;//TODO
+        return world.getBoulders();
     }
 
     /**
@@ -345,7 +349,7 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public Set<Log> getLogs(World world) throws ModelException {
-        return null;// TODO
+        return world.getLogs();
     }
 
     /**

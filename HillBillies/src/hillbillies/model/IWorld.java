@@ -1,6 +1,7 @@
 package hillbillies.model;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import hillbillies.utils.Vector;
@@ -47,10 +48,11 @@ public interface IWorld {
 
     public Set<Cube> getDirectlyAdjacentCubes(Vector position);
 
-    public Set<Vector> getDirectlyAdjacentCubesPositions(Vector cubeCoordinates);
+    public List<Vector> getDirectlyAdjacentCubesPositions(Vector cubeCoordinates);
     
     //final Set<Unit> units = new HashSet <>();// Voor wat dient dees?
     
     public Set<Unit> getUnitsInCube(Cube cube);
 
+    public Cube getCube(Vector position);
 }

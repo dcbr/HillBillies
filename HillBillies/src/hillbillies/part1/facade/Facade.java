@@ -13,6 +13,7 @@ import ogp.framework.util.ModelException;
  * @version 1.0
  *
  */
+@Deprecated
 public class Facade implements IFacade {
     /**
      * Create a new unit with the given attributes.
@@ -30,11 +31,12 @@ public class Facade implements IFacade {
      */
     @Override
     public Unit createUnit(String name, int[] initialPosition, int weight, int agility, int strength, int toughness, boolean enableDefaultBehavior) throws ModelException {
-        try{
+        throw new ModelException("This method isn't supported anymore, use part2 instead.");
+        /*try{
             return new Unit(name, new Vector(initialPosition), strength, agility, toughness, weight, Unit.INITIAL_MIN_STAMINA, Unit.INITIAL_MIN_TOUGHNESS);
         }catch(IllegalArgumentException e){
             throw new ModelException("Could not create new Unit.", e);
-        }
+        }*/
     }
 
     /**
@@ -386,11 +388,12 @@ public class Facade implements IFacade {
      */
     @Override
     public void work(Unit unit) throws ModelException {
-    	try{
+        throw new ModelException("This method isn't supported anymore, use part2 instead.");
+    	/*try{
     		unit.work();
     	}catch(IllegalStateException e){
     		throw new ModelException("Unit is not able to work at this moment", e);
-    	}
+    	}*/
     }
 
     /**

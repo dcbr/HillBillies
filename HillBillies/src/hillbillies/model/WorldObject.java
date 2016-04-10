@@ -129,7 +129,7 @@ public abstract class WorldObject implements IWorldObject {
             throw new IllegalArgumentException();
         IWorld oldWorld = this.world;
         this.world = world;
-        if (this.getPosition()!=null && !this.isValidPosition(this.getPosition())){
+        if(this.position!=null && !this.isValidPosition(this.getPosition())){
             this.world = oldWorld;
             throw new IllegalArgumentException("The WorldObject's current position is not valid in the new world.");
         }

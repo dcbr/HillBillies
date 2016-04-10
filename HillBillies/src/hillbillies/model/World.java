@@ -111,7 +111,7 @@ public class World implements IWorld {
 		
 	}
 	
-
+	
 	private int NbCubesX;
 	private int NbCubesY;
 	private int NbCubesZ;
@@ -517,4 +517,6 @@ public class World implements IWorld {
 		else if(!cube.isPassable() && oldTerrain.isPassable())
 			connectedToBorder.changePassableToSolid(x,y,z);
 	}
+	
+	
 }

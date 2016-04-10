@@ -997,7 +997,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	 *         	unit.
 	 *       	| isValidHitpoints(hitpoints)
 	 * @pre  	The units weight and toughness should already have been set.
-	| isValidWeight(this.getWeight()) && isValidToughness(this.getToughness())
+	 *			| isValidWeight(this.getWeight()) && isValidToughness(this.getToughness())
 	 * @post   	The hitpoints of this unit is equal to the given
 	 *         	hitpoints.
 	 *       	| new.getHitpoints() == hitpoints
@@ -1007,7 +1007,27 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 		assert isValidHitpoints(hitpoints, this.getWeight(), this.getToughness());
 		this.hitpoints = hitpoints;
 	}
-
+	
+	/**
+	 * Substract the given hitpoints from the current hitpoints.
+	 * @param hitpoints
+	 * The hitpoints to substract.
+	 * @pre		The units hitpoints should already have been set.
+	 *			| isValidHitpoints(this.getHitPoints, this.getWeight(), this.getToughness())
+	 * @effect	The hintpoints are set to this.getHitpoints()-hitpoints
+	 * 			| new.getHitpoints()
+	 * @effect	If the hitpoints reaches MIN_HITPOINTS, the unit will terminate.
+	 * 			| this.terminate()
+	 */
+	@Raw
+	public void removeHitpoints(int hitpoints){
+		int newHit = getHitpoints()-hitpoints;
+		if (newHit <= MIN_HITPOINTS)
+			this.terminate();
+		else
+			setHitpoints(newHit);
+	}
+	
 	/**
 	 * Set the initial hitpoints of this unit to the given hitpoints.
 	 *
@@ -1386,7 +1406,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 				Vector cpos = getPosition();
 				if(!lastPosition.difference(cpos.getCubeCoordinates()).equals(new Vector(0,0,0))){
 					lastPosition = cpos;
-					this.addXP(1);
+					this.addXP(MOVE_POINTS);
 				}
 				if(targetPosition!=null){
 					Path path = new Path(cpos.getCubeCoordinates());
@@ -1438,7 +1458,8 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 				if (cPos == cPosCube && validatePosition(cPos)){
 					setCurrentSpeed(0);
 					setCurrentActivity(Activity.NONE);
-					setHitpoints((int)(getHitpoints()-(fallingLevel-cPos.Z())));
+					removeHitpoints((int) (fallingLevel-cPos.Z()));
+					//setHitpoints((int)(getHitpoints()-(fallingLevel-cPos.Z())));
 					fallingLevel = 0;
 				}
 				else{
@@ -1695,7 +1716,8 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 			}
 		}// fails to block
 		else if (!((randInt(0,99)/100.0) < this.getBlockingProbability(attacker))){
-			this.setHitpoints(this.getHitpoints()- this.getDamagingPoints(attacker));
+			removeHitpoints(this.getDamagingPoints(attacker));
+			//this.setHitpoints(this.getHitpoints()- this.getDamagingPoints(attacker));
 			isSuccessFulAttack = true;
 		}
 	}
@@ -2016,9 +2038,18 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	 */
 	private static final int FIGHT_POINTS = 20;
 	/**
+	 * Constant reflecting XP gaining after a move.    
+	 */
+	private static final int MOVE_POINTS = 1;
+	/**
+	 * Constant reflecting XP gaining after a work.    
+	 */
+	private static final int WORK_POINTS = 1;
+	/**
 	 * Variable registering the experience points of this unit.
 	 */
 	private int experiencePoints = 0;
+	
 	/**
 	 * Add XP by the units current XP.
 	 * @param xp
@@ -2093,6 +2124,8 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	 * Variable registering the starting falling level of this unit.
 	 */
 	private int fallingLevel = 0;
+	
+	//endregion
 }
 
 	

@@ -242,7 +242,7 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public int getExperiencePoints(Unit unit) throws ModelException {
-        return unit.getXP();//TODO: toevoegen wanneer hoeveel wordt verdient
+        return unit.getXP();//TODO: toevoegen wanneer hoeveel wordt verdiend
     }
 
     /**

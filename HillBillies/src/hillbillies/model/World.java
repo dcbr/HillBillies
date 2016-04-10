@@ -1,7 +1,7 @@
 package hillbillies.model;
 
 
-import static hillbillies.utils.Utils.randDouble;
+import static hillbillies.utils.Utils.*;
 
 import java.util.*;
 
@@ -104,6 +104,8 @@ public class World implements IWorld {
 					}
 					Vector position = new Vector(x,y,z);
 					CubeMap.put(position, new Cube(this, position, Terrain.fromId(terrainMatrix[x][y][z]), this::onTerrainChange));
+					if(this.getCube(new Vector(x,y,z)).isPassable())
+						connectedToBorder.changeSolidToPassable(x, y, z);
 				}
 			}
 		}
@@ -496,7 +498,44 @@ public class World implements IWorld {
 				unitsByCubePosition.put(unit.getPosition().getCubeCoordinates(), new HashSet<>());
 			unitsByCubePosition.get(unit.getPosition().getCubeCoordinates()).add(unit);
 		}
+		//COLLAPSING CUBES
+		for (Vector cube : CollapsingCubes.keySet()){
+			double time = CollapsingCubes.get(cube);
+			if (time >= 5d){
+				collapse(cube);
+				CollapsingCubes.remove(cube);
+				
+			}
+			else
+				CollapsingCubes.replace(cube, time+dt);
+			
+		}
 	}
+
+	private void collapse(Vector coordinate) {
+		Vector CubeCoor = new Vector(coordinate.cubeX(),coordinate.cubeY(),coordinate.cubeZ());
+		Cube cube  = getCube(CubeCoor);
+		Terrain cubeTerrain = cube.getTerrain();
+		if (cubeTerrain == Terrain.ROCK){
+			if (randInt(0, 99) < 25)
+				cubeTerrain = Terrain.AIR;
+				new Log(this,cube);	
+		}
+		else if (cubeTerrain == Terrain.WOOD){
+			if (randInt(0, 99) < 25)
+				cubeTerrain = Terrain.AIR;
+				new Boulder(this,cube);	
+		}
+		cubeTerrain = Terrain.AIR;	
+		List<int[]> changingCubes = connectedToBorder.changeSolidToPassable(coordinate.cubeX(), coordinate.cubeY(), coordinate.cubeZ());
+		for (int[] coord : changingCubes){
+			Vector coordi = new Vector(coord[0], coord[1], coord[2]);
+			if(!CollapsingCubes.containsValue(coordi)) 
+					CollapsingCubes.put(coordi, 0d);
+		}
+		
+	}
+
 
 	private final Map<Vector, Set<Unit>> unitsByCubePosition = new HashMap<>();
 	
@@ -518,5 +557,18 @@ public class World implements IWorld {
 			connectedToBorder.changePassableToSolid(x,y,z);
 	}
 	
+	public void checkWorld(){
+		for(int x = 0; x < this.getNbCubesX(); x++){
+			for(int y = 0; y < this.getNbCubesX(); y++){
+				for(int z = 0; z < this.getNbCubesX(); z++){
+					if( !connectedToBorder.isSolidConnectedToBorder(x, y, z))
+						CollapsingCubes.put(new Vector(x,y,z), 0d);
+						
+				}
+			}
+		}
+	}
+	
+	private Map<Vector, Double> CollapsingCubes = new HashMap<Vector , Double>();
 	
 }

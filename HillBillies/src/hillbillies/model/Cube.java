@@ -136,7 +136,22 @@ public class Cube extends WorldObject {
         return this.isPassable() && this.materials.size()>0;
     }
 
+    public boolean containsLogs(){
+        return containsMaterialType(Log.class);
+    }
 
+    public boolean containsBoulders(){
+        return containsMaterialType(Boulder.class);
+    }
+
+    public boolean containsMaterialType(Class<? extends Material> material){
+        if(this.containsMaterials()){
+            for(Material m : this.materials)
+                if(material.isInstance(m))
+                    return true;
+        }
+        return false;
+    }
     /** TO BE ADDED TO THE CLASS INVARIANTS
      * @invar Each cube must have proper materials.
      * | hasProperMaterials()

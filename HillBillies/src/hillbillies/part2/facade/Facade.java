@@ -206,7 +206,7 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public boolean isCarryingLog(Unit unit) throws ModelException {
-        return false;//TODO
+        return unit.isCarryingLog();
     }
 
     /**
@@ -218,7 +218,7 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public boolean isCarryingBoulder(Unit unit) throws ModelException {
-        return false;//TODO
+        return unit.isCarryingBoulder();
     }
 
     /**

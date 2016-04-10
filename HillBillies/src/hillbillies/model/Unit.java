@@ -1463,7 +1463,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 					fallingLevel = 0;
 				}
 				else{
-					double speed = getCurrentSpeed();
+					double speed = getCurrentSpeed();// TODO: moet dees ni constante snelheid = 3 zijn?
 					Vector nextPos = cPos.add(new Vector(0,0,-speed*dt));
 					if (validatePosition(cPos) && (cPosCube.isInBetween(2, cPos, nextPos)||cPos.Z() <= cPosCube.Z() ))
 							setPosition(cPosCube);							
@@ -1475,9 +1475,23 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 				break;
 					
 			case WORK:
-				if (activityProgress >= this.getWorkDuration())
+				if (activityProgress >= this.getWorkDuration()) {
+					if(this.isCarryingMaterial()){
+						this.dropCarriedMaterial();// TODO: make sure the target cube is passable!
+					}else if(this.getWorkCube().getTerrain()==Terrain.WORKSHOP && this.getWorkCube().containsLogs() && this.getWorkCube().containsBoulders()){
+						// TODO: increase unit's weight and toughness and terminate boulder and log at workCube
+					}else if(this.getWorkCube().containsBoulders()){
+						// TODO: pick up Boulder
+					}else if(this.getWorkCube().containsLogs()){
+						// TODO: pick up Log
+					}else if(this.getWorkCube().getTerrain() == Terrain.WOOD){
+						// TODO: collapse cube
+					}else if(this.getWorkCube().getTerrain() == Terrain.ROCK){
+						// TODO: collapse cube
+					}
 					setCurrentActivity(Activity.NONE);
-				else{
+					this.addXP(WORK_POINTS);
+				}else{
 					this.setWorkProgress(((float) activityProgress)/ (this.getWorkDuration()));
 				}
 				break;
@@ -1852,11 +1866,12 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	 */
 	private Vector lastPosition;
 
+	//TODO: change names: ksnap het nu pas hoe het werkt, dus Path is ni echt het pad maar eerder een collectie
+	//		van posities met daarbij hoe ver het gelegen is van de target (N)
 	private class Path{
 
 		private final ArrayDeque<Map.Entry<Vector, Integer>> path = new ArrayDeque<>();
 		private final HashMap<Vector, Integer> lowestNByPosition = new HashMap<>();
-		private final Iterator<Map.Entry<Vector, Integer>> pathIterator = path.iterator();
 
 		public Path(Vector targetPosition){
 			path.add(new HashMap.SimpleEntry<>(targetPosition, 0));
@@ -1882,7 +1897,6 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 
 		public Map.Entry<Vector, Integer> getNext(){
 			Map.Entry<Vector, Integer> entry = path.remove();
-			// TODO: update lowestNByPosition in some way
 			return entry;
 		}
 
@@ -1953,8 +1967,11 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	 * 		| new.getWorkDuration()
 	 * @throws IllegalStateException * if the unit isn't able to work.
 	 * | !this.isAbleToWork()
+	 * @throws IllegalArgumentException
+	 * 			The given position is not a neighbouring position
+	 * 			| !isValidWorkPosition(position)
 	 */
-	public void work() throws IllegalStateException{
+	public void work(Vector position) throws IllegalStateException, IllegalArgumentException{
 		if(this.getStateDefault()!=2){
 			if(!this.isAbleToWork())
 				throw new IllegalStateException("Unit is not able to work at this moment");
@@ -1964,8 +1981,117 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 		if(this.getStateDefault() == 3)
 			this.stateDefault -=1;
 		setCurrentActivity(Activity.WORK);
+		setWorkCube(this.getWorld().getCube(position));
 		setWorkProgress(0);// TODO: change workProgress to activityProgress
 		setWorkDuration(getWorkingTime(this.getStrength()));
+	}
+
+	/**
+	 * Return the workCube of this Unit.
+	 */
+	@Basic
+	@Raw
+	private Cube getWorkCube() {
+	    return this.workCube;
+	}
+	/**
+	 * Check whether the given workCube is a valid workCube for
+	 * this Unit.
+	 *
+	 * @param workCube
+	 * The workCube to check.
+	 * @return
+	 * | result == this.getPosition().getCubeCoordinates().equals(workCube.getPosition()) ||
+	 *				this.getWorld().getDirectlyAdjacentCubes(this.getPosition()).contains(workCube)
+	 */
+	public boolean isValidWorkCube(Cube workCube) {
+		// TODO: verify if 'neighbouring' means directly adjacent or also the diagonal cubes
+	    return this.getPosition().getCubeCoordinates().equals(workCube.getPosition()) ||
+				this.getWorld().getDirectlyAdjacentCubes(this.getPosition()).contains(workCube);
+	}
+	/**
+	 * Set the workCube of this Unit to the given workCube.
+	 *
+	 * @param workCube
+	 * The new workCube for this Unit.
+	 * @post The workCube of this new Unit is equal to
+	 * the given workCube.
+	 * | new.getWorkCube() == workCube
+	 * @throws IllegalArgumentException * The given workCube is not a valid workCube for any
+	 * Unit.
+	 * | ! isValidWorkCube(getWorkCube())
+	 */
+	@Raw
+	private void setWorkCube(Cube workCube) throws IllegalArgumentException {
+	    if (! isValidWorkCube(workCube))
+	        throw new IllegalArgumentException();
+	    this.workCube = workCube;
+	}
+	/**
+	 * Variable registering the workCube of this Unit.
+	 */
+	private Cube workCube;
+
+
+	/**
+	 * Return the carriedMaterial of this Unit.
+	 */
+	@Basic
+	@Raw
+	public Material getCarriedMaterial() {
+	    return this.carriedMaterial;
+	}
+	/**
+	 * Check whether the given material is a valid carriedMaterial for
+	 * any Unit.
+	 *
+	 * @param material
+	 * The carriedMaterial to check.
+	 * @return
+	 * | result == material.getWorld() == this.getWorld()
+	 */
+	public boolean isValidMaterial(Material material) {
+	    return material.getWorld()==this.getWorld();
+	}
+	/**
+	 * Set the carriedMaterial of this Unit to the given material.
+	 *
+	 * @param material
+	 * The new carriedMaterial for this Unit.
+	 * @post The carriedMaterial of this new Unit is equal to
+	 * the given material.
+	 * | new.getCarriedMaterial() == material
+	 * @throws IllegalArgumentException * The given material is not a valid carriedMaterial for any
+	 * Unit.
+	 * | ! isValidMaterial(getMaterial())
+	 */
+	public void setCarriedMaterial(@Raw Material material) throws IllegalArgumentException {
+	    if (! isValidMaterial(material))
+	        throw new IllegalArgumentException();
+	    this.carriedMaterial = material;
+		material.setOwner(this);
+	}
+	/**
+	 * Variable registering the carriedMaterial of this Unit.
+	 */
+	private Material carriedMaterial;
+
+	public boolean isCarryingLog(){
+		return this.getCarriedMaterial()!=null && this.getCarriedMaterial() instanceof Log;
+	}
+
+	public boolean isCarryingBoulder(){
+		return this.getCarriedMaterial()!=null && this.getCarriedMaterial() instanceof Boulder;
+	}
+
+	public boolean isCarryingMaterial(){
+		return this.getCarriedMaterial()!=null;
+	}
+
+	private void dropCarriedMaterial(){
+		Material m = this.getCarriedMaterial();
+		this.setCarriedMaterial(null);
+		m.setOwner(this.getWorkCube());
 	}
 	//endregion
 
@@ -2064,7 +2190,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	/**
 	 * Constant reflecting XP gaining after a work.    
 	 */
-	private static final int WORK_POINTS = 1;
+	private static final int WORK_POINTS = 10;
 	/**
 	 * Variable registering the experience points of this unit.
 	 */

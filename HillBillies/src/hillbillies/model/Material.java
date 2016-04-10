@@ -46,6 +46,10 @@ public class Material implements IWorldObject {
      * Variable registering whether this Material is terminated.
      */
     private boolean isTerminated = false;
+    /**
+     * Variable registering the Material's position while it's falling.
+     */
+    private Vector fallingPosition;
 
     /**
      * Initialize this new Material in the given world with the given owner.
@@ -74,7 +78,26 @@ public class Material implements IWorldObject {
 
     @Override
     public void advanceTime(double dt) {
-        // TODO: falling
+        if(!this.hasValidPosition()){
+            this.fallingPosition = this.getPosition();
+            this.setOwner(null);
+        }
+        //TODO: (for next part) move falling code to separate place
+        Vector cPos = this.getPosition();
+        Vector cPosCube = cPos.getCubeCenterCoordinates();
+        if (cPos.equals(cPosCube) && this.hasValidPosition()){
+            this.setOwner(this.getWorld().getCube(cPos.getCubeCoordinates()));
+        }
+        else{
+            double speed = 3;
+            Vector nextPos = cPos.add(new Vector(0,0,-speed*dt));
+            if (this.hasValidPosition() && ((cPosCube.isInBetween(2, cPos, nextPos) || cPos.Z() <= cPosCube.Z() )))
+                this.fallingPosition = cPosCube;
+            else if(nextPos.getCubeCenterCoordinates().isInBetween(2, cPos, nextPos) && isValidPosition(nextPos))
+                this.fallingPosition = nextPos.getCubeCenterCoordinates();
+            else
+                this.fallingPosition = nextPos;
+        }
     }
 
     //region Setters
@@ -105,7 +128,10 @@ public class Material implements IWorldObject {
      */
     @Override
     public Vector getPosition(){
-        return this.owner.getPosition();
+        if(this.getOwner()!=null)
+            return this.owner.getPosition();
+        else
+            return fallingPosition;
     }
 
     /**
@@ -163,12 +189,13 @@ public class Material implements IWorldObject {
      * | result ==
      */
     public boolean isValidOwner(WorldObject owner) {
+        if(owner == null) return true;
         if(owner instanceof Cube){
             // TODO: check if Cube doesn't contain other Materials
             return owner.getWorld() == this.world;
         }else if(owner instanceof Unit){
-            // TODO: check if Unit doesn't carry other Materials
-            return owner.getWorld() == this.world;
+            Unit carrier = (Unit)owner;
+            return owner.getWorld() == this.world && carrier.getCarriedMaterial() == this;
         }
         return false;
     }
@@ -184,6 +211,15 @@ public class Material implements IWorldObject {
     @Raw
     public boolean canHaveAsWeight(int weight) {
         return 10 <= weight && weight <= 50;
+    }
+
+    private boolean hasValidPosition(){
+        if(this.getOwner() instanceof Unit) return true;
+        return isValidPosition(this.getPosition());
+    }
+
+    private boolean isValidPosition(Vector position){
+        return getPosition().cubeZ()==0 || !getWorld().getCube(this.getPosition().add(new Vector(0,0,-1))).isPassable();
     }
     //endregion
 

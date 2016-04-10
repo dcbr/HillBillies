@@ -1553,7 +1553,13 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 		}
 		return false;
 	}
-
+	/**
+	 * Check whether a given position is a good dodging position.
+	 * @param position
+	 * The position to check against
+	 * @return true if this.getWorld().isValidPosition(position) 
+	 * 				&& this.getWorld().isCubePassable(position)
+	 */
 	private boolean isValidDodgePos(Vector position){
 		IWorld world = this.getWorld();
 		if(world.isValidPosition(position) && world.isCubePassable(position))
@@ -1781,6 +1787,18 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 		setCurrentActivity(Activity.MOVE);	
 	}
 	
+	/**
+	 * Method to let the Unit move to an adjacent cube.
+	 * @param dx The x direction to move towards. 
+	 * @param dy The y direction to move towards.
+	 * @param dz The z direction to move towards.
+	 * @pre 	Since this method can only be used to move to neighbouring cubes,
+	 * each element must have a value of (-)1 or 0.
+	 * @post	The unit moves to the adjacent cube in direction (dx, dy, dz)
+	 * 			| this.moveToAdjacent(Vector(dx,dy,dz))
+	 * @post	targetPosition of this unit is set to its default value.
+	 * 			| new.targetPosition
+     */
 	public void moveToAdjacent(int dx, int dy, int dz){
 		this.targetPosition = null;
   		this.moveToAdjacent(new Vector(dx,dy,dz));
@@ -1829,7 +1847,9 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	public void stopSprint(){
 		this.isSprinting = false;
 	}
-
+	/**
+	 * Variable registering the last position of this unit.
+	 */
 	private Vector lastPosition;
 
 	private class Path{
@@ -1996,25 +2016,25 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	 * @return
 	 * | result ==
 	 */
-	 public boolean isValidFaction(Faction faction) {
-	    return true;// TODO: check if the Unit's world contains this faction
-	 }
-	 /**
-	  * Set the faction of this Unit to the given faction.
-	  *
-	  * @param faction
-	  * The new faction for this Unit.
-	  * @pre The given faction must be a valid faction for any
-	  * Unit.
-	  * | isValidFaction(faction)
-	  * @post The faction of this Unit is equal to the given
-	  * faction.
-	  * | new.getFaction() == faction
-	  */
-	 @Raw
-	 public void setFaction(Faction faction) {
-	    assert isValidFaction(faction);
-	    this.faction = faction;
+	public boolean isValidFaction(Faction faction) {
+		return true;// TODO: check if the Unit's world contains this faction
+	}
+	/**
+	 * Set the faction of this Unit to the given faction.
+	 *
+	 * @param faction
+	 * The new faction for this Unit.
+	 * @pre The given faction must be a valid faction for any
+	 * Unit.
+	 * | isValidFaction(faction)
+	 * @post The faction of this Unit is equal to the given
+	 * faction.
+	 * | new.getFaction() == faction
+	 */
+	@Raw
+	public void setFaction(Faction faction) {
+		 assert isValidFaction(faction);
+		 this.faction = faction;
 	 }
 	/**
 	 * Variable registering the faction of this Unit.

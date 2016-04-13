@@ -78,7 +78,7 @@ public class World implements IWorld {
 	 */
 	@Override
 	public boolean isValidPosition(Vector position){
-		return position.isInBetween(this.getMinPosition(), this.getMaxPosition());
+		return position.isInBetweenStrict(this.getMinPosition(), this.getMaxPosition());
 	}
 	
 	/**
@@ -457,7 +457,7 @@ public class World implements IWorld {
 
 	@Override
 	public Set<Cube> getDirectlyAdjacentCubes(Vector cubeCoordinates){
-		Set<Cube> adjacentCubes = new HashSet<>(6);
+		Set<Cube> adjacentCubes = new HashSet<>();
 		for(int i=0;i<6;i++){
 			Vector pos = cubeCoordinates.add(getNextAdjacentDirection(i));
 			if (isValidPosition(pos))

@@ -229,6 +229,23 @@ public class Vector {
                 (this.vectorList[index]>=position2.vectorList[index] && this.vectorList[index]<=position1.vectorList[index]);
     }
 
+    public boolean isInBetweenStrict(int index, Vector position1, Vector position2) throws NullPointerException, IndexOutOfBoundsException{
+        if(position1.dimension() < index || position2.dimension() < index || this.dimension() < index)
+            throw new IndexOutOfBoundsException();
+        return (this.vectorList[index]>=position1.vectorList[index] && this.vectorList[index]<position2.vectorList[index]) ||
+                (this.vectorList[index]>=position2.vectorList[index] && this.vectorList[index]<position1.vectorList[index]);
+    }
+
+    public boolean isInBetweenStrict(Vector minPosition, Vector maxPosition) throws NullPointerException, IndexOutOfBoundsException{
+        if(minPosition.dimension() < this.dimension() || maxPosition.dimension() < this.dimension())
+            throw new IndexOutOfBoundsException();
+        for(int i=0;i<vectorList.length;i++){
+            if(!isInBetweenStrict(i, minPosition, maxPosition))
+                return false;
+        }
+        return true;
+    }
+
     /**
      * @return A clone of this Vector. The result is a new immutable Vector instance with the same coordinates
      *          as this Vector.

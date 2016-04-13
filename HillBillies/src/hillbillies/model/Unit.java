@@ -1412,18 +1412,22 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 					this.addXP(MOVE_POINTS);
 				}
 				if(targetPosition!=null){
-					Path path = new Path(cpos.getCubeCoordinates());
-					while(!path.contains(cpos.getCubeCoordinates()) && path.hasNext()){
-						searchPath(path, path.getNext());
+					if(targetPosition.getCubeCoordinates().equals(cpos.getCubeCoordinates())){
+						moveToAdjacent(0,0,0);// We are in target cube, just move to the center now (stop extended path finding)
+					}else {
+						Path path = new Path(targetPosition.getCubeCoordinates());// Calculate new path
+						while (!path.contains(cpos.getCubeCoordinates()) && path.hasNext()) {
+							searchPath(path, path.getNext());
+						}
+						if (path.contains(cpos.getCubeCoordinates())) {// Path found
+							Vector next = path.getNextPositionWithLowestN(getWorld().getDirectlyAdjacentCubesPositions(cpos.getCubeCoordinates()));
+							moveToAdjacent(next.difference(cpos.getCubeCoordinates()));
+						} else {// No path found -> stop extended path finding)
+							moveToAdjacent(0, 0, 0);// targetPosition null is set by movetoAdjacent
+							//targetPosition = null;
+						}
+						this.stateDefault += 1;
 					}
-					if(path.contains(cpos.getCubeCoordinates())){
-						Vector next = path.getNextPositionWithLowestN(getWorld().getDirectlyAdjacentCubesPositions(cpos.getCubeCoordinates()));
-						moveToAdjacent(next.difference(cpos.getCubeCoordinates()));
-					}else{
-						moveToAdjacent(0,0,0);
-						targetPosition = null;
-					}
-					this.stateDefault +=1;
 				}
 				if(getNextPosition()!=null){
 					if(getNextPosition().equals(cpos)){
@@ -1564,7 +1568,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 			if(position.cubeZ() == 0)
 				return true;
 			for(Cube cube : world.getDirectlyAdjacentCubes(position.getCubeCoordinates()))
-				if(!world.isCubePassable(cube.getPosition()))
+				if(!cube.isPassable())
 					return true;
 		}
 		return false;
@@ -1839,7 +1843,8 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 			this.stopDoingDefault();
 		if(this.getStateDefault() == 3)
 			this.stateDefault -=1;
-		
+
+		this.lastPosition = this.getPosition();// TODO: lastPosition will be overriden with every call to moveToAdjacent
 		setCurrentActivity(Activity.MOVE);
 		this.targetPosition = targetPosition.getCubeCenterCoordinates();// TODO: make setter and getter for targetPosition and check for invalid positions
 	}
@@ -1876,7 +1881,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 		private final HashMap<Vector, Integer> lowestNByPosition = new HashMap<>();
 
 		public Path(Vector targetPosition){
-			path.add(new HashMap.SimpleEntry<>(targetPosition, 0));
+			this.add(targetPosition, 0);
 		}
 
 		public boolean contains(Vector position){
@@ -1916,8 +1921,13 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	}
 
 	private void searchPath(Path path, Map.Entry<Vector, Integer> start){
-		Stream<Cube> nextCubes = getWorld().getDirectlyAdjacentCubes(start.getKey()).stream().filter(cube -> isValidPosition(cube.getPosition()));
-		nextCubes.forEach(cube -> path.add(cube.getPosition(), start.getValue()+1));
+		Set<Cube> nextCubes = getWorld().getDirectlyAdjacentCubes(start.getKey());
+		for(Cube nextCube : nextCubes){
+			if(isValidPosition(nextCube.getPosition()))
+				path.add(nextCube.getPosition(), start.getValue()+1);
+		}
+		/*Stream<Cube> nextCubes = getWorld().getDirectlyAdjacentCubes(start.getKey()).stream().filter(cube -> isValidPosition(cube.getPosition()));
+		nextCubes.forEach(cube -> path.add(cube.getPosition(), start.getValue()+1));*/
 	}
 	//endregion
 	/**
@@ -2213,26 +2223,31 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	private void addXP(int xp){ //TODO: toevoegen bij methodes waar en hoeveel xp wordt verdient
 		experiencePoints += xp;
 		while (experiencePoints >= MAX_XP){
-			List<String> attributes = Arrays.asList("Strength","Agility","Toughness");
+			final String Strength = "s", Agility = "a", Toughness = "t";
+			List<String> attributes = new LinkedList<>(Arrays.asList(Strength,Agility,Toughness));
 			if(getStrength() == MAX_STRENGTH)
-				attributes.remove("Strength");
+				attributes.remove(Strength);
 			if(getAgility() == MAX_AGILITY)
-				attributes.remove("Agility");
+				attributes.remove(Agility);
 			if(getToughness() == MAX_TOUGHNESS)
-				attributes.remove("Toughness");
+				attributes.remove(Toughness);
 			int size = attributes.size();
 			if(size == 0){
 				experiencePoints = MAX_XP-1;
 				return; //TODO: experiencePoints gelijk zetten aan MAX_XP-1 of laten opbouwen naar oneindig?
 			}
 			else{
-				String attribute = attributes.get(randInt(0, size-1));
-				if (attribute == "Strength")
-					setStrength(getStrength()+1);
-				else if (attribute == "Agility")
-					setAgility(getAgility()+1);
-				else
-					setToughness(getToughness()+1);			
+				switch(attributes.get(randInt(0, size-1))){
+					case Strength:
+						setStrength(getStrength()+1);
+						break;
+					case Agility:
+						setAgility(getAgility()+1);
+						break;
+					case Toughness:
+						setToughness(getToughness()+1);
+						break;
+				}
 			}
 		}
 	}

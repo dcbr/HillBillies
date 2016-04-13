@@ -5,7 +5,9 @@ import be.kuleuven.cs.som.annotate.Immutable;
 import hillbillies.model.Cube;
 import hillbillies.model.Unit;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * Utility class representing a Vector
@@ -455,5 +457,16 @@ public class Vector {
     @Override
     public String toString() {
         return Arrays.toString(this.vectorList);
+    }
+
+    public List<Vector> decompose(){
+        List<Vector> decomposition = new ArrayList<>(this.dimension());
+        double[] origin = new double[this.dimension()];
+        for(int i=0;i<this.dimension();i++){
+            double[] d = origin.clone();
+            d[i] = this.get(i);
+            decomposition.add(new Vector(d));
+        }
+        return decomposition;
     }
 }

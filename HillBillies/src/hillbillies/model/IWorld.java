@@ -48,11 +48,17 @@ public interface IWorld {
 
     public Set<Cube> getDirectlyAdjacentCubes(Vector position);
 
+    public Set<Cube> getNeighbouringCubes(Vector position);
+
     public List<Vector> getDirectlyAdjacentCubesPositions(Vector cubeCoordinates);
+
+    public List<Vector> getNeighbouringCubesPositions(Vector cubeCoordinates);
     
     //final Set<Unit> units = new HashSet <>();// Voor wat dient dees?
     
     public Set<Unit> getUnitsInCube(Cube cube);
 
     public Cube getCube(Vector position);
+
+    public void collapse(Vector coordinate);// TODO: change collapse to Cube
 }

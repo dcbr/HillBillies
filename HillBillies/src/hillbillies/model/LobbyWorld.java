@@ -85,8 +85,19 @@ public class LobbyWorld implements IWorld {
 	}
 
 	@Override
+	public Set<Cube> getNeighbouringCubes(Vector position) {
+		throw new NoSuchMethodError("This method is not supported by the lobby.");
+	}
+
+	@Override
 	@Deprecated
 	public List<Vector> getDirectlyAdjacentCubesPositions(Vector cubeCoordinates) {
+		throw new NoSuchMethodError("This method is not supported by the lobby.");
+	}
+
+	@Override
+	@Deprecated
+	public List<Vector> getNeighbouringCubesPositions(Vector cubeCoordinates) {
 		throw new NoSuchMethodError("This method is not supported by the lobby.");
 	}
 
@@ -100,6 +111,11 @@ public class LobbyWorld implements IWorld {
 	@Deprecated
 	public Cube getCube(Vector position) {
 		throw new NoSuchMethodError("This method is not supported by the lobby.");
+	}
+
+	@Override
+	public void collapse(Vector cube) {
+
 	}
 
 }

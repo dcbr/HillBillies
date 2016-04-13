@@ -28,8 +28,38 @@ public class World implements IWorld {
 	private static final int MAX_UNITS = 100;
 	private static final int MAX_FACTIONS = 5;
 
+	private static final List<Vector> DIRECTLY_ADJACENT_DIRECTIONS;
+	private static final List<Vector> NEIGHBOURING_DIRECTIONS;
+
+	private static final int NB_DIRECTLY_ADJACENT_DIRECTIONS = 6;
+	private static final int NB_NEIGHBOURING_DIRECTIONS = 26;
+
 	private TerrainChangeListener terrainChangeListener;
 
+	/**
+	 * Static initializer to set-up DIRECTLY_ADJACANT_ and NEIGHBOURING_ DIRECTIONS
+	 */
+	static {
+		List<Vector> adjacentDirections = new ArrayList<>(NB_DIRECTLY_ADJACENT_DIRECTIONS);
+		for(int i=0;i<NB_DIRECTLY_ADJACENT_DIRECTIONS;i++) {
+			double sign = ((i + 1) % 2) * 2 - 1;// i odd -> -1 ; i even -> 1
+			int dx = ((i + 1) % 3) % 2;// 0 -> 1 ; 1 -> 0 ; 2 -> 0 ; 3 -> 1 ; 4 -> 0 ; 5 -> 0
+			int dy = (i % 3) % 2;// 0 -> 0 ; 1 -> 1 ; 2 -> 0 ; 3 -> 0 ; 4 -> 1 ; 5 -> 0
+			int dz = ((i + 2) % 3) % 2;// 0 -> 0 ; 1 -> 0 ; 2 -> 1 ; 3 -> 0 ; 4 -> 0 ; 5 -> 1
+			adjacentDirections.add(new Vector(dx, dy, dz).multiply(sign));
+		}
+		List<Vector> neighbouringDirections = new ArrayList<>(NB_NEIGHBOURING_DIRECTIONS);
+		for(int x=-1;x<=1;x++){
+			for(int y=-1;y<=1;y++){
+				for(int z=-1;z<=1;z++){
+					if(x==0 && y==0 && z==0) continue;
+					neighbouringDirections.add(new Vector(x,y,z));
+				}
+			}
+		}
+		DIRECTLY_ADJACENT_DIRECTIONS = Collections.unmodifiableList(adjacentDirections);
+		NEIGHBOURING_DIRECTIONS = Collections.unmodifiableList(neighbouringDirections);
+	}
 
 	/**
 	 * Initialize this new World with given Terrain Matrix.
@@ -457,40 +487,56 @@ public class World implements IWorld {
 
 	@Override
 	public Set<Cube> getDirectlyAdjacentCubes(Vector cubeCoordinates){
-		Set<Cube> adjacentCubes = new HashSet<>();
-		for(int i=0;i<6;i++){
-			Vector pos = cubeCoordinates.add(getNextAdjacentDirection(i));
-			if (isValidPosition(pos))
-				adjacentCubes.add(getCube(pos));
+		Set<Cube> adjacentCubes = new HashSet<>(NB_DIRECTLY_ADJACENT_DIRECTIONS);
+		for(Vector adjacentDirection : DIRECTLY_ADJACENT_DIRECTIONS) {
+			Vector adjacentPos = cubeCoordinates.add(adjacentDirection);
+			if (isValidPosition(adjacentPos))
+				adjacentCubes.add(getCube(adjacentPos));
 		}
 		return adjacentCubes;
+	}
+
+	public Set<Cube> getNeighbouringCubes(Vector cubeCoordinates){
+		Set<Cube> neighbouringCubes = new HashSet<>(NB_NEIGHBOURING_DIRECTIONS);// TODO: fuckt die 26 het op of niet?
+		for(Vector neighbouringDirection : NEIGHBOURING_DIRECTIONS) {
+			Vector neighbouringPos = cubeCoordinates.add(neighbouringDirection);
+			if (isValidPosition(neighbouringPos))
+				neighbouringCubes.add(getCube(neighbouringPos));
+		}
+		return neighbouringCubes;
 	}
 
 	public Set<Cube> getDirectlyAdjacentCubes(Cube cube){
 		return getDirectlyAdjacentCubes(cube.getPosition());
 	}
 
+	public Set<Cube> getNeighbouringCubes(Cube cube){
+		return getNeighbouringCubes(cube.getPosition());
+	}
+
 	@Override
 	public List<Vector> getDirectlyAdjacentCubesPositions(Vector cubeCoordinates){
-		List<Vector> adjacentCubes = new ArrayList<>(6);
-		for(int i=0;i<6;i++){
-			Vector pos = cubeCoordinates.add(getNextAdjacentDirection(i));
-			if (isValidPosition(pos))
-				adjacentCubes.add(pos);
+		List<Vector> adjacentCubes = new ArrayList<>(NB_DIRECTLY_ADJACENT_DIRECTIONS);
+		for(Vector adjacentDirection : DIRECTLY_ADJACENT_DIRECTIONS) {
+			Vector adjacentPos = cubeCoordinates.add(adjacentDirection);
+			if (isValidPosition(adjacentPos))
+				adjacentCubes.add(adjacentPos);
 		}
 		return adjacentCubes;
 	}
 
-	public List<Vector> getDirectlyAdjacentCubesPositions(Cube cube){
-		return getDirectlyAdjacentCubesPositions(cube.getPosition());
+	public List<Vector> getNeighbouringCubesPositions(Vector cubeCoordinates){
+		List<Vector> neighbouringCubes = new ArrayList<>(NB_NEIGHBOURING_DIRECTIONS);
+		for(Vector neighbouringDirection : NEIGHBOURING_DIRECTIONS) {
+			Vector neighbouringPos = cubeCoordinates.add(neighbouringDirection);
+			if (isValidPosition(neighbouringPos))
+				neighbouringCubes.add(neighbouringPos);
+		}
+		return neighbouringCubes;
 	}
 
-	private Vector getNextAdjacentDirection(int i){
-		double sign = Math.pow(-1, i);// i odd -> -1 ; i even -> 1
-		int dx = ((i + 1) % 3) % 2;// 0 -> 1 ; 1 -> 0 ; 2 -> 0 ; 3 -> 1 ; 4 -> 0 ; 5 -> 0
-		int dy = (i % 3) % 2;// 0 -> 0 ; 1 -> 1 ; 2 -> 0 ; 3 -> 0 ; 4 -> 1 ; 5 -> 0
-		int dz = ((i + 2) % 3) % 2;// 0 -> 0 ; 1 -> 0 ; 2 -> 1 ; 3 -> 0 ; 4 -> 0 ; 5 -> 1
-		return new Vector(dx, dy, dz).multiply(sign);
+	public List<Vector> getDirectlyAdjacentCubesPositions(Cube cube){
+		return getDirectlyAdjacentCubesPositions(cube.getPosition());
 	}
 
 	public void advanceTime(double dt){
@@ -524,21 +570,21 @@ public class World implements IWorld {
 		Terrain cubeTerrain = cube.getTerrain();
 		if (cubeTerrain == Terrain.ROCK){
 			if (randInt(0, 99) < 25)
-				cubeTerrain = Terrain.AIR;
+				//cubeTerrain = Terrain.AIR;
 				new Log(this,cube);
 		}
 		else if (cubeTerrain == Terrain.WOOD){
 			if (randInt(0, 99) < 25)
-				cubeTerrain = Terrain.AIR;
+				//cubeTerrain = Terrain.AIR;
 				new Boulder(this,cube);
 		}
-		cubeTerrain = Terrain.AIR;
-		List<int[]> changingCubes = connectedToBorder.changeSolidToPassable(coordinate.cubeX(), coordinate.cubeY(), coordinate.cubeZ());
+		cube.setTerrain(Terrain.AIR);
+		/*List<int[]> changingCubes = connectedToBorder.changeSolidToPassable(coordinate.cubeX(), coordinate.cubeY(), coordinate.cubeZ());
 		for (int[] coord : changingCubes){
 			Vector coordi = new Vector(coord[0], coord[1], coord[2]);
 			if(!CollapsingCubes.containsValue(coordi))
 					CollapsingCubes.put(coordi, 0d);
-		}
+		}*/
 
 	}
 

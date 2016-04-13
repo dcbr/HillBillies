@@ -1104,7 +1104,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	 */
 	@Raw
 	public void setNextPosition(Vector position) throws IllegalArgumentException {
-		if (position!=null && ! isValidPosition(position))
+		if (position!=null && ! isValidNextPosition(this.getPosition(), position))
 			throw new IllegalArgumentException("Invalid position");
 		this.nextPosition = position;
 	}
@@ -1420,7 +1420,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 							searchPath(path, path.getNext());
 						}
 						if (path.contains(cpos.getCubeCoordinates())) {// Path found
-							Vector next = path.getNextPositionWithLowestN(getWorld().getDirectlyAdjacentCubesPositions(cpos.getCubeCoordinates()));
+							Vector next = path.getNextPositionWithLowestN(getWorld().getNeighbouringCubesPositions(cpos.getCubeCoordinates()));
 							moveToAdjacent(next.difference(cpos.getCubeCoordinates()));
 						} else {// No path found -> stop extended path finding)
 							moveToAdjacent(0, 0, 0);// targetPosition null is set by movetoAdjacent
@@ -1491,9 +1491,9 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 					}else if(this.getWorkCube().containsLogs()){
 						//this.setCarriedMaterial();// TODO: pick up Log
 					}else if(this.getWorkCube().getTerrain() == Terrain.WOOD){
-						//this.getWorld().collapse(this.getWorkCube());
+						this.getWorld().collapse(this.getWorkCube().getPosition());
 					}else if(this.getWorkCube().getTerrain() == Terrain.ROCK){
-						//this.getWorld().collapse(this.getWorkCube());//TODO: change collapse to cube itself
+						this.getWorld().collapse(this.getWorkCube().getPosition());//TODO: change collapse to cube itself
 					}
 					setCurrentActivity(Activity.NONE);
 					this.addXP(WORK_POINTS);
@@ -1846,7 +1846,12 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 
 		this.lastPosition = this.getPosition();// TODO: lastPosition will be overriden with every call to moveToAdjacent
 		setCurrentActivity(Activity.MOVE);
-		this.targetPosition = targetPosition.getCubeCenterCoordinates();// TODO: make setter and getter for targetPosition and check for invalid positions
+		setTargetPosition(targetPosition.getCubeCenterCoordinates());// TODO: make setter and getter for targetPosition and check for invalid positions
+	}
+	private void setTargetPosition(Vector target){
+		if(target!=null && !isValidPosition(target))
+			throw new IllegalArgumentException("The target is not a valid position.");
+		this.targetPosition = target;
 	}
 	/**
 	 * Method to let the Unit sprint.
@@ -1911,7 +1916,8 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 			Vector next = null;
 			int lowestN = -1;
 			for(Vector nextPosition : nextPositions){
-				if(lowestNByPosition.containsKey(nextPosition) && (lowestN==-1 || lowestNByPosition.get(nextPosition)<lowestN)){
+				if(lowestNByPosition.containsKey(nextPosition) && (lowestN==-1 || lowestNByPosition.get(nextPosition)<lowestN) &&
+						isValidNextPosition(Unit.this.getPosition(), nextPosition)){
 					lowestN = lowestNByPosition.get(nextPosition);
 					next = nextPosition;
 				}
@@ -1921,13 +1927,23 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	}
 
 	private void searchPath(Path path, Map.Entry<Vector, Integer> start){
-		Set<Cube> nextCubes = getWorld().getDirectlyAdjacentCubes(start.getKey());
+		Set<Cube> nextCubes = getWorld().getNeighbouringCubes(start.getKey());
 		for(Cube nextCube : nextCubes){
-			if(isValidPosition(nextCube.getPosition()))
+			if(isValidNextPosition(start.getKey(),nextCube.getPosition()))
 				path.add(nextCube.getPosition(), start.getValue()+1);
 		}
 		/*Stream<Cube> nextCubes = getWorld().getDirectlyAdjacentCubes(start.getKey()).stream().filter(cube -> isValidPosition(cube.getPosition()));
 		nextCubes.forEach(cube -> path.add(cube.getPosition(), start.getValue()+1));*/
+	}
+
+	private boolean isValidNextPosition(Vector fromPosition, Vector nextPosition){
+		if(fromPosition==null || nextPosition==null)
+			throw new IllegalArgumentException("The from and next position must be effective positions in order to check their validity.");
+		if(!isValidPosition(nextPosition)) return false;// Check if it's a valid position itself
+		for(Vector d : nextPosition.difference(fromPosition).decompose()){
+			if(!isValidPosition(fromPosition.add(d))) return false;// Check if surrounding positions are valid too (prevent corner glitch)
+		}
+		return true;
 	}
 	//endregion
 	/**

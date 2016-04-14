@@ -1429,30 +1429,29 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 						this.stateDefault += 1;
 					}
 				}
-				if(getNextPosition()!=null){
-					if(getNextPosition().equals(cpos)){
+				if(getNextPosition()!=null) {
+					if (getNextPosition().equals(cpos)) {
 						setNextPosition(null);
 						setCurrentActivity(Activity.NONE);
-					}					
-					else{
+					} else {
 						Vector difference = getNextPosition().difference(cpos);
 						double d = difference.length();
 						double v = this.isSprinting ? getSprintSpeed(difference) : getWalkingSpeed(difference);
 						this.setCurrentSpeed(v);
-						Vector dPos = difference.multiply(v/d*dt);
-						Vector velocity = difference.multiply(v/d);
+						Vector dPos = difference.multiply(v / d * dt);
+						Vector velocity = difference.multiply(v / d);
 						Vector newPos = cpos.add(dPos);
-						for(int i=0;i< 3;i++){
-				            if(getNextPosition().isInBetween(i,cpos,newPos)){
-				            		double[] a = newPos.asArray();
-				            		a[i] = getNextPosition().get(i);
-				            		newPos = new Vector(a);
-				            }
+						for (int i = 0; i < 3; i++) {
+							if (getNextPosition().isInBetween(i, cpos, newPos)) {
+								double[] a = newPos.asArray();
+								a[i] = getNextPosition().get(i);
+								newPos = new Vector(a);
+							}
 						}
 						setPosition(newPos);
-						setOrientation((float)Math.atan2(velocity.Y(),velocity.X()));
+						setOrientation((float) Math.atan2(velocity.Y(), velocity.X()));
 					}
-				}	
+				}
 				
 				if(this.getStateDefault()==2 && !this.isSprinting &&this.isAbleToSprint() &&randInt(0, 99) < 1)
 					this.sprint();
@@ -1834,7 +1833,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	 * @throws IllegalStateException * If this unit isn't able to move.
 	 * 		|!this.isAbleToMove()
 	 */
-	public void moveToTarget(Vector targetPosition) throws IllegalStateException{
+	public void moveToTarget(Vector targetPosition) throws IllegalStateException, IllegalArgumentException{
 		if(this.getStateDefault()!=2){
 			if(!this.isAbleToMove())
 				throw new IllegalStateException("Unit is not able to move at this moment.");
@@ -1845,8 +1844,8 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 			this.stateDefault -=1;
 
 		this.lastPosition = this.getPosition();// TODO: lastPosition will be overriden with every call to moveToAdjacent
-		setCurrentActivity(Activity.MOVE);
 		setTargetPosition(targetPosition.getCubeCenterCoordinates());// TODO: make setter and getter for targetPosition and check for invalid positions
+		setCurrentActivity(Activity.MOVE);
 	}
 	private void setTargetPosition(Vector target){
 		if(target!=null && !isValidPosition(target))

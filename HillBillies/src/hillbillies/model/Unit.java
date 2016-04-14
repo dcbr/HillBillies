@@ -2253,6 +2253,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 				return; //TODO: experiencePoints gelijk zetten aan MAX_XP-1 of laten opbouwen naar oneindig?
 			}
 			else{
+				experiencePoints -= MAX_XP;
 				switch(attributes.get(randInt(0, size-1))){
 					case Strength:
 						setStrength(getStrength()+1);

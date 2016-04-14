@@ -685,7 +685,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	@Basic
 	@Raw
 	public Vector getNextPosition(){
-		return this.nextPosition.clone();
+		return (this.nextPosition==null) ? null : this.nextPosition.clone();
 	}
 	
 	/**
@@ -1407,7 +1407,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 					this.setStamina(newStamina);
 				}
 				Vector cpos = getPosition();
-				if(!lastPosition.difference(cpos.getCubeCoordinates()).equals(new Vector(0,0,0))){
+				if(!lastPosition.getCubeCoordinates().difference(cpos.getCubeCoordinates()).equals(new Vector(0,0,0))){
 					lastPosition = cpos;
 					this.addXP(MOVE_POINTS);
 				}

@@ -696,6 +696,8 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
             unit.moveToTarget(new Vector (cube));
         }catch (IllegalStateException e){
             throw new ModelException("Unit is not able to move at this moment.",e );
+        }catch (IllegalArgumentException e){
+        	throw new ModelException("The target is not a valid position", e);
         }
     }
 

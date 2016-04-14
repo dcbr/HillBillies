@@ -1941,7 +1941,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 			throw new IllegalArgumentException("The from and next position must be effective positions in order to check their validity.");
 		if(!isValidPosition(nextPosition)) return false;// Check if it's a valid position itself
 		for(Vector d : nextPosition.difference(fromPosition).decompose()){
-			if(!isValidPosition(fromPosition.add(d))) return false;// Check if surrounding positions are valid too (prevent corner glitch)
+			if(!isValidPosition(fromPosition.add(d)) || !isValidPosition(nextPosition.difference(d))) return false;// Check if surrounding positions are valid too (prevent corner glitch)
 		}
 		return true;
 	}

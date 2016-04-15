@@ -1925,6 +1925,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 			while (!this.contains(fromPosition.getCubeCoordinates()) && this.hasNext()) {
 				searchPath(this, this.getNext());
 			}
+			controlledPos.clear();
 			if(this.contains(fromPosition.getCubeCoordinates())){// Path found
 				ArrayDeque<Vector> path = new ArrayDeque<>();
 				HashSet<Vector> pathPositions = new HashSet<>();
@@ -1944,7 +1945,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	 */
 	private Set<Vector> controlledPos = new HashSet<>();
 
-	private void searchPath(Path path, Map.Entry<Vector, Integer> start){
+	private void searchPath(PathCalculator path, Map.Entry<Vector, Integer> start){
 		Set<Cube> nextCubes = getWorld().getNeighbouringCubes(start.getKey());
 		for(Cube nextCube : nextCubes){
 			Vector position = nextCube.getPosition();

@@ -750,8 +750,8 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	 * @return
 	 */
 	private double getWalkingSpeed(Vector direction){
-		if(direction.Z()<0) return 1.2*this.getBaseSpeed();
-		else if(direction.Z()>0) return 0.5*this.getBaseSpeed();
+		if(direction.Z()<-0.5) return 1.2*this.getBaseSpeed();
+		else if(direction.Z()>0.5) return 0.5*this.getBaseSpeed();
 		else return this.getBaseSpeed();
 	}
 

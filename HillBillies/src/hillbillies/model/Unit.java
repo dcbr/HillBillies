@@ -750,8 +750,8 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	 * @return
 	 */
 	private double getWalkingSpeed(Vector direction){
-		if(direction.Z()>0) return 1.2*this.getBaseSpeed();
-		else if(direction.Z()<0) return 0.5*this.getBaseSpeed();
+		if(direction.Z()<0) return 1.2*this.getBaseSpeed();
+		else if(direction.Z()>0) return 0.5*this.getBaseSpeed();
 		else return this.getBaseSpeed();
 	}
 
@@ -1415,6 +1415,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 					if(targetPosition.getCubeCoordinates().equals(cpos.getCubeCoordinates())){
 						moveToAdjacent(0,0,0);// We are in target cube, just move to the center now (stop extended path finding)
 					}else {
+						controlledPos.clear();
 						Path path = new Path(targetPosition.getCubeCoordinates());// Calculate new path
 						while (!path.contains(cpos.getCubeCoordinates()) && path.hasNext()) {
 							searchPath(path, path.getNext());
@@ -1924,12 +1925,19 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 			return next;
 		}
 	}
-
+	/**
+	 * Set registering the controlled positions.
+	 */
+	private Set<Vector> controlledPos = new HashSet<>();
+	
 	private void searchPath(Path path, Map.Entry<Vector, Integer> start){
 		Set<Cube> nextCubes = getWorld().getNeighbouringCubes(start.getKey());
 		for(Cube nextCube : nextCubes){
-			if(isValidNextPosition(start.getKey(),nextCube.getPosition()))
-				path.add(nextCube.getPosition(), start.getValue()+1);
+			Vector position = nextCube.getPosition();
+			if(isValidNextPosition(start.getKey(),position) && !controlledPos.contains(position)){
+				path.add(position, start.getValue()+1);
+				controlledPos.add(position);
+			}
 		}
 		/*Stream<Cube> nextCubes = getWorld().getDirectlyAdjacentCubes(start.getKey()).stream().filter(cube -> isValidPosition(cube.getPosition()));
 		nextCubes.forEach(cube -> path.add(cube.getPosition(), start.getValue()+1));*/

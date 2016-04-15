@@ -150,7 +150,26 @@ public class Cube extends WorldObject {
                 if(material.isInstance(m))
                     return true;
         }
+        Log l = getMaterialOfType(Log.class);
         return false;
+    }
+
+    public Log getLog(){
+        return getMaterialOfType(Log.class);
+    }
+
+    public Boulder getBoulder(){
+        return getMaterialOfType(Boulder.class);
+    }
+
+    public <T extends Material> T getMaterialOfType(Class<T> material){
+        if(!this.containsMaterialType(material))
+            throw new IllegalArgumentException("This cube doesn't contain a material of given type.");
+        for(Material m : this.materials)
+            if(material.isInstance(m))
+                return (T)m;
+        assert false;
+        return null;// Will never happen
     }
     /** TO BE ADDED TO THE CLASS INVARIANTS
      * @invar Each cube must have proper materials.

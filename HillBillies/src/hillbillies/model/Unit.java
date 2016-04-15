@@ -1411,21 +1411,11 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 					lastPosition = cpos;
 					this.addXP(MOVE_POINTS);
 				}
-				if(targetPosition!=null){
-					if(targetPosition.getCubeCoordinates().equals(cpos.getCubeCoordinates())){
+				if(path!=null){// TODO: if path contains a collapsed cube, recompute path
+					if(!path.hasNext() && cpos.getCubeCoordinates().equals(nextPosition.getCubeCoordinates())){
 						moveToAdjacent(0,0,0);// We are in target cube, just move to the center now (stop extended path finding)
-					}else {
-						Path path = new Path(targetPosition.getCubeCoordinates());// Calculate new path
-						while (!path.contains(cpos.getCubeCoordinates()) && path.hasNext()) {
-							searchPath(path, path.getNext());
-						}
-						if (path.contains(cpos.getCubeCoordinates())) {// Path found
-							Vector next = path.getNextPositionWithLowestN(getWorld().getNeighbouringCubesPositions(cpos.getCubeCoordinates()));
-							moveToAdjacent(next.difference(cpos.getCubeCoordinates()));
-						} else {// No path found -> stop extended path finding)
-							moveToAdjacent(0, 0, 0);// targetPosition null is set by movetoAdjacent
-							//targetPosition = null;
-						}
+					}else if(nextPosition==null || cpos.getCubeCoordinates().equals(nextPosition.getCubeCoordinates())){
+						moveToAdjacent(path.getNext().difference(cpos.getCubeCoordinates()));
 						this.stateDefault += 1;
 					}
 				}
@@ -1486,9 +1476,9 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 					}else if(this.getWorkCube().getTerrain()==Terrain.WORKSHOP && this.getWorkCube().containsLogs() && this.getWorkCube().containsBoulders()){
 						// TODO: increase unit's weight and toughness and terminate boulder and log at workCube
 					}else if(this.getWorkCube().containsBoulders()){
-						//this.setCarriedMaterial();// TODO: pick up Boulder
+						this.setCarriedMaterial(this.getWorkCube().getBoulder());
 					}else if(this.getWorkCube().containsLogs()){
-						//this.setCarriedMaterial();// TODO: pick up Log
+						this.setCarriedMaterial(this.getWorkCube().getLog());
 					}else if(this.getWorkCube().getTerrain() == Terrain.WOOD){
 						this.getWorld().collapse(this.getWorkCube().getPosition());
 					}else if(this.getWorkCube().getTerrain() == Terrain.ROCK){
@@ -1845,7 +1835,10 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 
 		this.lastPosition = this.getPosition();// TODO: lastPosition will be overriden with every call to moveToAdjacent
 		setTargetPosition(targetPosition.getCubeCenterCoordinates());// TODO: make setter and getter for targetPosition and check for invalid positions
-		setCurrentActivity(Activity.MOVE);
+		PathCalculator p = new PathCalculator(targetPosition);
+		this.path = p.computePath(this.getPosition());
+		if(this.path != null)
+			setCurrentActivity(Activity.MOVE);
 	}
 	private void setTargetPosition(Vector target){
 		if(target!=null && !isValidPosition(target))
@@ -1879,12 +1872,15 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 
 	//TODO: change names: ksnap het nu pas hoe het werkt, dus Path is ni echt het pad maar eerder een collectie
 	//		van posities met daarbij hoe ver het gelegen is van de target (N)
-	private class Path{
+	private class PathCalculator{
 
 		private final ArrayDeque<Map.Entry<Vector, Integer>> path = new ArrayDeque<>();
 		private final HashMap<Vector, Integer> lowestNByPosition = new HashMap<>();
+		private final Vector targetPosition;
 
-		public Path(Vector targetPosition){
+		public PathCalculator(Vector targetPosition){
+			//TODO: check if targetPosition is valid
+			this.targetPosition = targetPosition;
 			this.add(targetPosition, 0);
 		}
 
@@ -1911,21 +1907,40 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 			return entry;
 		}
 
-		public Vector getNextPositionWithLowestN(List<Vector> nextPositions){
+		public Vector getNextPositionWithLowestN(Vector fromPosition){
+			List<Vector> nextPositions = Unit.this.getWorld().getNeighbouringCubesPositions(fromPosition);
 			Vector next = null;
 			int lowestN = -1;
 			for(Vector nextPosition : nextPositions){
 				if(lowestNByPosition.containsKey(nextPosition) && (lowestN==-1 || lowestNByPosition.get(nextPosition)<lowestN) &&
-						isValidNextPosition(Unit.this.getPosition(), nextPosition)){
+						isValidNextPosition(fromPosition, nextPosition)){
 					lowestN = lowestNByPosition.get(nextPosition);
 					next = nextPosition;
 				}
 			}
 			return next;
 		}
+
+		public Path computePath(Vector fromPosition){
+			while (!this.contains(fromPosition.getCubeCoordinates()) && this.hasNext()) {
+				searchPath(this, this.getNext());
+			}
+			if(this.contains(fromPosition.getCubeCoordinates())){// Path found
+				ArrayDeque<Vector> path = new ArrayDeque<>();
+				HashSet<Vector> pathPositions = new HashSet<>();
+				Vector pos = fromPosition.getCubeCoordinates();
+				while(!pos.equals(targetPosition)) {
+					pos = this.getNextPositionWithLowestN(pos);
+					path.add(pos);
+					pathPositions.add(pos);
+				}
+				return new Path(path, pathPositions);
+			}else
+				return null;// No path found
+		}
 	}
 
-	private void searchPath(Path path, Map.Entry<Vector, Integer> start){
+	private void searchPath(PathCalculator path, Map.Entry<Vector, Integer> start){
 		Set<Cube> nextCubes = getWorld().getNeighbouringCubes(start.getKey());
 		for(Cube nextCube : nextCubes){
 			if(isValidNextPosition(start.getKey(),nextCube.getPosition()))
@@ -1933,6 +1948,31 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 		}
 		/*Stream<Cube> nextCubes = getWorld().getDirectlyAdjacentCubes(start.getKey()).stream().filter(cube -> isValidPosition(cube.getPosition()));
 		nextCubes.forEach(cube -> path.add(cube.getPosition(), start.getValue()+1));*/
+	}
+
+	public class Path{
+
+		private final ArrayDeque<Vector> path;
+		private final HashSet<Vector> pathPositions;
+
+		private Path(ArrayDeque<Vector> path, HashSet<Vector> pathPositions){
+			this.path = path;
+			this.pathPositions = pathPositions;
+		}
+
+		public boolean hasNext(){
+			return !path.isEmpty();
+		}
+
+		public Vector getNext(){
+			Vector next = path.remove();
+			pathPositions.remove(next);
+			return next;
+		}
+
+		public boolean contains(Vector pathPosition){
+			return pathPositions.contains(pathPosition);
+		}
 	}
 
 	private boolean isValidNextPosition(Vector fromPosition, Vector nextPosition){
@@ -1944,6 +1984,8 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 		}
 		return true;
 	}
+
+	private Path path;
 	//endregion
 	/**
 	 * Method to let the Unit rest.

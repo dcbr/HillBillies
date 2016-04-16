@@ -977,24 +977,25 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 			else this.rest();
 		}
 		if (activity ==1){
-			PathCalculator p = new PathCalculator(this.getPosition());
+			/*PathCalculator p = new PathCalculator(this.getPosition());
 			Vector target = new Vector(-1,-1,-1);
 			this.path = p.computePath(this.getPosition());
 			int size = controlledPos.size();
 			if( size == 0)
 				activity = 2;
-			else 
-				target = controlledPos.get(randInt(0, size-1));
+			*/
 			//TODO: manier zoeken om alle bereikbare posities op te lijsten
-			/*boolean valid = false;
+			Vector target = new Vector (randDouble(getWorld().getMinPosition().X(), getWorld().getMaxPosition().X()),
+					randDouble(getWorld().getMinPosition().Y(), getWorld().getMaxPosition().Y()),
+					randDouble(getWorld().getMinPosition().Z(), getWorld().getMaxPosition().Z()));
+			Path path = new PathCalculator(target).computePath(this.getPosition());
+			if (path.hasNext())
+				this.moveToTarget(target);
+			else if (controlledPos.size() ==0)
+				activity = 2;
+			else
+				this.moveToTarget(controlledPos.get(randInt(0, controlledPos.size()-1)));
 			
-			while (!valid){
-				target = new Vector (randDouble(getWorld().getMinPosition().X(), getWorld().getMaxPosition().X()),
-						randDouble(getWorld().getMinPosition().Y(), getWorld().getMaxPosition().Y()),
-						randDouble(getWorld().getMinPosition().Z(), getWorld().getMaxPosition().Z()));
-				valid = validatePosition(target);
-			}*/
-			this.moveToTarget(target);
 			if (this.isAbleToSprint() && randInt(0, 99) < 1){
 				this.sprint();
 			}
@@ -1002,6 +1003,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 		if (activity == 2) {
 			List<Vector> workPositions = getWorld().getDirectlyAdjacentCubesPositions(this.getPosition());
 			workPositions.add(this.getPosition());
+			
 			this.work(workPositions.get(randInt(0,workPositions.size()-1)));
 		}
 		if (activity == 3){

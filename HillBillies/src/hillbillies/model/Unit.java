@@ -988,7 +988,9 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 			Vector target = new Vector (randDouble(getWorld().getMinPosition().X(), getWorld().getMaxPosition().X()),
 					randDouble(getWorld().getMinPosition().Y(), getWorld().getMaxPosition().Y()),
 					randDouble(getWorld().getMinPosition().Z(), getWorld().getMaxPosition().Z()));
-			Path path = new PathCalculator(this.getPosition()).computePath(target);
+			PathCalculator pathCalculator= new PathCalculator(this.getPosition());
+			Path path = pathCalculator.computePath(target);
+			
 			if (path.hasNext())
 				this.moveToTarget(target);
 			else if (controlledPos.size() ==0)
@@ -1003,7 +1005,6 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 		if (activity == 2) {
 			List<Vector> workPositions = getWorld().getDirectlyAdjacentCubesPositions(this.getPosition());
 			workPositions.add(this.getPosition());
-
 			this.work(workPositions.get(randInt(0,workPositions.size()-1)));
 		}
 		if (activity == 3){
@@ -2099,7 +2100,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 			this.stopDoingDefault();
 		if(this.getStateDefault() == 3)
 			this.stateDefault -=1;
-		setWorkCube(this.getWorld().getCube(position));
+		setWorkCube(this.getWorld().getCube(position.getCubeCoordinates()));
 		setWorkProgress(0);// TODO: change workProgress to activityProgress
 		setWorkDuration(getWorkingTime(this.getStrength()));
 		Vector workDirection = position.getCubeCoordinates().difference(this.getPosition().getCubeCoordinates());

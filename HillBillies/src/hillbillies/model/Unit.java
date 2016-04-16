@@ -849,9 +849,9 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 		boolean isDefault = this.activity.isDefault();
 		this.activity.stop();
 		this.activity = activity;
-		this.activityProgress = 0d;
 		if(activity!=Activity.MOVE)
 			stopSprint();
+		this.activity.start(isDefault);
 	}
 
 	@Raw private void setCurrentSpeed(double speed){

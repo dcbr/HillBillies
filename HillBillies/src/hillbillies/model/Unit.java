@@ -1,9 +1,13 @@
 package hillbillies.model;
 
 import be.kuleuven.cs.som.annotate.*;
+import com.sun.istack.internal.NotNull;
 import hillbillies.utils.Vector;
 import hillbillies.activities.*;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.EmptyStackException;
 import java.util.Stack;
 
 import static hillbillies.utils.Utils.randInt;
@@ -1525,14 +1529,18 @@ public class Unit {
 		}
 
 		public void requestActivityFinish(Activity activity) throws IllegalArgumentException{
+			if(activity == null)
+				throw new IllegalArgumentException("Invalid activity.");
 			if(activity.getUnitId()!=Unit.this.getId())
 				throw new IllegalArgumentException("This activity is not bound to this unit.");
 			if(activity!=this.getCurrentActivity() || !activity.isActive())
 				throw new IllegalArgumentException("This activity is not currently active.");
-			if(this.activityStack.size()==1)
-				throw new IllegalStateException("Since this is the last activity in stack, it can not be finished.");
+			//if(this.activityStack.size()==1)
+			//	throw new IllegalStateException("Since this is the last activity in stack, it can not be finished.");
 			this.getCurrentActivity().stop();
 			this.activityStack.pop();
+			if(this.activityStack.size()==0)
+				this.activityStack.push(NONE);
 			this.getCurrentActivity().start();// Resume previous activity in stack
 		}
 

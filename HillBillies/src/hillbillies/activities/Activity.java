@@ -18,11 +18,13 @@ public abstract class Activity {
      * Variable registering whether the current activity is being executed or not.
      */
     private boolean isDefault, isActive;
-    protected Unit unit;
+    protected final Unit unit;
+    protected final Unit.ActivityController controller;
 
     public Activity(Unit unit){
         this.activityProgress = 0d;
         this.unit = unit;
+        this.controller = unit.activityController;
         this.isDefault = false;
         this.isActive = false;
     }
@@ -33,8 +35,8 @@ public abstract class Activity {
     public final void start(boolean isDefault) throws IllegalStateException{
         if(!isDefault && !isAbleTo())
             throw new IllegalStateException("This unit cannot " + this.toString() + " at this moment");
-        else if(isDefault)
-            stopDoingDefault();// TODO: fix this
+        //else if(isDefault)
+        //    stopDoingDefault();// TODO: fix this
         // this.stateDefault -= 1; (if stateDefault == 3) ??
         this.activityProgress = 0d;
         this.startActivity();
@@ -87,5 +89,9 @@ public abstract class Activity {
 
     public long getUnitId(){
         return this.unit.getId();
+    }
+
+    public void requestFinish(){
+        this.controller.requestActivityFinish(this);
     }
 }

@@ -2084,7 +2084,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	public boolean isValidWorkCube(Cube workCube) {
 		// TODO: verify if 'neighbouring' means directly adjacent or also the diagonal cubes
 	    return this.getPosition().getCubeCoordinates().equals(workCube.getPosition()) ||
-				this.getWorld().getDirectlyAdjacentCubes(this.getPosition()).contains(workCube);
+	    		this.getWorld().getDirectlyAdjacentCubes(this.getPosition().getCubeCoordinates()).contains(workCube);
 	}
 	/**
 	 * Set the workCube of this Unit to the given workCube.

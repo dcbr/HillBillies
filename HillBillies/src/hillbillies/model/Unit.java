@@ -1600,7 +1600,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	private boolean isLowerSolid(Vector position){
 		if(position.cubeZ() == 0)
 			return true;
-		if(!this.getWorld().getCube(position.difference(new Vector(0,0,-1))).isPassable())
+		if(!this.getWorld().getCube(position.getCubeCoordinates().add(new Vector(0,0,-1))).isPassable())
 			return true;
 		return false;
 	}

@@ -262,6 +262,8 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
             unit.work(new Vector(x,y,z));
         }catch(IllegalArgumentException e){
             throw new ModelException("The target cube is not a neighbouring cube.", e);
+        }catch(IllegalStateException e){
+            throw new ModelException("Unit is not able to work at this moment.", e);
         }
     }
 

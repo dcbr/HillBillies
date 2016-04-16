@@ -571,12 +571,12 @@ public class World implements IWorld {
 		if (cubeTerrain == Terrain.ROCK){
 			if (randInt(0, 99) < 25)
 				//cubeTerrain = Terrain.AIR;
-				new Log(this,cube);
+				cube.addMaterial(new Log(this,cube));
 		}
 		else if (cubeTerrain == Terrain.WOOD){
 			if (randInt(0, 99) < 25)
 				//cubeTerrain = Terrain.AIR;
-				new Boulder(this,cube);
+				cube.addMaterial(new Boulder(this,cube));
 		}
 		cube.setTerrain(Terrain.AIR);
 		/*List<int[]> changingCubes = connectedToBorder.changeSolidToPassable(coordinate.cubeX(), coordinate.cubeY(), coordinate.cubeZ());

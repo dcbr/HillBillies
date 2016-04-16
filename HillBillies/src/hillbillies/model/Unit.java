@@ -618,7 +618,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	 * Return the current speed of this unit.
 	 */
 	public double getCurrentSpeed(){
-		if(this.getCurrentActivity() != Activity.MOVE)
+		if(!this.isMoving() && !this.isFalling())
 			return (0d);
 		return this.currentSpeed;
 	}
@@ -995,7 +995,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 				activity = 2;
 			else
 				this.moveToTarget(controlledPos.get(randInt(0, controlledPos.size()-1)));
-			
+
 			if (this.isAbleToSprint() && randInt(0, 99) < 1){
 				this.sprint();
 			}
@@ -1003,7 +1003,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 		if (activity == 2) {
 			List<Vector> workPositions = getWorld().getDirectlyAdjacentCubesPositions(this.getPosition());
 			workPositions.add(this.getPosition());
-			
+
 			this.work(workPositions.get(randInt(0,workPositions.size()-1)));
 		}
 		if (activity == 3){
@@ -1412,7 +1412,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 		if(restTimer >= REST_INTERVAL && this.isAbleToRest()){
 			rest();
 		}
-		if (getCurrentActivity() != Activity.FALLING && getCurrentActivity() != Activity.MOVE && !validatePosition(getPosition())){
+		if (!isFalling() && getCurrentActivity() != Activity.MOVE && !validatePosition(getPosition())){
 			falling(); //TODO: bij move telkens controleren of hij opeens moet vallen als er een blok veranderd naar passable
 		}
 		
@@ -1470,7 +1470,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 			case FALLING:
 				Vector cPos = getPosition();
 				Vector cPosCube = cPos.getCubeCenterCoordinates();
-				if (cPos == cPosCube && validatePosition(cPos)){
+				if (cPos == cPosCube && isLowerSolid(cPos) && this.getWorld().getCube(cPos).isPassable()){
 					setCurrentSpeed(0);
 					setCurrentActivity(Activity.NONE);
 					removeHitpoints((int) (fallingLevel-cPos.Z()));
@@ -1480,9 +1480,9 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 				else{
 					double speed = getCurrentSpeed();
 					Vector nextPos = cPos.add(new Vector(0,0,-speed*dt));
-					if (validatePosition(cPos) && (cPosCube.isInBetween(2, cPos, nextPos)||cPos.Z() <= cPosCube.Z() ))
+					if (isLowerSolid(cPos) && this.getWorld().getCube(cPos.getCubeCoordinates()).isPassable() && (cPosCube.isInBetween(2, cPos, nextPos)||cPos.Z() <= cPosCube.Z() ))
 							setPosition(cPosCube);							
-					else if(nextPos.getCubeCenterCoordinates().isInBetween(2, cPos, nextPos) && validatePosition(nextPos))
+					else if(nextPos.getCubeCenterCoordinates().isInBetween(2, cPos, nextPos) && isLowerSolid(nextPos) && this.getWorld().getCube(nextPos.getCubeCoordinates()).isPassable())
 						setPosition(nextPos.getCubeCenterCoordinates());
 					else
 						setPosition(nextPos);
@@ -1494,7 +1494,12 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 					if(this.isCarryingMaterial()){
 						this.dropCarriedMaterial();// TODO: make sure the target cube is passable!
 					}else if(this.getWorkCube().getTerrain()==Terrain.WORKSHOP && this.getWorkCube().containsLogs() && this.getWorkCube().containsBoulders()){
-						// TODO: increase unit's weight and toughness and terminate boulder and log at workCube
+						this.getWorkCube().getBoulder().terminate();// TODO: make sure Materials are removed from world as soon as they are terminated!
+						this.getWorkCube().getLog().terminate();
+						if(this.getWeight()!=MAX_WEIGHT)
+							this.setWeight(this.getWeight() + 1);
+						if(this.getToughness()!=MAX_TOUGHNESS)
+							this.setToughness(this.getToughness() + 1);
 					}else if(this.getWorkCube().containsBoulders()){
 						this.setCarriedMaterial(this.getWorkCube().getBoulder());
 					}else if(this.getWorkCube().containsLogs()){
@@ -1574,12 +1579,28 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 		IWorld world = this.getWorld();
 		// world.isValidPosition(position) wordt al gecontroleerd in isValidPosition
 		if(world.isCubePassable(position.getCubeCoordinates())){
-			if(position.cubeZ() == 0)
+			if(isAdjacentSolid(position))
 				return true;
-			for(Cube cube : world.getDirectlyAdjacentCubes(position.getCubeCoordinates()))
-				if(!cube.isPassable())
-					return true;
+			if(isFalling())
+				return true;
 		}
+		return false;
+	}
+
+	private boolean isAdjacentSolid(Vector position){
+		if(position.cubeZ() == 0)
+			return true;
+		for(Cube cube : this.getWorld().getDirectlyAdjacentCubes(position.getCubeCoordinates()))
+			if(!cube.isPassable())
+				return true;
+		return false;
+	}
+
+	private boolean isLowerSolid(Vector position){
+		if(position.cubeZ() == 0)
+			return true;
+		if(!this.getWorld().getCube(position.difference(new Vector(0,0,-1))).isPassable())
+			return true;
 		return false;
 	}
 	/**
@@ -2078,11 +2099,13 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 			this.stopDoingDefault();
 		if(this.getStateDefault() == 3)
 			this.stateDefault -=1;
-		this.setOrientation((float)Math.atan2(position.getCubeCenterCoordinates().Y()-this.getPosition().Y(), position.getCubeCenterCoordinates().X()-this.getPosition().X()));
 		setWorkCube(this.getWorld().getCube(position));
-		setCurrentActivity(Activity.WORK);
 		setWorkProgress(0);// TODO: change workProgress to activityProgress
 		setWorkDuration(getWorkingTime(this.getStrength()));
+		Vector workDirection = position.getCubeCoordinates().difference(this.getPosition().getCubeCoordinates());
+		if(workDirection.X()!=0 || workDirection.Y()!=0)
+			setOrientation((float) Math.atan2(workDirection.Y(),workDirection.X()));
+		setCurrentActivity(Activity.WORK);
 	}
 
 	/**
@@ -2105,8 +2128,9 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	 */
 	public boolean isValidWorkCube(Cube workCube) {
 		// TODO: verify if 'neighbouring' means directly adjacent or also the diagonal cubes
-	    return this.getPosition().getCubeCoordinates().equals(workCube.getPosition()) ||
-	    		this.getWorld().getDirectlyAdjacentCubes(this.getPosition().getCubeCoordinates()).contains(workCube);
+		return workCube.getWorld()==this.getWorld() &&
+				(this.getPosition().getCubeCoordinates().equals(workCube.getPosition()) ||
+				this.getWorld().getDirectlyAdjacentCubesPositions(this.getPosition().getCubeCoordinates()).contains(workCube.getPosition()));
 	}
 	/**
 	 * Set the workCube of this Unit to the given workCube.
@@ -2150,7 +2174,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	 * | result == material.getWorld() == this.getWorld()
 	 */
 	public boolean isValidMaterial(Material material) {
-	    return material.getWorld()==this.getWorld();
+	    return material==null || material.getWorld()==this.getWorld();
 	}
 	/**
 	 * Set the carriedMaterial of this Unit to the given material.
@@ -2189,7 +2213,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 
 	private void dropCarriedMaterial(){
 		Material m = this.getCarriedMaterial();
-		this.setCarriedMaterial(null);
+		this.carriedMaterial = null;
 		m.setOwner(this.getWorkCube());
 	}
 	//endregion
@@ -2368,9 +2392,13 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 			this.stopDoingDefault();
 		setCurrentSpeed(3d);
 		Vector pos = getPosition();
-		setPosition(new Vector(pos.getCubeCenterCoordinates().X(),pos.getCubeCenterCoordinates().Y(), pos.Z() ));
 		this.fallingLevel = getPosition().cubeZ();
 		setCurrentActivity(Activity.FALLING);
+		setPosition(new Vector(pos.getCubeCenterCoordinates().X(),pos.getCubeCenterCoordinates().Y(), pos.Z() ));
+	}
+
+	public boolean isFalling(){
+		return this.getCurrentActivity()==Activity.FALLING;
 	}
 	
 	/**

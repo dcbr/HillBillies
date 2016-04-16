@@ -16,7 +16,7 @@ import static org.junit.Assert.*;
 public class UnitTest {
 
 	private static Unit unit, customUnit, unitx, unity, unitz;
-
+/*
     @BeforeClass
     public static void setUpClass() {
         unit = new Unit("Unit", new Vector(25,25,25));
@@ -467,6 +467,6 @@ public class UnitTest {
     public void testWorkIllegal() throws IllegalStateException{
         unitx.rest();
         unitx.work();// Unit is in initial rest mode => unable to work
-    }
+    }*/
 
 }

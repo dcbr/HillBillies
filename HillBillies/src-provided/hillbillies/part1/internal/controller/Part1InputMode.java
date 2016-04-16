@@ -1,13 +1,11 @@
 package hillbillies.part1.internal.controller;
 
 import hillbillies.common.internal.controller.DefaultInputMode;
-import hillbillies.common.internal.controller.GameController;
-import hillbillies.part1.facade.IFacade;
 import javafx.scene.input.KeyEvent;
 
 public class Part1InputMode extends DefaultInputMode {
 
-	public Part1InputMode(GameController<? extends IFacade> controller) {
+	public Part1InputMode(IGameController1<?> controller) {
 		super(controller);
 	}
 
@@ -54,6 +52,10 @@ public class Part1InputMode extends DefaultInputMode {
 			getActionExecutor().moveToAdjacent(0, 0, getZ(e));
 			e.consume();
 			break;
+		case K:
+			getActionExecutor().moveToAdjacent(+1, 0, getZ(e));
+			e.consume();
+			break;
 		case B:
 			getActionExecutor().moveToAdjacent(-1, 1, getZ(e));
 			e.consume();
@@ -73,9 +75,6 @@ public class Part1InputMode extends DefaultInputMode {
 			break;
 		case S:
 			getActionExecutor().toggleSprint();
-			e.consume();
-		case D:
-			getActionExecutor().toggleDefaultBehavior();
 			e.consume();
 		default:
 			super.onKeyPressed(e);

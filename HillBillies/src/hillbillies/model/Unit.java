@@ -1,7 +1,6 @@
 package hillbillies.model;
 
 import be.kuleuven.cs.som.annotate.*;
-import com.sun.istack.internal.NotNull;
 import hillbillies.utils.Vector;
 import hillbillies.activities.*;
 import org.jetbrains.annotations.Contract;
@@ -9,8 +8,11 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.EmptyStackException;
 import java.util.Stack;
+import static hillbillies.utils.Utils.*;
 
-import static hillbillies.utils.Utils.randInt;
+import java.nio.file.Path;
+import java.util.*;
+import java.util.stream.Stream;
 
 /**
  * Class representing a Hillbilly unit
@@ -22,9 +24,6 @@ import static hillbillies.utils.Utils.randInt;
  * @invar The name of each Unit must be a valid name for any
  * Unit.
  * | isValidName(getName())
- * @invar The position of each Unit must be a valid position for any
- * Unit.
- * | isValidPosition(getPosition())
  * @invar  The strength of each unit must be a valid strength for any
  *         unit.
  *       | isValidStrength(getStrength())
@@ -46,8 +45,11 @@ import static hillbillies.utils.Utils.randInt;
  * @invar The orientation of each Unit must be a valid orientation for any
  * Unit.
  * | isValidOrientation(getOrientation())
+ * @invar The faction of each Unit must be a valid faction for any
+ * Unit.
+ * | isValidFaction(getFaction())
  */
-public class Unit {
+public class Unit extends WorldObject {// TODO: extend WorldObject
 
 	//region Constants
 
@@ -59,18 +61,6 @@ public class Unit {
 	 * Constant reflecting the allowed name pattern    
 	 */
     private static final String ALLOWED_NAME_PATTERN = "[a-zA-Z \"']+";
-	/**
-	 * Constant reflecting the length of a cube side.    
-	 */
-    public static final double CUBE_SIDE_LENGTH = 1;
-	/**
-	 * Constant reflecting the minimum position in the units world.    
-	 */
-    public static final Vector MIN_POSITION = new Vector(CUBE_SIDE_LENGTH * 0, CUBE_SIDE_LENGTH * 0, CUBE_SIDE_LENGTH * 0);
-	/**
-	 * Constant reflecting the maximum position in the units world.    
-	 */
-    public static final Vector MAX_POSITION = new Vector(CUBE_SIDE_LENGTH * 50, CUBE_SIDE_LENGTH * 50, CUBE_SIDE_LENGTH * 50);
 	/**
 	 * Constant reflecting the minimum strength of a unit.    
 	 */
@@ -104,7 +94,11 @@ public class Unit {
 	 */
     public static final int MAX_WEIGHT = 200;
 	/**
-	 * Constant reflecting the minimum stamina of a unit.    
+	 * Constant reflecting the maximum XP of a unit.
+	 */
+    public static final int MAX_XP = 10;
+	/**
+	 * Constant reflecting the minimum stamina of a unit.
 	 */
     public static final int MIN_STAMINA = 0;
 	/**
@@ -201,11 +195,6 @@ public class Unit {
 	 * Variable registering the name of this Unit.
 	 */
 	private String name;
-
-	/**
-	 * Variable registering the position of this Unit.
-	 */
-	private Vector position;
 
 	/**
 	 * Variable registering the strength of this unit.
@@ -490,22 +479,6 @@ public class Unit {
 		return (orientation >= MIN_ORIENTATION && orientation <= MAX_ORIENTATION);
 	}
     /**
-     * Check whether the given position is a valid position for
-     * any Unit.
-     *
-     * @param position
-     * The position to check.
-     * @return True when each coordinate of position is within the predefined bounds of MIN_POSITION and MAX_POSITION
-     * | isValid == true
-     * | for(int i = 0 ; i<position.length ; i++){
-     * |    isValid == (isValid && position[i] >= MIN_POSITION[i] && position[i] <= MAX_POSITION[i])
-     * | }
-     * | result == isValid
-     */
-    public static boolean isValidPosition(Vector position) {
-        return position.isInBetween(MIN_POSITION, MAX_POSITION);
-    }
-    /**
 	 * Check whether the given stamina is a valid stamina for
 	 * any unit.
 	 *
@@ -603,7 +576,7 @@ public class Unit {
 	 * Return the current speed of this unit.
 	 */
 	public double getCurrentSpeed(){
-		if(!this.isMoving())
+		if(!this.isMoving() && !this.isFalling())
 			return (0d);
 		return ((Move)this.getCurrentActivity()).getCurrentSpeed();
 	}
@@ -670,7 +643,7 @@ public class Unit {
 	@Basic
 	@Raw
 	public Vector getNextPosition(){
-		return this.nextPosition.clone();
+		return (this.nextPosition==null) ? null : this.nextPosition.clone();
 	}
 	
 	/**
@@ -682,15 +655,9 @@ public class Unit {
 		return this.orientation;
 	}
 
-	/**
-	 * Return the position of this Unit.
-	 */
-	@Basic
-	@Raw
-	public Vector getPosition() {
-		return (this.position).clone();
+	private double getRestHitpointsGain(){
+		return this.getToughness()/200d;
 	}
-
 
 	/**
 	 * Return the stamina of this unit.
@@ -724,6 +691,16 @@ public class Unit {
 	}
 
 
+	/**
+	 * Retrieve the Unit's walking speed
+	 * @param direction The direction the Unit is walking in, this is a vector with norm 1
+	 * @return
+	 */
+	private double getWalkingSpeed(Vector direction){
+		if(direction.Z()<-0.5) return 1.2*this.getBaseSpeed();
+		else if(direction.Z()>0.5) return 0.5*this.getBaseSpeed();
+		else return this.getBaseSpeed();
+	}
 
 	/**
 	 * Return the weight of this unit.
@@ -783,9 +760,38 @@ public class Unit {
 		return this.isMoving() && ((Move)this.getCurrentActivity()).isSprinting();
 	}
 
-	public boolean isResting(){
-		return this.getCurrentActivity() instanceof Rest;
-	}
+	/**
+	 * Check whether an attack is a valid for any unit.
+	 *
+	 * @param  defender
+	 *         The defender to check.
+	 * @return 	is true if the position of the attackers cube lies next to the defenders cube
+	 * 			or is the same cube and the attacker do not attacks itself and
+	 * 			the attacker is not attacking another unit at the same time and
+	 * 			the attacker is not in the initial rest mode and
+	 * 			the defender has more hitpoints than MIN_HITPOINTS
+	 *       | result == (this.getId()!=defender.getId() &&
+	 *				!this.isAttacking &&
+	 *				!this.isInitialRestMode() &&
+	 *				(defender.getHitpoints()> MIN_HITPOINTS)
+	 * 				(Math.abs(defender.getPosition().cubeX()-this.getPosition().cubeX())<=1) &&
+	 *				(Math.abs(defender.getPosition().cubeY()-this.getPosition().cubeY())<=1) &&
+	 *				(Math.abs(defender.getPosition().cubeZ()-this.getPosition().cubeZ())<=1)) &&
+	 *				this.getFaction() != defender.getFaction() &&
+	 *				this.getCurrentActivity()!=Activity.FALLING &&
+	 *				defender.getCurrentActivity()!=Activity.FALLING
+	 */
+	public boolean isValidAttack(Unit defender) {
+		return this.getId()!=defender.getId() &&
+				!this.isAttacking() &&
+				!this.isInitialRestMode() &&
+				(defender.getHitpoints()> MIN_HITPOINTS) &&
+				(Math.abs(defender.getPosition().cubeX()-this.getPosition().cubeX())<=1) &&
+				(Math.abs(defender.getPosition().cubeY()-this.getPosition().cubeY())<=1) &&
+				(Math.abs(defender.getPosition().cubeZ()-this.getPosition().cubeZ())<=1) &&
+				this.getFaction() != defender.getFaction() &&
+				defender.getCurrentActivity()!=Activity.FALLING &&
+				this.getCurrentActivity()!=Activity.FALLING;
 
 	public boolean isWorking(){
 		return this.getCurrentActivity() instanceof Work;// TODO: check if currentActivity.isActive ?
@@ -843,7 +849,78 @@ public class Unit {
 		boolean isDefault = this.activity.isDefault();
 		this.activity.stop();
 		this.activity = activity;
-		this.activity.start(isDefault);
+		this.activityProgress = 0d;
+		if(activity!=Activity.MOVE)
+			stopSprint();
+	}
+
+	@Raw private void setCurrentSpeed(double speed){
+		this.currentSpeed = speed;
+	}
+	
+	/**
+	 * Set current activity of this Unit to a random activity.
+	 * @post The new current activity of this new Unit is equal to
+	 * a random activity.
+	 * | new.getCurrentActivity()
+	 * @post The new state of the default behaviour is equal to startDoingDefault()
+	 * | new.isDoingDefault() == startDoingDefault()
+	 * @throws IllegalStateException * The default behaviour is not activated for this unit.
+	 * |   !this.isDefaultActive()
+	 */
+	public void setDefaultBehaviour() throws IllegalStateException{
+		if(!this.isDefaultActive())
+			throw new IllegalStateException("The default behaviour of unit is activated");
+		this.startDoingDefault();
+		List<Cube> AdjCubes = new ArrayList<Cube>(this.getWorld().getDirectlyAdjacentCubes(this.getPosition().getCubeCoordinates()));
+		List<Unit> units = new ArrayList<>();
+		for (int i = 0; i < AdjCubes.size(); i++){
+			units.addAll(this.getWorld().getUnitsInCube(AdjCubes.get(i)));
+		}
+		units.removeIf(unit -> this.getFaction() == unit.getFaction());
+		int nb = 2;
+		if (units.size() > 0)
+			nb +=1;
+		int activity = randInt(0,nb);
+		if (activity ==0){
+			if (getHitpoints() == getMaxHitpoints(getWeight(), getToughness()) && getStamina() == getMaxStamina(getWeight(), getToughness()))
+				activity = randInt(1,nb);
+			else this.rest();
+		}
+		if (activity ==1){
+			/*PathCalculator p = new PathCalculator(this.getPosition());
+			Vector target = new Vector(-1,-1,-1);
+			this.path = p.computePath(this.getPosition());
+			int size = controlledPos.size();
+			if( size == 0)
+				activity = 2;
+			*/
+			//TODO: manier zoeken om alle bereikbare posities op te lijsten
+			Vector target = new Vector (randDouble(getWorld().getMinPosition().X(), getWorld().getMaxPosition().X()),
+					randDouble(getWorld().getMinPosition().Y(), getWorld().getMaxPosition().Y()),
+					randDouble(getWorld().getMinPosition().Z(), getWorld().getMaxPosition().Z()));
+			PathCalculator pathCalculator= new PathCalculator(this.getPosition());
+			Path path = pathCalculator.computePath(target);
+
+			if (path.hasNext())
+				this.moveToTarget(target);
+			else if (controlledPos.size() ==0)
+				activity = 2;
+			else
+				this.moveToTarget(controlledPos.get(randInt(0, controlledPos.size()-1)));
+
+			if (this.isAbleToSprint() && randInt(0, 99) < 1){
+				this.sprint();
+			}
+		}
+		if (activity == 2) {
+			List<Vector> workPositions = getWorld().getDirectlyAdjacentCubesPositions(this.getPosition());
+			workPositions.add(this.getPosition());
+			this.work(workPositions.get(randInt(0,workPositions.size()-1)));
+		}
+		if (activity == 3){
+			this.attack(units.get(randInt(0,units.size()-1)));
+		}
 	}
 
 	/**
@@ -855,7 +932,7 @@ public class Unit {
 	 *         	unit.
 	 *       	| isValidHitpoints(hitpoints)
 	 * @pre  	The units weight and toughness should already have been set.
-	| isValidWeight(this.getWeight()) && isValidToughness(this.getToughness())
+	 *			| isValidWeight(this.getWeight()) && isValidToughness(this.getToughness())
 	 * @post   	The hitpoints of this unit is equal to the given
 	 *         	hitpoints.
 	 *       	| new.getHitpoints() == hitpoints
@@ -864,6 +941,26 @@ public class Unit {
 	public void setHitpoints(int hitpoints) {
 		assert isValidHitpoints(hitpoints, this.getWeight(), this.getToughness());
 		this.hitpoints = hitpoints;
+	}
+
+	/**
+	 * Substract the given hitpoints from the current hitpoints.
+	 * @param hitpoints
+	 * The hitpoints to substract.
+	 * @pre		The units hitpoints should already have been set.
+	 *			| isValidHitpoints(this.getHitPoints, this.getWeight(), this.getToughness())
+	 * @effect	The hintpoints are set to this.getHitpoints()-hitpoints
+	 * 			| new.getHitpoints()
+	 * @effect	If the hitpoints reaches MIN_HITPOINTS, the unit will terminate.
+	 * 			| this.terminate()
+	 */
+	@Raw
+	public void removeHitpoints(int hitpoints){
+		int newHit = getHitpoints()-hitpoints;
+		if (newHit <= MIN_HITPOINTS)
+			this.terminate();
+		else
+			setHitpoints(newHit);
 	}
 
 	/**
@@ -939,7 +1036,7 @@ public class Unit {
 	 */
 	@Raw
 	public void setNextPosition(Vector position) throws IllegalArgumentException {
-		if (position!=null && ! isValidPosition(position))
+		if (position!=null && ! isValidNextPosition(this.getPosition(), position))
 			throw new IllegalArgumentException("Invalid position");
 		this.nextPosition = position;
 	}
@@ -959,25 +1056,6 @@ public class Unit {
 	public void setOrientation(float orientation) {
 		this.orientation = orientation%MAX_ORIENTATION;// Deal with too large orientations
 		if(this.orientation<0) this.orientation += MAX_ORIENTATION;// Deal with negative orientations
-	}
-
-	/**
-	 * Set the position of this Unit to the given position.
-	 *
-	 * @param position
-	 * The new position for this Unit.
-	 * @post The position of this new Unit is equal to
-	 * the given position.
-	 * | new.getPosition() == position
-	 * @throws IllegalArgumentException * The given position is not a valid position for any
-	 * Unit.
-	 * | ! isValidPosition(getPosition())
-	 */
-	@Raw
-	public void setPosition(Vector position) throws IllegalArgumentException {
-		if (! isValidPosition(position))
-			throw new IllegalArgumentException();
-		this.position = position;
 	}
 
 	/**
@@ -1064,20 +1142,44 @@ public class Unit {
 	//endregion
 
 	//region Constructors
+	public Unit(IWorld world) throws IllegalArgumentException{	//TODO: Random value for hitpoints and stamina
+		this(world, "Unnamed Unit", world.getSpawnPosition(), randInt(INITIAL_MIN_STRENGTH, INITIAL_MAX_STRENGTH),
+				randInt(INITIAL_MIN_AGILITY, INITIAL_MAX_AGILITY), randInt(INITIAL_MIN_TOUGHNESS, INITIAL_MAX_TOUGHNESS),
+				randInt(getInitialMinWeight(INITIAL_MIN_STRENGTH,INITIAL_MIN_AGILITY), INITIAL_MAX_WEIGHT) );
+	}
+
 	/**
-	 * Initialize this new Unit with given name and position. All other properties are set to their default initial values.
+	 * Initialize this new Unit with given name and position in the given world. All other properties are set to their
+	 * default initial values.
+	 * @param world The world this new Unit belongs to
 	 * @param name The name of this new Unit
 	 * @param position The position of this new Unit
 	 * @effect This Unit is initialized with the given name and position and the default initial values for its other properties
 	 * 			| this(name, position, INITIAL_MIN_STRENGTH, INITIAL_MIN_AGILITY, INITIAL_MIN_TOUGHNESS, INITIAL_MIN_WEIGHT, INITIAL_MIN_STAMINA, INITIAL_MIN_HITPOINTS)
 	 */
-	public Unit(String name, Vector position) throws IllegalArgumentException {
-		this(name, position, INITIAL_MIN_STRENGTH, INITIAL_MIN_AGILITY, INITIAL_MIN_TOUGHNESS, INITIAL_MIN_WEIGHT, INITIAL_MIN_STAMINA, INITIAL_MIN_HITPOINTS);
+	public Unit(IWorld world, String name, Vector position) throws IllegalArgumentException {
+		this(world, name, position, INITIAL_MIN_STRENGTH, INITIAL_MIN_AGILITY, INITIAL_MIN_TOUGHNESS, INITIAL_MIN_WEIGHT, INITIAL_MIN_STAMINA, INITIAL_MIN_HITPOINTS);
+	}
+
+	/**
+	 * Initialize this new Unit with given name, position, strength, agility, toughness and weight in the given world.
+	 * @param world The world this new Unit belongs to
+	 * @param name The name for this new Unit
+	 * @param position The position of this new Unit in the given world.
+	 * @param strength The strength of this new Unit
+	 * @param agility The agility of this new Unit
+	 * @param toughness The toughness of this new Unit
+     * @param weight The weight of this new Unit
+	 * @effect This Unit is initialized with the given properties and the maximum values for its remaining properties (stamina and hitpoints)
+	 * 			| this(world, name, position, strength, agility, toughness, weight, getMaxStamina(weight, toughness), getMaxHitpoints(weight, toughness)
+     */
+	public Unit(IWorld world, String name, Vector position, int strength, int agility, int toughness, int weight){
+		this(world, name, position, strength, agility, toughness, weight, getMaxStamina(weight, toughness), getMaxHitpoints(weight, toughness));
 	}
 
 	/**
 	 * Initialize this new Unit with given name, position, strength, agility, toughness, weight, stamina and hitpoints.
-	 *
+	 * @param world The world this new Unit belongs to
 	 * @param name
 	 * The name for this new Unit.
 	 * @param position
@@ -1098,12 +1200,17 @@ public class Unit {
 	 *       | isValidInitialStamina(stamina)
 	 * @pre    The given hitpoints must be valid initial hitpoints for any unit.
 	 *       | isValidInitialHitpoints(hitpoints)
+	 * @effect This new Unit is initialized as a new WorldObject with
+	 *         given position in the given world.
+	 *       | super(world, position)
+	 * @effect This new Unit is added to the given world. This world will
+	 * 			put the Unit in a Faction related to that world.
+	 * 			| world.addUnit(this) // TODO
+	 * @post	This new Unit belongs to a Faction related to the given world.
+	 * 			| world.getFactions().contains(this.getFaction()) == true // TODO
 	 * @effect The name of this new Unit is set to
 	 * the given name.
 	 * | this.setName(name)
-	 * @effect The position of this new Unit is set to
-	 * the given position.
-	 * | this.setPosition(position)
 	 * @effect The orientation of this new Unit is set to the default orientation.
 	 * 			| this.setOrientation(INITIAL_ORIENTATION)
 	 * @post The Id of this new Unit is equal to ID.
@@ -1145,12 +1252,14 @@ public class Unit {
 	 *         hitpoints.
 	 *       | new.getHitpoints() == hitpoints
 	 */
-	public Unit(String name, Vector position, int strength, int agility, int toughness, int weight, int stamina, int hitpoints) throws IllegalArgumentException {
+	public Unit(IWorld world, String name, Vector position, int strength, int agility, int toughness, int weight, int stamina, int hitpoints) throws IllegalArgumentException {
+		super(world, position.add(Cube.CUBE_SIDE_LENGTH/2));
+		world.addUnit(this);
+
 		this.Id = ID;
 		ID++;
 		// Defensive
 		this.setName(name);
-		this.setPosition((position.add(0.5)));
 		
 		// Total
 		if (! isValidInitialStrength(strength))
@@ -1179,8 +1288,168 @@ public class Unit {
 
 	//region AdvanceTime
 
+	@Override
 	public void advanceTime(double dt){
 		// Defensively without documentation
+		restTimer += dt;
+		if(restTimer >= REST_INTERVAL && this.isAbleToRest()){
+			rest();
+		}
+		if (!isFalling() && getCurrentActivity() != Activity.MOVE && !validatePosition(getPosition())){
+			falling(); //TODO: bij move telkens controleren of hij opeens moet vallen als er een blok veranderd naar passable
+		}
+
+		switch(getCurrentActivity()){
+			case MOVE:
+				if(this.isSprinting){
+					int newStamina = this.getStamina()-SPRINT_STAMINA_LOSS*getIntervalTicks(activityProgress, dt, SPRINT_STAMINA_LOSS_INTERVAL);
+					if(newStamina<=0){
+						newStamina = 0;
+						stopSprint();
+					}
+					this.setStamina(newStamina);
+				}
+				Vector cpos = getPosition();
+				if(!lastPosition.getCubeCoordinates().difference(cpos.getCubeCoordinates()).equals(new Vector(0,0,0))){
+					lastPosition = cpos;
+					this.addXP(MOVE_POINTS);
+				}
+				if(path!=null){// TODO: if path contains a collapsed cube, recompute path
+					if(!path.hasNext() && cpos.getCubeCoordinates().equals(nextPosition.getCubeCoordinates())){
+						moveToAdjacent(0,0,0);// We are in target cube, just move to the center now (stop extended path finding)
+					}else if(nextPosition==null || cpos.getCubeCoordinates().equals(nextPosition.getCubeCoordinates())){
+						moveToAdjacent(path.getNext().difference(cpos.getCubeCoordinates()));
+						this.stateDefault += 1;
+					}
+				}
+				if(getNextPosition()!=null) {
+					if (getNextPosition().equals(cpos)) {
+						setNextPosition(null);
+						setCurrentActivity(Activity.NONE);
+					} else {
+						Vector difference = getNextPosition().difference(cpos);
+						double d = difference.length();
+						double v = this.isSprinting ? getSprintSpeed(difference) : getWalkingSpeed(difference);
+						this.setCurrentSpeed(v);
+						Vector dPos = difference.multiply(v / d * dt);
+						Vector velocity = difference.multiply(v / d);
+						Vector newPos = cpos.add(dPos);
+						for (int i = 0; i < 3; i++) {
+							if (getNextPosition().isInBetween(i, cpos, newPos)) {
+								double[] a = newPos.asArray();
+								a[i] = getNextPosition().get(i);
+								newPos = new Vector(a);
+							}
+						}
+						setPosition(newPos);
+						setOrientation((float) Math.atan2(velocity.Y(), velocity.X()));
+					}
+				}
+
+				if(this.getStateDefault()==2 && !this.isSprinting &&this.isAbleToSprint() &&randInt(0, 99) < 1)
+					this.sprint();
+				break;
+
+			case FALLING:
+				Vector cPos = getPosition();
+				Vector cPosCube = cPos.getCubeCenterCoordinates();
+				if (cPos == cPosCube && isLowerSolid(cPos) && this.getWorld().getCube(cPos).isPassable()){
+					setCurrentSpeed(0);
+					setCurrentActivity(Activity.NONE);
+					removeHitpoints((int) (fallingLevel-cPos.Z()));
+					//setHitpoints((int)(getHitpoints()-(fallingLevel-cPos.Z())));
+					fallingLevel = 0;
+				}
+				else{
+					double speed = getCurrentSpeed();
+					Vector nextPos = cPos.add(new Vector(0,0,-speed*dt));
+					if (isLowerSolid(cPos) && this.getWorld().getCube(cPos.getCubeCoordinates()).isPassable() && (cPosCube.isInBetween(2, cPos, nextPos)||cPos.Z() <= cPosCube.Z() ))
+							setPosition(cPosCube);
+					else if(nextPos.getCubeCenterCoordinates().isInBetween(2, cPos, nextPos) && isLowerSolid(nextPos) && this.getWorld().getCube(nextPos.getCubeCoordinates()).isPassable())
+						setPosition(nextPos.getCubeCenterCoordinates());
+					else
+						setPosition(nextPos);
+				}
+				break;
+
+			case WORK:
+				if (activityProgress >= this.getWorkDuration()) {
+					if(this.isCarryingMaterial()){
+						this.dropCarriedMaterial();// TODO: make sure the target cube is passable!
+					}else if(this.getWorkCube().getTerrain()==Terrain.WORKSHOP && this.getWorkCube().containsLogs() && this.getWorkCube().containsBoulders()){
+						this.getWorkCube().getBoulder().terminate();// TODO: make sure Materials are removed from world as soon as they are terminated!
+						this.getWorkCube().getLog().terminate();
+						if(this.getWeight()!=MAX_WEIGHT)
+							this.setWeight(this.getWeight() + 1);
+						if(this.getToughness()!=MAX_TOUGHNESS)
+							this.setToughness(this.getToughness() + 1);
+					}else if(this.getWorkCube().containsBoulders()){
+						this.setCarriedMaterial(this.getWorkCube().getBoulder());
+					}else if(this.getWorkCube().containsLogs()){
+						this.setCarriedMaterial(this.getWorkCube().getLog());
+					}else if(this.getWorkCube().getTerrain() == Terrain.WOOD){
+						this.getWorld().collapse(this.getWorkCube().getPosition());
+					}else if(this.getWorkCube().getTerrain() == Terrain.ROCK){
+						this.getWorld().collapse(this.getWorkCube().getPosition());//TODO: change collapse to cube itself
+					}
+					setCurrentActivity(Activity.NONE);
+					this.addXP(WORK_POINTS);
+				}else{
+					this.setWorkProgress(((float) activityProgress)/ (this.getWorkDuration()));
+				}
+				break;
+
+			case ATTACK:
+				if (activityProgress > 1){
+					this.stopAttacking();
+					setCurrentActivity(Activity.NONE);
+				}
+				break;
+
+			case REST:
+				int maxHp = getMaxHitpoints(this.getWeight(), this.getToughness());
+				int maxSt = getMaxStamina(this.getWeight(), this.getToughness());
+				double extraTime = -1d;
+				if(maxHp == this.getHitpoints() && maxSt==this.getStamina())
+					setCurrentActivity(Activity.NONE);
+				if(this.getHitpoints()<maxHp){
+					double extraRestHitpoints = getIntervalTicks(activityProgress, dt, REST_HITPOINTS_GAIN_INTERVAL)*this.getRestHitpointsGain();
+					int extraHitpoints = getIntervalTicks(restHitpoints, extraRestHitpoints, 1d);
+					int newHitpoints = this.getHitpoints() + extraHitpoints;
+					double newRestHitpoints = restHitpoints + extraRestHitpoints;
+					if(newHitpoints>=maxHp) {
+						newHitpoints = maxHp;
+						double neededExtraRestHitpoints = maxHp - this.getHitpoints() - restHitpoints % 1;
+						int neededTicks = (int)Math.ceil(neededExtraRestHitpoints/this.getRestHitpointsGain());
+						double neededTime = REST_HITPOINTS_GAIN_INTERVAL*neededTicks - activityProgress % REST_HITPOINTS_GAIN_INTERVAL;
+						extraTime = dt - neededTime;
+						assert extraTime >= 0;
+					}
+					this.setHitpoints(newHitpoints);
+					restHitpoints = newRestHitpoints;
+				}
+				if((this.getHitpoints()==maxHp && extraTime != 0d) && this.getStamina()<maxSt){
+					if(extraTime > 0d)
+						dt = extraTime;
+					double extraRestStamina = getIntervalTicks(activityProgress, dt, REST_STAMINA_GAIN_INTERVAL)*this.getRestStaminaGain();
+					int extraStamina = getIntervalTicks(restStamina, extraRestStamina, 1d);
+					int newStamina = this.getStamina() + extraStamina;
+					double newRestStamina = restStamina + extraRestStamina;
+					if(newStamina>=maxSt){
+						newStamina = maxSt;
+						newRestStamina = 0;
+						restHitpoints = 0;
+						setCurrentActivity(Activity.NONE);
+					}
+					this.setStamina(newStamina);
+					restStamina = newRestStamina;
+				}
+				break;
+
+			case NONE:
+				if(this.isDefaultActive())
+					this.setDefaultBehaviour();
+				break;
 		if(!this.isResting()) {
 			restTimer += dt;
 			if (restTimer >= REST_INTERVAL && this.isAbleToRest()) {
@@ -1190,6 +1459,49 @@ public class Unit {
 
 		this.getCurrentActivity().advanceTime(dt);
 
+	}
+
+	@Override
+	protected boolean validatePosition(Vector position) {
+		IWorld world = this.getWorld();
+		// world.isValidPosition(position) wordt al gecontroleerd in isValidPosition
+		if(world.isCubePassable(position.getCubeCoordinates())){
+			if(isAdjacentSolid(position))
+				return true;
+			if(isFalling())
+				return true;
+		}
+		return false;
+	}
+
+	private boolean isAdjacentSolid(Vector position){
+		if(position.cubeZ() == 0)
+			return true;
+		for(Cube cube : this.getWorld().getDirectlyAdjacentCubes(position.getCubeCoordinates()))
+			if(!cube.isPassable())
+				return true;
+		return false;
+	}
+
+	private boolean isLowerSolid(Vector position){
+		if(position.cubeZ() == 0)
+			return true;
+		if(!this.getWorld().getCube(position.getCubeCoordinates().add(new Vector(0,0,-1))).isPassable())
+			return true;
+		return false;
+	}
+	/**
+	 * Check whether a given position is a good dodging position.
+	 * @param position
+	 * The position to check against
+	 * @return true if this.getWorld().isValidPosition(position)
+	 * 				&& this.getWorld().isCubePassable(position)
+	 */
+	private boolean isValidDodgePos(Vector position){
+		IWorld world = this.getWorld();
+		if(world.isValidPosition(position) && world.isCubePassable(position))
+			return true;
+		return false;
 	}
 
 	/**
@@ -1247,10 +1559,10 @@ public class Unit {
 	 *
 	 * @post   	Default behaviour of this unit is deactivated.
 	 *       	| new.isDefaultActive() == false
-	 * @post   	The new state of the default behaviour is equal to stopDoingDefault(). // TODO: dees klopt ni echt denk ik, want stopDoingDefault returned niks
-	 * 			| new.isDoingDefault() ==  stopDoingDefault() // TODO: en isDoingDefault() bestaat niet
+	 * @post   	The unit stops doing the default.
+	 * 			| this.stopDoingDefault()
 	 * @post   	The new current activity of this unit is equal to None.
-	 * 			| new.getCurrentActivity() == None
+	 * 			| new.getCurrentActivity() == NONE.
 	 */
 	public void stopDefaultBehaviour(){
 		this.stopDoingDefault();
@@ -1289,6 +1601,7 @@ public class Unit {
 	 * 			| new.isDoingBehaviour
 	 * @effect	The defender defends this attack
 	 * 			| defender.defend(this)
+	 * @effect	If the attack is successfully, the attacker gains FIGHT_POINTS, else, the defender gains them.
 	 * @throws	IllegalArgumentException * the attacker is not able to attack this unit.
 	 * 			| !this.isValidAttack(defender)	
 	 */
@@ -1298,6 +1611,22 @@ public class Unit {
 				throw new IllegalArgumentException("Cannot attack that unit");
 		}
 		if(this.getStateDefault() ==2)
+			this.stopDoingDefault();
+		this.startAttacking();
+		//Orientation
+		double dx = (defender.getPosition().X()-this.getPosition().X());
+		double dy = (defender.getPosition().Y()-this.getPosition().Y());
+		defender.setOrientation((float)Math.atan2(-dy, -dx));
+		this.setOrientation((float)Math.atan2(dy, dx));
+
+		defender.defend(this);
+		if(isSuccessFulAttack){
+			this.addXP(FIGHT_POINTS);
+			isSuccessFulAttack = false;
+		}
+		else
+			defender.addXP(FIGHT_POINTS);
+		setCurrentActivity(Activity.ATTACK);
 			this.stopDoingDefault();*/
 		setCurrentActivity(new Attack(this, defender));
 	}
@@ -1318,17 +1647,32 @@ public class Unit {
 			while(! validDodge) {// TODO: in part2 replace this by a list of valid positions and choose a random element from that list
 				int dodgeX = randInt(-1, 1);
 				int dodgeY = randInt(-1, 1);
+				Vector newPos = this.getPosition().add(new Vector(dodgeX, dodgeY, 0));
 				if ((dodgeX != 0 || dodgeY != 0) &&
-						(isValidPosition(this.getPosition().add(new Vector(dodgeX, dodgeY, 0))))) {
+						(isValidDodgePos(newPos))) {
 					validDodge = true;
 					this.setPosition(getPosition().add(new Vector(dodgeX,dodgeY,0)));
 				}
 			}
 		}// fails to block
-		else if (!((randInt(0,99)/100.0) < this.getBlockingProbability(attacker)))
-			this.setHitpoints(this.getHitpoints()- this.getDamagingPoints(attacker));
+		else if (!((randInt(0,99)/100.0) < this.getBlockingProbability(attacker))){
+			removeHitpoints(this.getDamagingPoints(attacker));
+			//this.setHitpoints(this.getHitpoints()- this.getDamagingPoints(attacker));
+			isSuccessFulAttack = true;
+		}
 	}
 		
+	/**
+	 * Variable registering whether an attack is successful.
+	 */
+	private boolean isSuccessFulAttack = false;
+	/**
+	 * Return a boolean indicating whether or not an attack is successful.
+	 */
+	@Basic
+	private boolean isSuccessFulAttack() {
+	    return this.isSuccessFulAttack;
+	}
 	//endregion
 
 	//region Moving
@@ -1356,9 +1700,22 @@ public class Unit {
 			this.stateDefault -=1;
 		// setNextPosition throws the exception
 		this.setNextPosition(this.getPosition().getCubeCenterCoordinates().add(direction));
-		setCurrentActivity(Activity.MOVE);	
+		this.lastPosition = this.getPosition();
+		setCurrentActivity(Activity.MOVE);
 	}
 	
+	/**
+	 * Method to let the Unit move to an adjacent cube.
+	 * @param dx The x direction to move towards.
+	 * @param dy The y direction to move towards.
+	 * @param dz The z direction to move towards.
+	 * @pre 	Since this method can only be used to move to neighbouring cubes,
+	 * each element must have a value of (-)1 or 0.
+	 * @post	The unit moves to the adjacent cube in direction (dx, dy, dz)
+	 * 			| this.moveToAdjacent(Vector(dx,dy,dz))
+	 * @post	targetPosition of this unit is set to its default value.
+	 * 			| new.targetPosition
+     */
 	public void moveToAdjacent(int dx, int dy, int dz){
 		this.targetPosition = null;
   		this.moveToAdjacent(new Vector(dx,dy,dz));
@@ -1374,7 +1731,7 @@ public class Unit {
 	 * @throws IllegalStateException * If this unit isn't able to move.
 	 * 		|!this.isAbleToMove()
 	 */
-	public void moveToTarget(Vector targetPosition) throws IllegalStateException{
+	public void moveToTarget(Vector targetPosition) throws IllegalStateException, IllegalArgumentException{
 		if(this.getStateDefault()!=2){
 			if(!this.isAbleToMove())
 				throw new IllegalStateException("Unit is not able to move at this moment.");
@@ -1383,9 +1740,18 @@ public class Unit {
 			this.stopDoingDefault();
 		if(this.getStateDefault() == 3)
 			this.stateDefault -=1;
-		
-		setCurrentActivity(Activity.MOVE);
-		this.targetPosition = targetPosition.getCubeCenterCoordinates();// TODO: make setter and getter for targetPosition and check for invalid positions
+
+		this.lastPosition = this.getPosition();// TODO: lastPosition will be overriden with every call to moveToAdjacent
+		setTargetPosition(targetPosition.getCubeCenterCoordinates());// TODO: make setter and getter for targetPosition and check for invalid positions
+		PathCalculator p = new PathCalculator(targetPosition);
+		this.path = p.computePath(this.getPosition());
+		if(this.path != null)
+			setCurrentActivity(Activity.MOVE);
+	}
+	private void setTargetPosition(Vector target){
+		if(target!=null && !isValidPosition(target))
+			throw new IllegalArgumentException("The target is not a valid position.");
+		this.targetPosition = target;
 	}
 	/**
 	 * Method to let the Unit sprint.
@@ -1407,7 +1773,136 @@ public class Unit {
 	public void stopSprint(){
 		this.isSprinting = false;
 	}
+	/**
+	 * Variable registering the last position of this unit.
+	 */
+	private Vector lastPosition;
 
+	//TODO: change names: ksnap het nu pas hoe het werkt, dus Path is ni echt het pad maar eerder een collectie
+	//		van posities met daarbij hoe ver het gelegen is van de target (N)
+	private class PathCalculator{
+
+		private final ArrayDeque<Map.Entry<Vector, Integer>> path = new ArrayDeque<>();
+		private final HashMap<Vector, Integer> lowestNByPosition = new HashMap<>();
+		private final Vector targetPosition;
+
+		public PathCalculator(Vector targetPosition){
+			//TODO: check if targetPosition is valid
+			this.targetPosition = targetPosition;
+			this.add(targetPosition, 0);
+		}
+
+		public boolean contains(Vector position){
+			return lowestNByPosition.containsKey(position);
+		}
+
+		public void add(Vector position, int n){
+			// n is hier n0+1 uit de opgave
+			// => enkel toevoegen indien er een n' bestaat waarvoor geldt dat n'+1>n=n0+1
+			// Dat is equivalent met NIET toevoegen als er een n' bestaat waarvoor geldt dat n'+1<=n=n0+1 of n'<=n0
+			if (lowestNByPosition.getOrDefault(position, n) + 1 > n) {
+				lowestNByPosition.put(position, n);
+				path.add(new AbstractMap.SimpleEntry<>(position, n));
+			}
+		}
+
+		public boolean hasNext(){
+			return !path.isEmpty();
+		}
+
+		public Map.Entry<Vector, Integer> getNext(){
+			Map.Entry<Vector, Integer> entry = path.remove();
+			return entry;
+		}
+
+		public Vector getNextPositionWithLowestN(Vector fromPosition){
+			List<Vector> nextPositions = Unit.this.getWorld().getNeighbouringCubesPositions(fromPosition);
+			Vector next = null;
+			int lowestN = -1;
+			for(Vector nextPosition : nextPositions){
+				if(lowestNByPosition.containsKey(nextPosition) && (lowestN==-1 || lowestNByPosition.get(nextPosition)<lowestN) &&
+						isValidNextPosition(fromPosition, nextPosition)){
+					lowestN = lowestNByPosition.get(nextPosition);
+					next = nextPosition;
+				}
+			}
+			return next;
+		}
+
+		public Path computePath(Vector fromPosition){
+			controlledPos.clear();
+			while (!this.contains(fromPosition.getCubeCoordinates()) && this.hasNext()) {
+				searchPath(this, this.getNext());
+			}
+			//controlledPos.clear();
+			if(this.contains(fromPosition.getCubeCoordinates())){// Path found
+				ArrayDeque<Vector> path = new ArrayDeque<>();
+				HashSet<Vector> pathPositions = new HashSet<>();
+				Vector pos = fromPosition.getCubeCoordinates();
+				while(!pos.equals(targetPosition)) {
+					pos = this.getNextPositionWithLowestN(pos);
+					path.add(pos);
+					pathPositions.add(pos);
+				}
+				return new Path(path, pathPositions);
+			}else
+				return null;// No path found
+		}
+	}
+	/**
+	 * Set registering the controlled positions.
+	 */
+	private List<Vector> controlledPos = new ArrayList<>();
+
+	private void searchPath(PathCalculator path, Map.Entry<Vector, Integer> start){
+		Set<Cube> nextCubes = getWorld().getNeighbouringCubes(start.getKey());
+		for(Cube nextCube : nextCubes){
+			Vector position = nextCube.getPosition();
+			if(isValidNextPosition(start.getKey(),position) && !controlledPos.contains(position)){
+				path.add(position, start.getValue()+1);
+				controlledPos.add(position);
+			}
+		}
+		/*Stream<Cube> nextCubes = getWorld().getDirectlyAdjacentCubes(start.getKey()).stream().filter(cube -> isValidPosition(cube.getPosition()));
+		nextCubes.forEach(cube -> path.add(cube.getPosition(), start.getValue()+1));*/
+	}
+
+	public class Path{
+
+		private final ArrayDeque<Vector> path;
+		private final HashSet<Vector> pathPositions;
+
+		private Path(ArrayDeque<Vector> path, HashSet<Vector> pathPositions){
+			this.path = path;
+			this.pathPositions = pathPositions;
+		}
+
+		public boolean hasNext(){
+			return !path.isEmpty();
+		}
+
+		public Vector getNext(){
+			Vector next = path.remove();
+			pathPositions.remove(next);
+			return next;
+		}
+
+		public boolean contains(Vector pathPosition){
+			return pathPositions.contains(pathPosition);
+		}
+	}
+
+	private boolean isValidNextPosition(Vector fromPosition, Vector nextPosition){
+		if(fromPosition==null || nextPosition==null)
+			throw new IllegalArgumentException("The from and next position must be effective positions in order to check their validity.");
+		if(!isValidPosition(nextPosition)) return false;// Check if it's a valid position itself
+		for(Vector d : nextPosition.difference(fromPosition).decompose()){
+			if(!isValidPosition(fromPosition.add(d)) || !isValidPosition(nextPosition.difference(d))) return false;// Check if surrounding positions are valid too (prevent corner glitch)
+		}
+		return true;
+	}
+
+	private Path path;
 	//endregion
 	/**
 	 * Method to let the Unit rest.
@@ -1456,17 +1951,135 @@ public class Unit {
 	 * 		| new.getWorkDuration()
 	 * @throws IllegalStateException * if the unit isn't able to work.
 	 * | !this.isAbleToWork()
+	 * @throws IllegalArgumentException
+	 * 			The given position is not a neighbouring position
+	 * 			| !isValidWorkPosition(position)
 	 */
-	public void work() throws IllegalStateException{
-		/*if(this.getStateDefault()!=2){
+	public void work(Vector position) throws IllegalStateException, IllegalArgumentException{
+		if(this.getStateDefault()!=2){
 			if(!this.isAbleToWork())
 				throw new IllegalStateException("Unit is not able to work at this moment");
 		}
 		if(this.getStateDefault() ==2)
 			this.stopDoingDefault();
 		if(this.getStateDefault() == 3)
-			this.stateDefault -=1;*/
-		setCurrentActivity(new Work(this));
+			this.stateDefault -=1;
+		setWorkCube(this.getWorld().getCube(position.getCubeCoordinates()));
+		setWorkProgress(0);// TODO: change workProgress to activityProgress
+		setWorkDuration(getWorkingTime(this.getStrength()));
+		Vector workDirection = position.getCubeCoordinates().difference(this.getPosition().getCubeCoordinates());
+		if(workDirection.X()!=0 || workDirection.Y()!=0)
+			setOrientation((float) Math.atan2(workDirection.Y(),workDirection.X()));
+		setCurrentActivity(Activity.WORK);
+	}
+
+	/**
+	 * Return the workCube of this Unit.
+	 */
+	@Basic
+	@Raw
+	private Cube getWorkCube() {
+	    return this.workCube;
+	}
+	/**
+	 * Check whether the given workCube is a valid workCube for
+	 * this Unit.
+	 *
+	 * @param workCube
+	 * The workCube to check.
+	 * @return
+	 * | result == this.getPosition().getCubeCoordinates().equals(workCube.getPosition()) ||
+	 *				this.getWorld().getDirectlyAdjacentCubes(this.getPosition()).contains(workCube)
+	 */
+	public boolean isValidWorkCube(Cube workCube) {
+		// TODO: verify if 'neighbouring' means directly adjacent or also the diagonal cubes
+		return workCube.getWorld()==this.getWorld() &&
+				(this.getPosition().getCubeCoordinates().equals(workCube.getPosition()) ||
+				this.getWorld().getDirectlyAdjacentCubesPositions(this.getPosition().getCubeCoordinates()).contains(workCube.getPosition()));
+	}
+	/**
+	 * Set the workCube of this Unit to the given workCube.
+	 *
+	 * @param workCube
+	 * The new workCube for this Unit.
+	 * @post The workCube of this new Unit is equal to
+	 * the given workCube.
+	 * | new.getWorkCube() == workCube
+	 * @throws IllegalArgumentException * The given workCube is not a valid workCube for any
+	 * Unit.
+	 * | ! isValidWorkCube(getWorkCube())
+	 */
+	@Raw
+	private void setWorkCube(Cube workCube) throws IllegalArgumentException {
+	    if (! isValidWorkCube(workCube))
+	        throw new IllegalArgumentException();
+	    this.workCube = workCube;
+	}
+	/**
+	 * Variable registering the workCube of this Unit.
+	 */
+	private Cube workCube;
+
+
+	/**
+	 * Return the carriedMaterial of this Unit.
+	 */
+	@Basic
+	@Raw
+	public Material getCarriedMaterial() {
+	    return this.carriedMaterial;
+	}
+	/**
+	 * Check whether the given material is a valid carriedMaterial for
+	 * any Unit.
+	 *
+	 * @param material
+	 * The carriedMaterial to check.
+	 * @return
+	 * | result == material.getWorld() == this.getWorld()
+	 */
+	public boolean isValidMaterial(Material material) {
+	    return material==null || material.getWorld()==this.getWorld();
+	}
+	/**
+	 * Set the carriedMaterial of this Unit to the given material.
+	 *
+	 * @param material
+	 * The new carriedMaterial for this Unit.
+	 * @post The carriedMaterial of this new Unit is equal to
+	 * the given material.
+	 * | new.getCarriedMaterial() == material
+	 * @throws IllegalArgumentException * The given material is not a valid carriedMaterial for any
+	 * Unit.
+	 * | ! isValidMaterial(getMaterial())
+	 */
+	public void setCarriedMaterial(@Raw Material material) throws IllegalArgumentException {
+	    if (! isValidMaterial(material))
+	        throw new IllegalArgumentException();
+	    this.carriedMaterial = material;
+		material.setOwner(this);
+	}
+	/**
+	 * Variable registering the carriedMaterial of this Unit.
+	 */
+	private Material carriedMaterial;
+
+	public boolean isCarryingLog(){
+		return this.getCarriedMaterial()!=null && this.getCarriedMaterial() instanceof Log;
+	}
+
+	public boolean isCarryingBoulder(){
+		return this.getCarriedMaterial()!=null && this.getCarriedMaterial() instanceof Boulder;
+	}
+
+	public boolean isCarryingMaterial(){
+		return this.getCarriedMaterial()!=null;
+	}
+
+	private void dropCarriedMaterial(){
+		Material m = this.getCarriedMaterial();
+		this.carriedMaterial = null;
+		m.setOwner(this.getWorkCube());
 	}
 	//endregion
 
@@ -1479,6 +2092,7 @@ public class Unit {
 	 * @post ...
 	 * | ...
 	 */
+	@Override
 	public void terminate() {
 	    this.isTerminated = true;
 		this.setHitpoints(0);
@@ -1487,6 +2101,7 @@ public class Unit {
 	 * Return a boolean indicating whether or not this Unit
 	 * is terminated.
 	 */
+	@Override
 	@Basic
 	@Raw
 	public boolean isTerminated() {
@@ -1496,6 +2111,167 @@ public class Unit {
 	 * Variable registering whether this person is terminated.
 	 */
 	private boolean isTerminated = false;
+
+
+	/**
+	 * Return the faction of this Unit.
+	*/
+	@Basic
+	@Raw
+	public Faction getFaction() {
+	    return this.faction;
+	}
+	/**
+	 * Check whether the given faction is a valid faction for
+	 * any Unit.
+	 *
+	 * @param faction
+	 * The faction to check.
+	 * @return
+	 * | result ==
+	 */
+	public boolean isValidFaction(Faction faction) {
+		return true;// TODO: check if the Unit's world contains this faction
+	}
+	/**
+	 * Set the faction of this Unit to the given faction.
+	 *
+	 * @param faction
+	 * The new faction for this Unit.
+	 * @pre The given faction must be a valid faction for any
+	 * Unit.
+	 * | isValidFaction(faction)
+	 * @post The faction of this Unit is equal to the given
+	 * faction.
+	 * | new.getFaction() == faction
+	 */
+	@Raw
+	public void setFaction(Faction faction) {
+		 assert isValidFaction(faction);
+		 this.faction = faction;
+	 }
+	/**
+	 * Variable registering the faction of this Unit.
+	 */
+	private Faction faction;
+
+//	private Vector getValidatePosition(IWorld world){
+//		double x = randDouble(world.getMinPosition().X(), world.getMaxPosition().X());
+//		double y = randDouble(world.getMinPosition().Y(), world.getMaxPosition().Y());
+//		double z = randDouble(world.getMinPosition().Z(), world.getMaxPosition().Z());
+//		Vector position = new Vector(x,y,z).getCubeCoordinates();
+//		if(validatePosition(position))
+//			return position;
+//		else
+//			return getValidatePosition(world);
+//	}
+
+	//region XP points
+	/**
+	 * Constant reflecting XP gaining after a fight.
+	 */
+	private static final int FIGHT_POINTS = 20;
+	/**
+	 * Constant reflecting XP gaining after a move.
+	 */
+	private static final int MOVE_POINTS = 1;
+	/**
+	 * Constant reflecting XP gaining after a work.
+	 */
+	private static final int WORK_POINTS = 10;
+	/**
+	 * Variable registering the experience points of this unit.
+	 */
+	private int experiencePoints = 0;
+
+	/**
+	 * Add XP by the units current XP.
+	 * @param xp
+	 * The to be added xp.
+	 * @effect	...
+	 * 			| this.getXP() += xp.
+	 * @effect 	...
+	 * 			|while (this.getXP() >= MAX_XP &&
+	 * 			|	(this.getStrength() != MAX_STRENGTH || this.getAgility() != MAX_AGILITY || this.getToughness() != MAX_TOUGHNESS)
+	 * 			|		( (new this).getStrength() || (new this).getAgility() || (new this).Toughness())
+	 * 			| 		&& (new this).getXP()
+	 */
+	private void addXP(int xp){ //TODO: toevoegen bij methodes waar en hoeveel xp wordt verdient
+		experiencePoints += xp;
+		while (experiencePoints >= MAX_XP){
+			final String Strength = "s", Agility = "a", Toughness = "t";
+			List<String> attributes = new LinkedList<>(Arrays.asList(Strength,Agility,Toughness));
+			if(getStrength() == MAX_STRENGTH)
+				attributes.remove(Strength);
+			if(getAgility() == MAX_AGILITY)
+				attributes.remove(Agility);
+			if(getToughness() == MAX_TOUGHNESS)
+				attributes.remove(Toughness);
+			int size = attributes.size();
+			if(size == 0){
+				experiencePoints = MAX_XP-1;
+				return; //TODO: experiencePoints gelijk zetten aan MAX_XP-1 of laten opbouwen naar oneindig?
+			}
+			else{
+				experiencePoints -= MAX_XP;
+				switch(attributes.get(randInt(0, size-1))){
+					case Strength:
+						setStrength(getStrength()+1);
+						break;
+					case Agility:
+						setAgility(getAgility()+1);
+						break;
+					case Toughness:
+						setToughness(getToughness()+1);
+						break;
+				}
+			}
+		}
+	}
+
+	/**
+	 * Return the XP of this unit.
+	 */
+	@Basic
+	public int getXP(){
+		return experiencePoints;
+	}
+	//endregion
+
+	//region falling
+	/**
+	 * Method to let this unit fall.
+	 * @post	THe units stops its default behaviour when he was doing it.
+	 * 			|new.isDoingBehaviour
+	 * @effect	The unit's speed is changed
+	 * 			|new.getCurrentSpeed()
+	 * @effect	The units position is set to the center of the cube.
+	 * 			|new.getPosition()
+	 * @effect	The units current activity is changed to FALLING
+	 * 			|new.getCurrentActivity()
+	 * @effect	THe falling level is set to the Units Z Cube coordinate.
+	 * 			|this.fallingLevel = getPosition().cubeZ()
+	 */
+	public void falling(){
+		if(this.getStateDefault() ==2)
+			this.stopDoingDefault();
+		setCurrentSpeed(3d);
+		Vector pos = getPosition();
+		this.fallingLevel = getPosition().cubeZ();
+		setCurrentActivity(Activity.FALLING);
+		setPosition(new Vector(pos.getCubeCenterCoordinates().X(),pos.getCubeCenterCoordinates().Y(), pos.Z() ));
+	}
+
+	public boolean isFalling(){
+		return this.getCurrentActivity()==Activity.FALLING;
+	}
+
+	/**
+	 * Variable registering the starting falling level of this unit.
+	 */
+	private int fallingLevel = 0;
+
+	//endregion
 
 	public final ActivityController activityController = new ActivityController();
 

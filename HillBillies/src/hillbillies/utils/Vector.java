@@ -2,9 +2,12 @@ package hillbillies.utils;
 
 import be.kuleuven.cs.som.annotate.Basic;
 import be.kuleuven.cs.som.annotate.Immutable;
+import hillbillies.model.Cube;
 import hillbillies.model.Unit;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * Utility class representing a Vector
@@ -17,9 +20,9 @@ public class Vector {
 	 */
     public static final double EQUALS_PRECISION = 1e-7;
 	/**
-	 * Constant reflecting the length of a cube side.    
+	 * Constant reflecting the length of a cube side.
 	 */
-    public static final double CUBE_SIDE_LENGTH = Unit.CUBE_SIDE_LENGTH;
+    public static final double CUBE_SIDE_LENGTH = Cube.CUBE_SIDE_LENGTH;
 	/**
 	 * Constant reflecting the index of x.    
 	 */
@@ -228,6 +231,23 @@ public class Vector {
                 (this.vectorList[index]>=position2.vectorList[index] && this.vectorList[index]<=position1.vectorList[index]);
     }
 
+    public boolean isInBetweenStrict(int index, Vector position1, Vector position2) throws NullPointerException, IndexOutOfBoundsException{
+        if(position1.dimension() < index || position2.dimension() < index || this.dimension() < index)
+            throw new IndexOutOfBoundsException();
+        return (this.vectorList[index]>=position1.vectorList[index] && this.vectorList[index]<position2.vectorList[index]) ||
+                (this.vectorList[index]>=position2.vectorList[index] && this.vectorList[index]<position1.vectorList[index]);
+    }
+
+    public boolean isInBetweenStrict(Vector minPosition, Vector maxPosition) throws NullPointerException, IndexOutOfBoundsException{
+        if(minPosition.dimension() < this.dimension() || maxPosition.dimension() < this.dimension())
+            throw new IndexOutOfBoundsException();
+        for(int i=0;i<vectorList.length;i++){
+            if(!isInBetweenStrict(i, minPosition, maxPosition))
+                return false;
+        }
+        return true;
+    }
+
     /**
      * @return A clone of this Vector. The result is a new immutable Vector instance with the same coordinates
      *          as this Vector.
@@ -267,6 +287,21 @@ public class Vector {
                 return false;
         }
         return true;
+    }
+
+    @Override
+    public boolean equals(Object other) throws NullPointerException {
+        if(other instanceof Vector)
+            return equals((Vector)other);
+        return false;
+    }
+
+    @Override
+    public int hashCode(){
+        int hashCode = 17;
+        for(double d : vectorList)
+            hashCode = hashCode*31 + Double.valueOf(d).hashCode();
+        return hashCode;
     }
 
     /**
@@ -422,5 +457,16 @@ public class Vector {
     @Override
     public String toString() {
         return Arrays.toString(this.vectorList);
+    }
+
+    public List<Vector> decompose(){
+        List<Vector> decomposition = new ArrayList<>(this.dimension());
+        double[] origin = new double[this.dimension()];
+        for(int i=0;i<this.dimension();i++){
+            double[] d = origin.clone();
+            d[i] = this.get(i);
+            decomposition.add(new Vector(d));
+        }
+        return decomposition;
     }
 }

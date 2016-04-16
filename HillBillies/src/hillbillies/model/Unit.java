@@ -972,20 +972,38 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 			nb +=1;
 		int activity = randInt(0,nb);
 		if (activity ==0){
-			this.moveToTarget(new Vector (Math.random()*(getWorld().getMaxPosition().X()-getWorld().getMinPosition().X())+getWorld().getMinPosition().X(),
-					Math.random()*(getWorld().getMaxPosition().Y()-getWorld().getMinPosition().Y())+getWorld().getMinPosition().Y(),
-					Math.random()*(getWorld().getMaxPosition().Z()-getWorld().getMinPosition().Z())+getWorld().getMinPosition().Z()));
+			if (getHitpoints() == getMaxHitpoints(getWeight(), getToughness()) && getStamina() == getMaxStamina(getWeight(), getToughness()))
+				activity = randInt(1,nb);
+			else this.rest();
+		}
+		if (activity ==1){
+			PathCalculator p = new PathCalculator(this.getPosition());
+			Vector target = new Vector(-1,-1,-1);
+			this.path = p.computePath(this.getPosition());
+			int size = controlledPos.size();
+			if( size == 0)
+				activity = 2;
+			else 
+				target = controlledPos.get(randInt(0, size-1));
+			//TODO: manier zoeken om alle bereikbare posities op te lijsten
+			/*boolean valid = false;
+			
+			while (!valid){
+				target = new Vector (randDouble(getWorld().getMinPosition().X(), getWorld().getMaxPosition().X()),
+						randDouble(getWorld().getMinPosition().Y(), getWorld().getMaxPosition().Y()),
+						randDouble(getWorld().getMinPosition().Z(), getWorld().getMaxPosition().Z()));
+				valid = validatePosition(target);
+			}*/
+			this.moveToTarget(target);
 			if (this.isAbleToSprint() && randInt(0, 99) < 1){
 				this.sprint();
 			}
 		}
-		if (activity == 1) {
+		if (activity == 2) {
 			List<Vector> workPositions = getWorld().getDirectlyAdjacentCubesPositions(this.getPosition());
 			workPositions.add(this.getPosition());
 			this.work(workPositions.get(randInt(0,workPositions.size()-1)));
 		}
-		if (activity ==2)
-			this.rest();
 		if (activity == 3){
 			this.attack(units.get(randInt(0,units.size()-1)));
 		}
@@ -1922,10 +1940,11 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 		}
 
 		public Path computePath(Vector fromPosition){
+			controlledPos.clear();
 			while (!this.contains(fromPosition.getCubeCoordinates()) && this.hasNext()) {
 				searchPath(this, this.getNext());
 			}
-			controlledPos.clear();
+			//controlledPos.clear();
 			if(this.contains(fromPosition.getCubeCoordinates())){// Path found
 				ArrayDeque<Vector> path = new ArrayDeque<>();
 				HashSet<Vector> pathPositions = new HashSet<>();
@@ -1943,7 +1962,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	/**
 	 * Set registering the controlled positions.
 	 */
-	private Set<Vector> controlledPos = new HashSet<>();
+	private List<Vector> controlledPos = new ArrayList<>();
 
 	private void searchPath(PathCalculator path, Map.Entry<Vector, Integer> start){
 		Set<Cube> nextCubes = getWorld().getNeighbouringCubes(start.getKey());
@@ -2057,8 +2076,9 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 			this.stopDoingDefault();
 		if(this.getStateDefault() == 3)
 			this.stateDefault -=1;
-		setCurrentActivity(Activity.WORK);
+		this.setOrientation((float)Math.atan2(position.getCubeCenterCoordinates().Y()-this.getPosition().Y(), position.getCubeCenterCoordinates().X()-this.getPosition().X()));
 		setWorkCube(this.getWorld().getCube(position));
+		setCurrentActivity(Activity.WORK);
 		setWorkProgress(0);// TODO: change workProgress to activityProgress
 		setWorkDuration(getWorkingTime(this.getStrength()));
 	}

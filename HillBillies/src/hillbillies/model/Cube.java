@@ -150,7 +150,7 @@ public class Cube extends WorldObject {
                 if(material.isInstance(m))
                     return true;
         }
-        Log l = getMaterialOfType(Log.class);
+        //Log l = getMaterialOfType(Log.class);
         return false;
     }
 

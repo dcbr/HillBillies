@@ -129,8 +129,11 @@ public class Material implements IWorldObject {
      */
     @Override
     public Vector getPosition(){
-        if(this.getOwner()!=null)
+        if(this.getOwner()!=null){
+        	if(this.getOwner() instanceof Cube)
+        		return this.owner.getPosition().getCubeCenterCoordinates();
             return this.owner.getPosition();
+        }
         else
             return fallingPosition;
     }
@@ -220,7 +223,7 @@ public class Material implements IWorldObject {
     }
 
     private boolean isValidPosition(Vector position){
-        return getPosition().cubeZ()==0 || !getWorld().getCube(this.getPosition().add(new Vector(0,0,-1))).isPassable();
+        return getPosition().cubeZ()==0 || !getWorld().getCube(this.getPosition().getCubeCoordinates().add(new Vector(0,0,-1))).isPassable();
     }
     //endregion
 

@@ -75,8 +75,25 @@ public class Attack extends Activity{
                 (Math.abs(defender.getPosition().cubeZ()-unit.getPosition().cubeZ())<=1);
     }
 
+    /**
+     * Activity specific code to check whether this Activity can be stopped by nextActivity.
+     *
+     * @param nextActivity The Activity which will be started when this Activity stops.
+     * @return True if this Activity should stop for nextActivity.
+     */
     @Override
-    public boolean shouldInterrupt(Activity activity) {
+    protected boolean shouldStopFor(Activity nextActivity) {
+        return false;// Falling?
+    }
+
+    /**
+     * Activity specific code to check whether this Activity can be interrupted by nextActivity.
+     *
+     * @param nextActivity The Activity which will be started when this Activity is interrupted.
+     * @return True if this Activity should be interrupted for nextActivity.
+     */
+    @Override
+    protected boolean shouldInterruptFor(Activity nextActivity) {
         return false;
     }
 }

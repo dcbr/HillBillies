@@ -3,21 +3,16 @@ package hillbillies.model;
 import be.kuleuven.cs.som.annotate.*;
 import hillbillies.utils.Vector;
 import hillbillies.activities.*;
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.EmptyStackException;
 import java.util.Stack;
 import static hillbillies.utils.Utils.*;
 
-import java.nio.file.Path;
 import java.util.*;
-import java.util.stream.Stream;
 
 /**
  * Class representing a Hillbilly unit
  * @author Kenneth & Bram
- * @version 1.5
+ * @version 2.5
  *
  * @invar Each Unit has a unique Id.
  * | for each Unit u, for each Unit o -> u.getId()!=o.getId() if u!=o
@@ -2288,23 +2283,30 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 			this.getCurrentActivity().start();
 		}
 
-		public void requestNewActivity(Activity activity) throws IllegalArgumentException{// TODO: add sender to check origin of call
+		public void requestNewActivity(Activity activity) throws IllegalArgumentException,IllegalStateException{
 			if(activity.getUnitId()!=Unit.this.getId())
 				throw new IllegalArgumentException("This activity is not bound to this unit.");
 			if(activity.isActive())
 				throw new IllegalArgumentException("This activity is already active.");
+			if(!this.getCurrentActivity().isDefault() && !activity.isAbleTo())
+				throw new IllegalStateException("This unit cannot " + activity.toString() + " at this moment");
 
-			if(this.getCurrentActivity().shouldInterrupt(activity)){
-				this.getCurrentActivity().interrupt();
-			}else{
-				this.getCurrentActivity().stop();
-				this.activityStack.pop();
+			try{
+				this.getCurrentActivity().interrupt(activity);
+			}catch(IllegalStateException interruptException){
+				try{
+					this.getCurrentActivity().stop(activity);
+					this.activityStack.pop();
+				}catch(IllegalStateException stopException){
+					throw new IllegalStateException("The current activity cannot be interrupted nor stopped by the given Activity.");
+				}
 			}
 			this.activityStack.push(activity);
 			this.getCurrentActivity().start();
 		}
 
 		public void requestActivityFinish(Activity activity) throws IllegalArgumentException{
+			// TODO: maybe change this to reportActivityFinish and check for inactiviy of current activity and then resume previous in stack
 			if(activity == null)
 				throw new IllegalArgumentException("Invalid activity.");
 			if(activity.getUnitId()!=Unit.this.getId())
@@ -2313,7 +2315,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 				throw new IllegalArgumentException("This activity is not currently active.");
 			//if(this.activityStack.size()==1)
 			//	throw new IllegalStateException("Since this is the last activity in stack, it can not be finished.");
-			this.getCurrentActivity().stop();
+			this.getCurrentActivity().stop(activity);
 			this.activityStack.pop();
 			if(this.activityStack.size()==0)
 				this.activityStack.push(NONE);
@@ -2322,6 +2324,10 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 
 		private Activity getCurrentActivity(){
 			return this.activityStack.peek();
+		}
+
+		public boolean isCurrentActivity(Activity activity){
+			return this.getCurrentActivity()==activity;
 		}
 
 		public void advanceTime(double dt){

@@ -499,9 +499,9 @@ public class World implements IWorld {
 	public Set<Cube> getNeighbouringCubes(Vector cubeCoordinates){
 		Set<Cube> neighbouringCubes = new HashSet<>(NB_NEIGHBOURING_DIRECTIONS);// TODO: fuckt die 26 het op of niet?
 		for(Vector neighbouringDirection : NEIGHBOURING_DIRECTIONS) {
-			Vector neighbouringPos = cubeCoordinates.add(neighbouringDirection);
-			if (isValidPosition(neighbouringPos))
-				neighbouringCubes.add(getCube(neighbouringPos));
+			Vector neighbouringPos = cubeCoordinates.getCubeCoordinates().add(neighbouringDirection);
+			if (isValidPosition(neighbouringPos)){
+				neighbouringCubes.add(getCube(neighbouringPos));}
 		}
 		return neighbouringCubes;
 	}

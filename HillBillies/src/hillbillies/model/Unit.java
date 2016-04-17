@@ -756,7 +756,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 			throw new IllegalArgumentException();
 		this.name = name;
 	}
-	
+
 	/**
 	 * Set the orientation of this Unit to the given orientation.
 	 * @param orientation

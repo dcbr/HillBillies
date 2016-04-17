@@ -1,7 +1,5 @@
 package hillbillies.activities;
 
-import be.kuleuven.cs.som.annotate.Basic;
-import be.kuleuven.cs.som.annotate.Raw;
 import hillbillies.model.Unit;
 import hillbillies.utils.Vector;
 
@@ -32,10 +30,6 @@ public abstract class Move extends Activity {
     protected static final int MOVE_XP = 1;
 
     /**
-     * Variable registering the next position and target position of this unit.
-     */
-    private Vector nextPosition, targetPosition;
-    /**
      * Variable registering whether this unit is sprinting.
      */
     private boolean isSprinting = false;
@@ -44,12 +38,22 @@ public abstract class Move extends Activity {
      */
     private double currentSpeed = 0.0;
 
+    /**
+     * Create a new Move Activity for the given Unit.
+     * @param unit The unit which will perform the movement.
+     */
     public Move(Unit unit){
         super(unit);
     }
 
+    /**
+     * Activity specific code which is called when the Activity is interrupted.
+     * This code is also called before stopActivity when the Activity is stopped.
+     * @effect  The unit stops sprinting when this Activity is interrupted.
+     *          | stopSprint()
+     */
     @Override
-    public void interruptActivity() {
+    protected void interruptActivity() {
         this.stopSprint();
     }
 
@@ -68,6 +72,10 @@ public abstract class Move extends Activity {
             this.sprint();
     }
 
+    /**
+     * Movement specific code which is called inside this Activity's advanceActivity method.
+     * This should proceed the movement of the Unit.
+     */
     protected abstract void advanceMove(double dt);
 
     /**
@@ -79,9 +87,25 @@ public abstract class Move extends Activity {
         return !unit.isInitialRestMode() && !unit.isAttacking() && !unit.isWorking();
     }
 
+    /**
+     * Movement will be interrupted if nextActivity is an instance of the Attack Activity.
+     * @param nextActivity The Activity which will be started when this Activity is interrupted.
+     * @return True if nextActivity is an instance of Attack
+     *          | nextActivity instanceof Attack
+     */
     @Override
-    public boolean shouldInterruptFor(Activity nextActivity) {
+    protected boolean shouldInterruptFor(Activity nextActivity) {
         return nextActivity instanceof Attack;
+    }
+
+    /**
+     * Movement will be stopped if nextActivity is an instance of the Work, Rest or Fall Activities.
+     * @param nextActivity The Activity which will be started when this Activity stops.
+     * @return True if nextActivity is an instance of Work, Rest or Fall
+     */
+    @Override
+    protected boolean shouldStopFor(Activity nextActivity){
+        return nextActivity instanceof Work || nextActivity instanceof Rest;// TODO: Falling
     }
 
     @Override
@@ -111,7 +135,7 @@ public abstract class Move extends Activity {
     }
 
     /**
-     * Return a boolean indicating whether or not this person
+     * Return a boolean indicating whether or not this unit
      * is able to sprint.
      */
     public boolean isAbleToSprint(){
@@ -119,49 +143,32 @@ public abstract class Move extends Activity {
     }
 
     /**
-     * Return the next position of this unit.
+     * Return a boolean indicating whether or not this unit is sprinting.
      */
-    @Basic
-    @Raw
-    public Vector getNextPosition(){
-        return this.nextPosition.clone();
-    }
-
-    /**
-     * Set the next position of this Unit to the given position.
-     *
-     * @param position
-     * The next position for this Unit.
-     * @post The next position of this new Unit is equal to
-     * the given position.
-     * | new.getNextPosition() == position
-     * @throws IllegalArgumentException * The given position is not a valid position for any
-     * Unit.
-     * | ! isValidPosition(getPosition())
-     */
-    @Raw
-    public void setNextPosition(Vector position) throws IllegalArgumentException {
-        if (position!=null && ! unit.isValidPosition(position))
-            throw new IllegalArgumentException("Invalid position");
-        this.nextPosition = position;
-    }
-
     public boolean isSprinting(){
         return this.isActive() && this.isSprinting;
     }
 
+    /**
+     * Get the speed at which the unit is currently moving.
+     */
     public double getCurrentSpeed(){
         return this.currentSpeed;
     }
 
+    /**
+     * Sets the speed at which the unit is currently moving.
+     * @param speed The new movement speed
+     * @post    The unit's currentSpeed is set to speed
+     *          | new.getCurrentSpeed() == speed
+     */
     protected void setCurrentSpeed(double speed){
         this.currentSpeed = speed;
     }
 
     /**
      * Retrieve the Unit's sprinting speed
-     * @param direction The direction the Unit is sprinting in, this is a vector with norm 1
-     * @return
+     * @param direction The direction the Unit is sprinting in
      */
     protected double getSprintSpeed(Vector direction){
         return 2*this.getWalkingSpeed(direction);
@@ -169,8 +176,7 @@ public abstract class Move extends Activity {
 
     /**
      * Retrieve the Unit's walking speed
-     * @param direction The direction the Unit is walking in, this is a vector with norm 1
-     * @return
+     * @param direction The direction the Unit is walking in
      */
     protected double getWalkingSpeed(Vector direction){
         if(direction.Z()<-0.5) return 1.2*this.getBaseSpeed();
@@ -186,7 +192,23 @@ public abstract class Move extends Activity {
         return 1.5*(unit.getStrength()+unit.getAgility())/(200*unit.getWeight()/100);
     }
 
-    protected boolean isValidNextPosition(Vector fromPosition, Vector nextPosition){
+    /**
+     * Check whether nextPosition is a valid position to move to from fromPosition.
+     * @param fromPosition The position at which the movement will start
+     * @param nextPosition The position to move to
+     * @return True if nextPosition is indeed a valid position to move to from fromPosition
+     *          | if(!unit.isValidPosition(nextPosition))
+     *          |       result==false
+     *          | if(foreach Vector d in nextPosition.difference(fromPosition).decompose() :
+     *          |       unit.isValidPosition(fromPosition.add(d)) && unit.isValidPosition(nextPosition.difference(d))
+     *          |           result==true
+     *          | else
+     *          |       result==false
+     * @throws IllegalArgumentException
+     *          When fromPosition or nextPosition are not effective.
+     *          | fromPosition==null || nextPosition==null
+     */
+    protected boolean isValidNextPosition(Vector fromPosition, Vector nextPosition) throws IllegalArgumentException{
         if(fromPosition==null || nextPosition==null)
             throw new IllegalArgumentException("The from and next position must be effective positions in order to check their validity.");
         if(!unit.isValidPosition(nextPosition)) return false;// Check if it's a valid position itself

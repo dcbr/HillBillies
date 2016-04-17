@@ -45,7 +45,7 @@ public class AdjacentMove extends Move {
      */
     @Override
     protected void interruptActivity() {
-
+        super.interruptActivity();
     }
 
     /**
@@ -68,25 +68,15 @@ public class AdjacentMove extends Move {
             Vector velocity = difference.multiply(v / d);
             Vector newPos = cpos.add(dPos);
             for (int i = 0; i < 3; i++) {
-                if (getNextPosition().isInBetween(i, cpos, newPos)) {
+                if (nextPosition.isInBetween(i, cpos, newPos)) {
                     double[] a = newPos.asArray();
-                    a[i] = getNextPosition().get(i);
+                    a[i] = nextPosition.get(i);
                     newPos = new Vector(a);
                 }
             }
             unit.setPosition(newPos);
             unit.setOrientation((float) Math.atan2(velocity.Y(), velocity.X()));
         }
-    }
-
-    /**
-     * Activity specific code to check whether this Activity can be started.
-     *
-     * @return True if this Activity can be started as the nextActivity of the currently active Activity.
-     */
-    @Override
-    public boolean isAbleTo() {
-        return false;
     }
 
     /**
@@ -97,7 +87,7 @@ public class AdjacentMove extends Move {
      */
     @Override
     protected boolean shouldStopFor(Activity nextActivity) {
-        return false;
+        return super.shouldStopFor(nextActivity) || nextActivity instanceof Move;// New Movement to perform => stop Activity
     }
 
     /**
@@ -108,7 +98,7 @@ public class AdjacentMove extends Move {
      */
     @Override
     protected boolean shouldInterruptFor(Activity nextActivity) {
-        return false;
+        return super.shouldInterruptFor(nextActivity);
     }
 
     /**

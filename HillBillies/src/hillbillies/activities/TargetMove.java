@@ -25,7 +25,7 @@ public class TargetMove extends Move {
      */
     @Override
     protected void startActivity() {
-
+        // TODO: check if cubes along the path have collapsed
     }
 
     /**
@@ -42,7 +42,7 @@ public class TargetMove extends Move {
      */
     @Override
     protected void interruptActivity() {
-
+        super.interruptActivity();
     }
 
     /**
@@ -61,16 +61,6 @@ public class TargetMove extends Move {
     }
 
     /**
-     * Activity specific code to check whether this Activity can be started.
-     *
-     * @return True if this Activity can be started as the nextActivity of the currently active Activity.
-     */
-    @Override
-    public boolean isAbleTo() {
-        return false;
-    }
-
-    /**
      * Activity specific code to check whether this Activity can be stopped by nextActivity.
      *
      * @param nextActivity The Activity which will be started when this Activity stops.
@@ -78,7 +68,7 @@ public class TargetMove extends Move {
      */
     @Override
     protected boolean shouldStopFor(Activity nextActivity) {
-        return false;
+        return super.shouldStopFor(nextActivity) || nextActivity instanceof TargetMove;// New target was set => stop this Activity
     }
 
     /**
@@ -89,7 +79,7 @@ public class TargetMove extends Move {
      */
     @Override
     protected boolean shouldInterruptFor(Activity nextActivity) {
-        return false;
+        return super.shouldInterruptFor(nextActivity) || nextActivity instanceof AdjacentMove;// Interrupt for next position movement
     }
 
     /**

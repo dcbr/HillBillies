@@ -991,7 +991,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 			PathCalculator pathCalculator= new PathCalculator(this.getPosition());
 			Path path = pathCalculator.computePath(target);
 			
-			if (path.hasNext())
+			if (path!= null && path.hasNext())
 				this.moveToTarget(target);
 			else if (controlledPos.size() ==0)
 				activity = 2;
@@ -1471,10 +1471,10 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 			case FALLING:
 				Vector cPos = getPosition();
 				Vector cPosCube = cPos.getCubeCenterCoordinates();
-				if (cPos == cPosCube && isLowerSolid(cPos) && this.getWorld().getCube(cPos).isPassable()){
+				if (cPos.equals(cPosCube) && isLowerSolid(cPos) && this.getWorld().getCube(cPos.getCubeCoordinates()).isPassable()){
 					setCurrentSpeed(0);
 					setCurrentActivity(Activity.NONE);
-					removeHitpoints((int) (fallingLevel-cPos.Z()));
+					removeHitpoints((int) (10*(fallingLevel-cPos.cubeZ())));
 					//setHitpoints((int)(getHitpoints()-(fallingLevel-cPos.Z())));
 					fallingLevel = 0;
 				}

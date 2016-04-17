@@ -2,10 +2,25 @@ package hillbillies.activities;
 
 import hillbillies.model.Unit;
 
+import static hillbillies.utils.Utils.*;
+
 /**
  * Created by Bram on 29-3-2016.
  */
 public class Rest extends Activity {
+
+    /**
+     * Constant reflecting the interval when a unit has to rest.
+     */
+    public static final double REST_INTERVAL = 3*60;// Unit will rest every REST_INTERVAL seconds
+    /**
+     * Constant reflecting the interval wherein a resting unit recovers getRestHitpointsGain() hitpoints.
+     */
+    public static final double REST_HITPOINTS_GAIN_INTERVAL = 0.2d;
+    /**
+     * Constant reflecting the interval wherein a resting unit recovers getRestStaminaGain() stamina.
+     */
+    public static final double REST_STAMINA_GAIN_INTERVAL = 0.2d;
 
     /**
      * Variable registering the hitpoints a unit recovered during the current rest period.
@@ -24,14 +39,12 @@ public class Rest extends Activity {
     public void startActivity() {
         this.restHitpoints = 0d;
         this.restStamina = 0d;
-        unit.restTimer = 0d;// Reset restTimer, since we are already resting now
     }
 
     @Override
     public void stopActivity() {
         this.restHitpoints = 0d;
         this.restStamina = 0d;
-        unit.restTimer = 0d;// Rest-timer will now always be reset as soon as resting stops
     }
 
     @Override
@@ -45,17 +58,17 @@ public class Rest extends Activity {
         int maxSt = Unit.getMaxStamina(unit.getWeight(), unit.getToughness());
         double extraTime = -1d;
         if(maxHp == unit.getHitpoints() && maxSt==unit.getStamina())
-            unit.activityController.requestActivityFinish(this);
+            this.requestFinish();
         if(unit.getHitpoints()<maxHp){
-            double extraRestHitpoints = Unit.getIntervalTicks(activityProgress, dt, Unit.REST_HITPOINTS_GAIN_INTERVAL)*this.getRestHitpointsGain();
-            int extraHitpoints = Unit.getIntervalTicks(restHitpoints, extraRestHitpoints, 1d);
+            double extraRestHitpoints = getIntervalTicks(activityProgress, dt, REST_HITPOINTS_GAIN_INTERVAL)*this.getRestHitpointsGain();
+            int extraHitpoints = getIntervalTicks(restHitpoints, extraRestHitpoints, 1d);
             int newHitpoints = unit.getHitpoints() + extraHitpoints;
             double newRestHitpoints = restHitpoints + extraRestHitpoints;
             if(newHitpoints>=maxHp) {
                 newHitpoints = maxHp;
                 double neededExtraRestHitpoints = maxHp - unit.getHitpoints() - restHitpoints % 1;
                 int neededTicks = (int)Math.ceil(neededExtraRestHitpoints/this.getRestHitpointsGain());
-                double neededTime = Unit.REST_HITPOINTS_GAIN_INTERVAL*neededTicks - activityProgress % Unit.REST_HITPOINTS_GAIN_INTERVAL;
+                double neededTime = REST_HITPOINTS_GAIN_INTERVAL*neededTicks - activityProgress % REST_HITPOINTS_GAIN_INTERVAL;
                 extraTime = dt - neededTime;
                 assert extraTime >= 0;
             }
@@ -65,20 +78,18 @@ public class Rest extends Activity {
         if((unit.getHitpoints()==maxHp && extraTime != 0d) && unit.getStamina()<maxSt){
             if(extraTime > 0d)
                 dt = extraTime;
-            double extraRestStamina = Unit.getIntervalTicks(activityProgress, dt, Unit.REST_STAMINA_GAIN_INTERVAL)*this.getRestStaminaGain();
-            int extraStamina = Unit.getIntervalTicks(restStamina, extraRestStamina, 1d);
+            double extraRestStamina = getIntervalTicks(activityProgress, dt, REST_STAMINA_GAIN_INTERVAL)*this.getRestStaminaGain();
+            int extraStamina = getIntervalTicks(restStamina, extraRestStamina, 1d);
             int newStamina = unit.getStamina() + extraStamina;
             double newRestStamina = restStamina + extraRestStamina;
             if(newStamina>=maxSt){
                 newStamina = maxSt;
                 newRestStamina = 0;
+                restHitpoints = 0;
+                this.requestFinish();// TODO: this won't execute next statement
             }
             unit.setStamina(newStamina);
             restStamina = newRestStamina;
-            if(newStamina == maxSt){
-                restHitpoints = 0;
-                unit.activityController.requestActivityFinish(this);
-            }
         }
     }
 
@@ -91,9 +102,34 @@ public class Rest extends Activity {
         return !unit.isAttacking();
     }
 
+    /**
+     * Activity specific code to check whether this Activity can be stopped by nextActivity.
+     *
+     * @param nextActivity The Activity which will be started when this Activity stops.
+     * @return True if this Activity should stop for nextActivity.
+     */
     @Override
-    public boolean shouldInterrupt(Activity activity) {
+    protected boolean shouldStopFor(Activity nextActivity) {
         return false;
+    }
+
+    /**
+     * Activity specific code to check whether this Activity can be interrupted by nextActivity.
+     *
+     * @param nextActivity The Activity which will be started when this Activity is interrupted.
+     * @return True if this Activity should be interrupted for nextActivity.
+     */
+    @Override
+    protected boolean shouldInterruptFor(Activity nextActivity) {
+        return false;
+    }
+
+    /**
+     * Returns the amount of XP the Unit will get when this Activity stops successfully.
+     */
+    @Override
+    public int getXp() {
+        return 0;
     }
 
     @Override

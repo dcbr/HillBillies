@@ -5,7 +5,7 @@ import be.kuleuven.cs.som.annotate.Raw;
 import hillbillies.model.Unit;
 import hillbillies.utils.Vector;
 
-import static hillbillies.utils.Utils.randInt;
+import static hillbillies.utils.Utils.*;
 
 /**
  * Minpunten:
@@ -17,8 +17,20 @@ import static hillbillies.utils.Utils.randInt;
  * @author Kenneth & Bram
  * @version 1.0
  */
-public class Move extends Activity {
-//TODO: fix this class
+public abstract class Move extends Activity {
+    /**
+     * Constant reflecting the stamina points a unit loses while sprinting.
+     */
+    public static final int SPRINT_STAMINA_LOSS = 1;// Stamina loss per interval when sprinting
+    /**
+     * Constant reflecting the interval a sprinting unit loses a SPRINT_STAMINA_LOSS.
+     */
+    public static final double SPRINT_STAMINA_LOSS_INTERVAL = 0.1d;// Unit will loose SPRINT_STAMINA_LOSS every SPRINT_STAMINA_LOSS_INTERVAL seconds when sprinting
+    /**
+     * Constant reflecting XP gaining after a move.
+     */
+    protected static final int MOVE_XP = 1;
+
     /**
      * Variable registering the next position and target position of this unit.
      */
@@ -37,18 +49,6 @@ public class Move extends Activity {
     }
 
     @Override
-    public void startActivity() {
-
-    }
-
-    @Override
-    public void stopActivity() {
-        this.interruptActivity();
-        this.nextPosition = null;
-        this.targetPosition = null;
-    }
-
-    @Override
     public void interruptActivity() {
         this.stopSprint();
     }
@@ -56,59 +56,19 @@ public class Move extends Activity {
     @Override
     public void advanceActivity(double dt) {
         if(this.isSprinting){
-            int newStamina = unit.getStamina()-Unit.SPRINT_STAMINA_LOSS*Unit.getIntervalTicks(activityProgress, dt, Unit.SPRINT_STAMINA_LOSS_INTERVAL);// TODO: move constants to this class
+            int newStamina = unit.getStamina()-SPRINT_STAMINA_LOSS*getIntervalTicks(activityProgress, dt, SPRINT_STAMINA_LOSS_INTERVAL);
             if(newStamina<=0){
                 newStamina = 0;
                 stopSprint();
             }
             unit.setStamina(newStamina);
         }
-        Vector cpos = unit.getPosition();
-        if(targetPosition!=null){
-            int dx = 0, dy = 0, dz = 0;
-            if (targetPosition.cubeX() - cpos.cubeX() < 0)
-                dx = -1;
-            else if(targetPosition.cubeX() - cpos.cubeX() > 0)
-                dx = 1;
-            if (targetPosition.cubeY() - cpos.cubeY() < 0)
-                dy = -1;
-            else if(targetPosition.cubeY() - cpos.cubeY() > 0)
-                dy = 1;
-            if (targetPosition.cubeZ() - cpos.cubeZ() < 0)
-                dz = -1;
-            else if(targetPosition.cubeZ() - cpos.cubeZ() > 0)
-                dz = 1;
-            //this.stateDefault +=1; ??
-            moveToAdjacent(new Vector(dx, dy, dz));
-        }
-        if(getNextPosition()!=null){
-            if(getNextPosition().equals(cpos)){
-                setNextPosition(null);
-                unit.setCurrentActivity(new None(unit));
-            }
-            else{
-                Vector difference = getNextPosition().difference(cpos);
-                double d = difference.length();
-                currentSpeed = this.isSprinting ? unit.getSprintSpeed(difference) : unit.getWalkingSpeed(difference);// Move getspeed methods to this class
-                Vector dPos = difference.multiply(currentSpeed/d*dt);
-                Vector velocity = difference.multiply(currentSpeed/d);
-                Vector newPos = cpos.add(dPos);
-                for(int i=0;i< 3;i++){
-                    if(getNextPosition().isInBetween(i,cpos,newPos)){
-                        double[] a = newPos.asArray();
-                        a[i] = getNextPosition().get(i);
-                        newPos = new Vector(a);
-                    }
-                }
-                unit.setPosition(newPos);
-                unit.setOrientation((float)Math.atan2(velocity.Y(),velocity.X()));
-            }
-        }
-
+        advanceMove(dt);
         if(this.isDefault() && !this.isSprinting && this.isAbleToSprint() && randInt(0, 99) < 1)
             this.sprint();
-        super.advanceTime(dt);
     }
+
+    protected abstract void advanceMove(double dt);
 
     /**
      * Return a boolean indicating whether or not this unit
@@ -120,8 +80,8 @@ public class Move extends Activity {
     }
 
     @Override
-    public boolean shouldInterrupt(Activity activity) {
-        return activity instanceof Attack;
+    public boolean shouldInterruptFor(Activity nextActivity) {
+        return nextActivity instanceof Attack;
     }
 
     @Override
@@ -129,61 +89,6 @@ public class Move extends Activity {
         return "move";
     }
 
-    /**
-     * Method to let the Unit move to an adjacent cube.
-     * @param direction The direction the Unit should move towards. Since this method can only be used to move to
-     *                  neighbouring cubes, each element of the array must have a value of (-)1 or 0.
-     * @post	This unit stops the default behaviour if it was doing this
-     * 			| new.isDoingBehaviour
-     * @throws IllegalStateException
-     * 			When this Unit is not able to move at this moment
-     * 			| this.isAbleToMove() == false
-     * @throws IllegalArgumentException
-     * 			When the given direction points to an invalid position
-     * 			| isValidPosition(this.getPosition().getCubeCenterCoordinates().add(direction)) == false
-     */
-    public void moveToAdjacent(Vector direction) throws IllegalStateException, IllegalArgumentException{
-        if(!this.isDefault()){
-            if(!unit.isAbleToMove() )
-                throw new IllegalStateException("Unit is not able to move at this moment.");
-        }
-        if(this.getStateDefault() ==2)
-            this.stopDoingDefault();
-        if(this.getStateDefault() >=1)
-            this.stateDefault -=1;
-        // setNextPosition throws the exception
-        this.setNextPosition(unit.getPosition().getCubeCenterCoordinates().add(direction));
-        setCurrentActivity(hillbillies.model.Activity.MOVE);
-    }
-
-    public void moveToAdjacent(int dx, int dy, int dz){
-        this.targetPosition = null;
-        this.moveToAdjacent(new Vector(dx,dy,dz));
-    }
-    /**
-     * Method to let the Unit move to a target.
-     * @param targetPosition
-     * 			The direction the Unit should move towards.
-     * @post	This unit stops the default behaviour if it was doing this
-     * 			| new.isDoingBehaviour
-     * @post	if this is the default behaviour, set the stateDefault to a new state.
-     * 			| new.isDoingBehaviour
-     * @throws IllegalStateException * If this unit isn't able to move.
-     * 		|!this.isAbleToMove()
-     */
-    public void moveToTarget(Vector targetPosition) throws IllegalStateException{
-        if(!this.isDefault()){
-            if(!unit.isAbleToMove())
-                throw new IllegalStateException("Unit is not able to move at this moment.");
-        }
-        if(this.getStateDefault() ==2)
-            this.stopDoingDefault();
-        if(this.getStateDefault() == 3)
-            this.stateDefault -=1;
-
-        setCurrentActivity(hillbillies.model.Activity.MOVE);
-        this.targetPosition = targetPosition.getCubeCenterCoordinates();// TODO: make setter and getter for targetPosition and check for invalid positions
-    }
     /**
      * Method to let the Unit sprint.
      * @post the unit is sprinting.
@@ -236,7 +141,7 @@ public class Move extends Activity {
      */
     @Raw
     public void setNextPosition(Vector position) throws IllegalArgumentException {
-        if (position!=null && ! Unit.isValidPosition(position))
+        if (position!=null && ! unit.isValidPosition(position))
             throw new IllegalArgumentException("Invalid position");
         this.nextPosition = position;
     }
@@ -249,12 +154,16 @@ public class Move extends Activity {
         return this.currentSpeed;
     }
 
+    protected void setCurrentSpeed(double speed){
+        this.currentSpeed = speed;
+    }
+
     /**
      * Retrieve the Unit's sprinting speed
      * @param direction The direction the Unit is sprinting in, this is a vector with norm 1
      * @return
      */
-    private double getSprintSpeed(Vector direction){
+    protected double getSprintSpeed(Vector direction){
         return 2*this.getWalkingSpeed(direction);
     }
 
@@ -263,9 +172,9 @@ public class Move extends Activity {
      * @param direction The direction the Unit is walking in, this is a vector with norm 1
      * @return
      */
-    private double getWalkingSpeed(Vector direction){
-        if(direction.Z()>0) return 1.2*this.getBaseSpeed();
-        else if(direction.Z()<0) return 0.5*this.getBaseSpeed();
+    protected double getWalkingSpeed(Vector direction){
+        if(direction.Z()<-0.5) return 1.2*this.getBaseSpeed();
+        else if(direction.Z()>0.5) return 0.5*this.getBaseSpeed();
         else return this.getBaseSpeed();
     }
 
@@ -275,5 +184,15 @@ public class Move extends Activity {
      */
     private double getBaseSpeed(){
         return 1.5*(unit.getStrength()+unit.getAgility())/(200*unit.getWeight()/100);
+    }
+
+    protected boolean isValidNextPosition(Vector fromPosition, Vector nextPosition){
+        if(fromPosition==null || nextPosition==null)
+            throw new IllegalArgumentException("The from and next position must be effective positions in order to check their validity.");
+        if(!unit.isValidPosition(nextPosition)) return false;// Check if it's a valid position itself
+        for(Vector d : nextPosition.difference(fromPosition).decompose()){
+            if(!unit.isValidPosition(fromPosition.add(d)) || !unit.isValidPosition(nextPosition.difference(d))) return false;// Check if surrounding positions are valid too (prevent corner glitch)
+        }
+        return true;
     }
 }

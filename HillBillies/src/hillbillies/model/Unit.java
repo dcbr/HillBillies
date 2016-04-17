@@ -153,26 +153,6 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	 * Constant reflecting the initial orientation of a unit.    
 	 */
 	public static final float INITIAL_ORIENTATION = (float)Math.PI/2;
-	/**
-	 * Constant reflecting the stamina points a unit loses while sprinting.    
-	 */
-	public static final int SPRINT_STAMINA_LOSS = 1;// Stamina loss per interval when sprinting
-	/**
-	 * Constant reflecting the interval a sprinting unit loses a SPRINT_STAMINA_LOSS.    
-	 */
-	public static final double SPRINT_STAMINA_LOSS_INTERVAL = 0.1d;// Unit will loose SPRINT_STAMINA_LOSS every SPRINT_STAMINA_LOSS_INTERVAL seconds when sprinting
-	/**
-	 * Constant reflecting the interval when a unit has to rest.    
-	 */
-	public static final double REST_INTERVAL = 3*60;// Unit will rest every REST_INTERVAL seconds
-	/**
-	 * Constant reflecting the interval wherein a resting unit recovers getRestHitpointsGain() hitpoints.
-	 */
-	public static final double REST_HITPOINTS_GAIN_INTERVAL = 0.2d;
-	/**
-	 * Constant reflecting the interval wherein a resting unit recovers getRestStaminaGain() stamina.
-	 */
-	public static final double REST_STAMINA_GAIN_INTERVAL = 0.2d;
 	//endregion
 
 	//region Private members
@@ -221,29 +201,12 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	 * Variable registering the orientation of this Unit.
 	 */
 	private float orientation;
-	
-	/**
-	 * Variable registering the next position and target position of this unit.
-	 */
-	private Vector nextPosition;
-	
-
-	/**
-	 * Variable registering whether this unit is sprinting.
-	 */
-	private boolean isSprinting = false;
 
 
 	/**
 	 * Variable registering the current Activity of this unit.
 	 */
 	private Activity activity;
-
-
-	/**
-	 * Variable registering the time passed since the unit's last rest.
-	 */
-	private double restTimer = 0d;
 	//endregion
 
 	//region Static getters
@@ -591,7 +554,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	@Basic
 	@Raw
 	public Vector getNextPosition(){
-		return (this.nextPosition==null) ? null : this.nextPosition.clone();
+		return (this.nextPosition==null) ? null : this.nextPosition.clone();// TODO: move this to AdjacentMove
 	}
 	
 	/**
@@ -638,18 +601,6 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 		return this.toughness;
 	}
 
-
-	/**
-	 * Retrieve the Unit's walking speed
-	 * @param direction The direction the Unit is walking in, this is a vector with norm 1
-	 * @return
-	 */
-	private double getWalkingSpeed(Vector direction){
-		if(direction.Z()<-0.5) return 1.2*this.getBaseSpeed();
-		else if(direction.Z()>0.5) return 0.5*this.getBaseSpeed();
-		else return this.getBaseSpeed();
-	}
-
 	/**
 	 * Return the weight of this unit.
 	 */
@@ -661,14 +612,6 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	//endregion
 
 	//region Checkers
-	/**
-	 * Return a boolean indicating whether or not this person
-	 * is able to sprint.
-	 */
-	public boolean isAbleToSprint(){
-		return this.isMoving() && getStamina()>MIN_STAMINA;
-	}
-
 	/**
 	 * Return a boolean indicating whether or not this person
 	 * is attacking.
@@ -767,10 +710,6 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 		if(activity!=Activity.MOVE)
 			stopSprint();
 		this.activity.start(isDefault);
-	}
-
-	@Raw private void setCurrentSpeed(double speed){
-		this.currentSpeed = speed;
 	}
 	
 	/**
@@ -935,25 +874,6 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 		if (! isValidName(name))
 			throw new IllegalArgumentException();
 		this.name = name;
-	}
-	
-	/**
-	 * Set the next position of this Unit to the given position.
-	 *
-	 * @param position
-	 * The next position for this Unit.
-	 * @post The next position of this new Unit is equal to
-	 * the given position.
-	 * | new.getNextPosition() == position
-	 * @throws IllegalArgumentException * The given position is not a valid position for any
-	 * Unit.
-	 * | ! isValidPosition(getPosition())
-	 */
-	@Raw
-	public void setNextPosition(Vector position) throws IllegalArgumentException {
-		if (position!=null && ! isValidNextPosition(this.getPosition(), position))
-			throw new IllegalArgumentException("Invalid position");
-		this.nextPosition = position;
 	}
 	
 	/**
@@ -1206,140 +1126,39 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	@Override
 	public void advanceTime(double dt){
 		// Defensively without documentation
-		restTimer += dt;
-		if(restTimer >= REST_INTERVAL && this.isAbleToRest()){
-			rest();
-		}
 		if (!isFalling() && getCurrentActivity() != Activity.MOVE && !validatePosition(getPosition())){
 			falling(); //TODO: bij move telkens controleren of hij opeens moet vallen als er een blok veranderd naar passable
 		}
 
-		switch(getCurrentActivity()){
-			case MOVE:
-				if(this.isSprinting){
-					int newStamina = this.getStamina()-SPRINT_STAMINA_LOSS*getIntervalTicks(activityProgress, dt, SPRINT_STAMINA_LOSS_INTERVAL);
-					if(newStamina<=0){
-						newStamina = 0;
-						stopSprint();
-					}
-					this.setStamina(newStamina);
-				}
-				Vector cpos = getPosition();
-				if(!lastPosition.getCubeCoordinates().difference(cpos.getCubeCoordinates()).equals(new Vector(0,0,0))){
-					lastPosition = cpos;
-					this.addXP(MOVE_POINTS);
-				}
-				if(path!=null){// TODO: if path contains a collapsed cube, recompute path
-					if(!path.hasNext() && cpos.getCubeCoordinates().equals(nextPosition.getCubeCoordinates())){
-						moveToAdjacent(0,0,0);// We are in target cube, just move to the center now (stop extended path finding)
-					}else if(nextPosition==null || cpos.getCubeCoordinates().equals(nextPosition.getCubeCoordinates())){
-						moveToAdjacent(path.getNext().difference(cpos.getCubeCoordinates()));
-						this.stateDefault += 1;
-					}
-				}
-				if(getNextPosition()!=null) {
-					if (getNextPosition().equals(cpos)) {
-						setNextPosition(null);
-						setCurrentActivity(Activity.NONE);
-					} else {
-						Vector difference = getNextPosition().difference(cpos);
-						double d = difference.length();
-						double v = this.isSprinting ? getSprintSpeed(difference) : getWalkingSpeed(difference);
-						this.setCurrentSpeed(v);
-						Vector dPos = difference.multiply(v / d * dt);
-						Vector velocity = difference.multiply(v / d);
-						Vector newPos = cpos.add(dPos);
-						for (int i = 0; i < 3; i++) {
-							if (getNextPosition().isInBetween(i, cpos, newPos)) {
-								double[] a = newPos.asArray();
-								a[i] = getNextPosition().get(i);
-								newPos = new Vector(a);
-							}
-						}
-						setPosition(newPos);
-						setOrientation((float) Math.atan2(velocity.Y(), velocity.X()));
-					}
-				}
-
-				if(this.getStateDefault()==2 && !this.isSprinting &&this.isAbleToSprint() &&randInt(0, 99) < 1)
-					this.sprint();
-				break;
+		switch(getCurrentActivity()) {
 
 			case FALLING:
 				Vector cPos = getPosition();
 				Vector cPosCube = cPos.getCubeCenterCoordinates();
-				if (cPos == cPosCube && isLowerSolid(cPos) && this.getWorld().getCube(cPos).isPassable()){
+				if (cPos == cPosCube && isLowerSolid(cPos) && this.getWorld().getCube(cPos).isPassable()) {
 					setCurrentSpeed(0);
 					setCurrentActivity(Activity.NONE);
-					removeHitpoints((int) (fallingLevel-cPos.Z()));
+					removeHitpoints((int) (fallingLevel - cPos.Z()));
 					//setHitpoints((int)(getHitpoints()-(fallingLevel-cPos.Z())));
 					fallingLevel = 0;
-				}
-				else{
+				} else {
 					double speed = getCurrentSpeed();
-					Vector nextPos = cPos.add(new Vector(0,0,-speed*dt));
-					if (isLowerSolid(cPos) && this.getWorld().getCube(cPos.getCubeCoordinates()).isPassable() && (cPosCube.isInBetween(2, cPos, nextPos)||cPos.Z() <= cPosCube.Z() ))
-							setPosition(cPosCube);
-					else if(nextPos.getCubeCenterCoordinates().isInBetween(2, cPos, nextPos) && isLowerSolid(nextPos) && this.getWorld().getCube(nextPos.getCubeCoordinates()).isPassable())
+					Vector nextPos = cPos.add(new Vector(0, 0, -speed * dt));
+					if (isLowerSolid(cPos) && this.getWorld().getCube(cPos.getCubeCoordinates()).isPassable() && (cPosCube.isInBetween(2, cPos, nextPos) || cPos.Z() <= cPosCube.Z()))
+						setPosition(cPosCube);
+					else if (nextPos.getCubeCenterCoordinates().isInBetween(2, cPos, nextPos) && isLowerSolid(nextPos) && this.getWorld().getCube(nextPos.getCubeCoordinates()).isPassable())
 						setPosition(nextPos.getCubeCenterCoordinates());
 					else
 						setPosition(nextPos);
 				}
 				break;
 
-			case REST:
-				int maxHp = getMaxHitpoints(this.getWeight(), this.getToughness());
-				int maxSt = getMaxStamina(this.getWeight(), this.getToughness());
-				double extraTime = -1d;
-				if(maxHp == this.getHitpoints() && maxSt==this.getStamina())
-					setCurrentActivity(Activity.NONE);
-				if(this.getHitpoints()<maxHp){
-					double extraRestHitpoints = getIntervalTicks(activityProgress, dt, REST_HITPOINTS_GAIN_INTERVAL)*this.getRestHitpointsGain();
-					int extraHitpoints = getIntervalTicks(restHitpoints, extraRestHitpoints, 1d);
-					int newHitpoints = this.getHitpoints() + extraHitpoints;
-					double newRestHitpoints = restHitpoints + extraRestHitpoints;
-					if(newHitpoints>=maxHp) {
-						newHitpoints = maxHp;
-						double neededExtraRestHitpoints = maxHp - this.getHitpoints() - restHitpoints % 1;
-						int neededTicks = (int)Math.ceil(neededExtraRestHitpoints/this.getRestHitpointsGain());
-						double neededTime = REST_HITPOINTS_GAIN_INTERVAL*neededTicks - activityProgress % REST_HITPOINTS_GAIN_INTERVAL;
-						extraTime = dt - neededTime;
-						assert extraTime >= 0;
-					}
-					this.setHitpoints(newHitpoints);
-					restHitpoints = newRestHitpoints;
-				}
-				if((this.getHitpoints()==maxHp && extraTime != 0d) && this.getStamina()<maxSt){
-					if(extraTime > 0d)
-						dt = extraTime;
-					double extraRestStamina = getIntervalTicks(activityProgress, dt, REST_STAMINA_GAIN_INTERVAL)*this.getRestStaminaGain();
-					int extraStamina = getIntervalTicks(restStamina, extraRestStamina, 1d);
-					int newStamina = this.getStamina() + extraStamina;
-					double newRestStamina = restStamina + extraRestStamina;
-					if(newStamina>=maxSt){
-						newStamina = maxSt;
-						newRestStamina = 0;
-						restHitpoints = 0;
-						setCurrentActivity(Activity.NONE);
-					}
-					this.setStamina(newStamina);
-					restStamina = newRestStamina;
-				}
-				break;
-
 			case NONE:
-				if(this.isDefaultActive())
+				if (this.isDefaultActive())
 					this.setDefaultBehaviour();
 				break;
-		if(!this.isResting()) {
-			restTimer += dt;
-			if (restTimer >= REST_INTERVAL && this.isAbleToRest()) {
-				rest();
-			}
 		}
-
 		this.getCurrentActivity().advanceTime(dt);
-
 	}
 
 	@Override
@@ -1383,25 +1202,6 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 		if(world.isValidPosition(position) && world.isCubePassable(position))
 			return true;
 		return false;
-	}
-
-	/**
-	 * This method returns how many times the specified time-interval (delta) is contained in newTime.
-	 * Where newTime is calculated as
-	 * | newTime = (prevProgress % delta) + dt
-	 * This method is used to determine game-time progression in a correct way inside the advanceTime method,
-	 * because otherwise certain intervals could be skipped. (For example when dt is always smaller than delta,
-	 * using dt / delta won't give the desired result)
-	 * @param prevProgress The previous progress of an activity
-	 * @param dt The time the progress will be increased with
-	 * @param delta The time-interval to check
-	 * @return How many times delta is contained in newTime
-	 * 			| newTime == (prevProgress % delta) + dt
-	 * 			| result == (newTime - newTime % delta) / delta
-	 */
-	public static int getIntervalTicks(double prevProgress, double dt, double delta){// TODO: move to utils? + find better name
-		double newTime = (prevProgress % delta) + dt;
-		return (int)((newTime - newTime % delta) / delta);
 	}
 
 	//endregion
@@ -1559,7 +1359,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	 * 			| isValidPosition(this.getPosition().getCubeCenterCoordinates().add(direction)) == false
      */
 	public void moveToAdjacent(Vector direction) throws IllegalStateException, IllegalArgumentException{
-		if(this.getStateDefault()!=2){
+		/*if(this.getStateDefault()!=2){
 			if(!this.isAbleToMove() )
 				throw new IllegalStateException("Unit is not able to move at this moment.");
 		}
@@ -1570,7 +1370,8 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 		// setNextPosition throws the exception
 		this.setNextPosition(this.getPosition().getCubeCenterCoordinates().add(direction));
 		this.lastPosition = this.getPosition();
-		setCurrentActivity(Activity.MOVE);
+		setCurrentActivity(Activity.MOVE);*/
+		setCurrentActivity(new AdjacentMove(this, direction));
 	}
 	
 	/**
@@ -1586,7 +1387,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	 * 			| new.targetPosition
      */
 	public void moveToAdjacent(int dx, int dy, int dz){
-		this.targetPosition = null;
+		this.targetPosition = null;// TODO move this to AdjacentMove
   		this.moveToAdjacent(new Vector(dx,dy,dz));
 	}
 	/**
@@ -1601,7 +1402,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	 * 		|!this.isAbleToMove()
 	 */
 	public void moveToTarget(Vector targetPosition) throws IllegalStateException, IllegalArgumentException{
-		if(this.getStateDefault()!=2){
+		/*if(this.getStateDefault()!=2){
 			if(!this.isAbleToMove())
 				throw new IllegalStateException("Unit is not able to move at this moment.");
 		}
@@ -1615,163 +1416,13 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 		PathCalculator p = new PathCalculator(targetPosition);
 		this.path = p.computePath(this.getPosition());
 		if(this.path != null)
-			setCurrentActivity(Activity.MOVE);
-	}
-	private void setTargetPosition(Vector target){
-		if(target!=null && !isValidPosition(target))
+			setCurrentActivity(Activity.MOVE);*/
+
+		if(targetPosition==null || !isValidPosition(targetPosition))
 			throw new IllegalArgumentException("The target is not a valid position.");
-		this.targetPosition = target;
-	}
-	/**
-	 * Method to let the Unit sprint.
-	 * @post the unit is sprinting.
-	 * 		| new.isSprinting() == true
-	 * @throws IllegalStateException * if the unit isn't able to sprint.
-	 * | !this.isAbleToSprint()
-	 */
-	public void sprint() throws IllegalStateException{
-		if(!this.isAbleToSprint())
-			throw new IllegalStateException("The Unit is not able to sprint!");
-		this.isSprinting = true;
-	}
-	/**
-	 * Method to let the Unit sprint.
-	 * @post the unit stop sprinting.
-	 * 		| new.isSprinting() == false
-	 */
-	public void stopSprint(){
-		this.isSprinting = false;
-	}
-	/**
-	 * Variable registering the last position of this unit.
-	 */
-	private Vector lastPosition;
-
-	//TODO: change names: ksnap het nu pas hoe het werkt, dus Path is ni echt het pad maar eerder een collectie
-	//		van posities met daarbij hoe ver het gelegen is van de target (N)
-	private class PathCalculator{
-
-		private final ArrayDeque<Map.Entry<Vector, Integer>> path = new ArrayDeque<>();
-		private final HashMap<Vector, Integer> lowestNByPosition = new HashMap<>();
-		private final Vector targetPosition;
-
-		public PathCalculator(Vector targetPosition){
-			//TODO: check if targetPosition is valid
-			this.targetPosition = targetPosition;
-			this.add(targetPosition, 0);
-		}
-
-		public boolean contains(Vector position){
-			return lowestNByPosition.containsKey(position);
-		}
-
-		public void add(Vector position, int n){
-			// n is hier n0+1 uit de opgave
-			// => enkel toevoegen indien er een n' bestaat waarvoor geldt dat n'+1>n=n0+1
-			// Dat is equivalent met NIET toevoegen als er een n' bestaat waarvoor geldt dat n'+1<=n=n0+1 of n'<=n0
-			if (lowestNByPosition.getOrDefault(position, n) + 1 > n) {
-				lowestNByPosition.put(position, n);
-				path.add(new AbstractMap.SimpleEntry<>(position, n));
-			}
-		}
-
-		public boolean hasNext(){
-			return !path.isEmpty();
-		}
-
-		public Map.Entry<Vector, Integer> getNext(){
-			Map.Entry<Vector, Integer> entry = path.remove();
-			return entry;
-		}
-
-		public Vector getNextPositionWithLowestN(Vector fromPosition){
-			List<Vector> nextPositions = Unit.this.getWorld().getNeighbouringCubesPositions(fromPosition);
-			Vector next = null;
-			int lowestN = -1;
-			for(Vector nextPosition : nextPositions){
-				if(lowestNByPosition.containsKey(nextPosition) && (lowestN==-1 || lowestNByPosition.get(nextPosition)<lowestN) &&
-						isValidNextPosition(fromPosition, nextPosition)){
-					lowestN = lowestNByPosition.get(nextPosition);
-					next = nextPosition;
-				}
-			}
-			return next;
-		}
-
-		public Path computePath(Vector fromPosition){
-			controlledPos.clear();
-			while (!this.contains(fromPosition.getCubeCoordinates()) && this.hasNext()) {
-				searchPath(this, this.getNext());
-			}
-			//controlledPos.clear();
-			if(this.contains(fromPosition.getCubeCoordinates())){// Path found
-				ArrayDeque<Vector> path = new ArrayDeque<>();
-				HashSet<Vector> pathPositions = new HashSet<>();
-				Vector pos = fromPosition.getCubeCoordinates();
-				while(!pos.equals(targetPosition)) {
-					pos = this.getNextPositionWithLowestN(pos);
-					path.add(pos);
-					pathPositions.add(pos);
-				}
-				return new Path(path, pathPositions);
-			}else
-				return null;// No path found
-		}
-	}
-	/**
-	 * Set registering the controlled positions.
-	 */
-	private List<Vector> controlledPos = new ArrayList<>();
-
-	private void searchPath(PathCalculator path, Map.Entry<Vector, Integer> start){
-		Set<Cube> nextCubes = getWorld().getNeighbouringCubes(start.getKey());
-		for(Cube nextCube : nextCubes){
-			Vector position = nextCube.getPosition();
-			if(isValidNextPosition(start.getKey(),position) && !controlledPos.contains(position)){
-				path.add(position, start.getValue()+1);
-				controlledPos.add(position);
-			}
-		}
-		/*Stream<Cube> nextCubes = getWorld().getDirectlyAdjacentCubes(start.getKey()).stream().filter(cube -> isValidPosition(cube.getPosition()));
-		nextCubes.forEach(cube -> path.add(cube.getPosition(), start.getValue()+1));*/
+		setCurrentActivity(new TargetMove(this, targetPosition));
 	}
 
-	public class Path{
-
-		private final ArrayDeque<Vector> path;
-		private final HashSet<Vector> pathPositions;
-
-		private Path(ArrayDeque<Vector> path, HashSet<Vector> pathPositions){
-			this.path = path;
-			this.pathPositions = pathPositions;
-		}
-
-		public boolean hasNext(){
-			return !path.isEmpty();
-		}
-
-		public Vector getNext(){
-			Vector next = path.remove();
-			pathPositions.remove(next);
-			return next;
-		}
-
-		public boolean contains(Vector pathPosition){
-			return pathPositions.contains(pathPosition);
-		}
-	}
-
-	private boolean isValidNextPosition(Vector fromPosition, Vector nextPosition){
-		if(fromPosition==null || nextPosition==null)
-			throw new IllegalArgumentException("The from and next position must be effective positions in order to check their validity.");
-		if(!isValidPosition(nextPosition)) return false;// Check if it's a valid position itself
-		for(Vector d : nextPosition.difference(fromPosition).decompose()){
-			if(!isValidPosition(fromPosition.add(d)) || !isValidPosition(nextPosition.difference(d))) return false;// Check if surrounding positions are valid too (prevent corner glitch)
-		}
-		return true;
-	}
-
-	private Path path;
 	//endregion
 	/**
 	 * Method to let the Unit rest.
@@ -1800,7 +1451,6 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 		if(this.getStateDefault() == 3)
 			this.stateDefault -=1;*/
 		setCurrentActivity(new Rest(this));
-		this.restTimer = 0d;// TODO: this is done by the Rest class
 	}
 
 	//endregion
@@ -2100,6 +1750,11 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 
 	public final class ActivityController{
 
+		/**
+		 * Variable registering the time passed since the unit's last rest.
+		 */
+		private double restTimer = 0d;
+
 		public final None NONE = new None(Unit.this);
 		public final Rest REST = new Rest(Unit.this);
 
@@ -2131,6 +1786,8 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 			}
 			this.activityStack.push(activity);
 			this.getCurrentActivity().start();
+			if(this.getCurrentActivity() instanceof Rest)
+				restTimer = 0d;// Reset rest timer
 		}
 
 		public void requestActivityFinish(Activity activity) throws IllegalArgumentException{
@@ -2156,6 +1813,8 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 			this.activityStack.pop();
 			if(oldActivity.wasSuccessful())
 				Unit.this.addXP(oldActivity.getXp());
+			if(oldActivity instanceof Rest)
+				restTimer = 0d;// Reset rest timer
 		}
 
 		private Activity getCurrentActivity(){
@@ -2169,7 +1828,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 		public void advanceTime(double dt){
 			if(!this.isResting()) {
 				restTimer += dt;
-				if (restTimer >= REST_INTERVAL && REST.isAbleTo()) {
+				if (restTimer >= Rest.REST_INTERVAL && REST.isAbleTo()) {
 					rest();
 				}
 			}

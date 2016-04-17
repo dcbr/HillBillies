@@ -77,4 +77,23 @@ public final class Utils {
             return result;
         }
     }
+
+    /**
+     * This method returns how many times the specified time-interval (delta) is contained in newTime.
+     * Where newTime is calculated as
+     * | newTime = (prevProgress % delta) + dt
+     * This method is used to determine game-time progression in a correct way inside the advanceTime method,
+     * because otherwise certain intervals could be skipped. (For example when dt is always smaller than delta,
+     * using dt / delta won't give the desired result)
+     * @param prevProgress The previous progress of an activity
+     * @param dt The time the progress will be increased with
+     * @param delta The time-interval to check
+     * @return How many times delta is contained in newTime
+     * 			| newTime == (prevProgress % delta) + dt
+     * 			| result == (newTime - newTime % delta) / delta
+     */
+    public static int getIntervalTicks(double prevProgress, double dt, double delta){// TODO: move to utils? + find better name
+        double newTime = (prevProgress % delta) + dt;
+        return (int)((newTime - newTime % delta) / delta);
+    }
 }

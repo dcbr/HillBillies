@@ -138,18 +138,7 @@ public class None extends Activity {
 				activity = 2;
 			*/
             //TODO: manier zoeken om alle bereikbare posities op te lijsten
-            Vector target = new Vector (randDouble(unit.getWorld().getMinPosition().X(), unit.getWorld().getMaxPosition().X()),
-                    randDouble(unit.getWorld().getMinPosition().Y(), unit.getWorld().getMaxPosition().Y()),
-                    randDouble(unit.getWorld().getMinPosition().Z(), unit.getWorld().getMaxPosition().Z()));
-            PathCalculator pathCalculator= new PathCalculator(this.getPosition());
-            Path path = pathCalculator.computePath(target);
-
-            if (path.hasNext())
-                this.moveToTarget(target);
-            else if (controlledPos.size() ==0)
-                activity = 2;
-            else
-                unit.moveToTarget(controlledPos.get(randInt(0, controlledPos.size()-1)));
+            controller.requestNewActivity(new TargetMove(unit));
 
             if (this.isAbleToSprint() && randInt(0, 99) < 1){
                 unit.sprint();

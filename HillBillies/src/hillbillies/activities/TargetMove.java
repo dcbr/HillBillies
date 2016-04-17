@@ -6,6 +6,9 @@ import hillbillies.utils.Vector;
 
 import java.util.*;
 
+import static hillbillies.utils.Utils.randDouble;
+import static hillbillies.utils.Utils.randInt;
+
 /**
  * Created by Bram on 17-4-2016.
  */
@@ -18,6 +21,28 @@ public class TargetMove extends Move {
         this.path = new PathCalculator(target.getCubeCenterCoordinates()).computePath(unit.getPosition());
         if(this.path==null)
             throw new IllegalArgumentException("The given target position is not reachable from the Unit's current position.");
+    }
+
+    public TargetMove(Unit unit){// Find random target
+        super(unit);
+
+        // For debugging only:
+        int nbLoops = 0;
+        while(this.path==null) {
+            nbLoops++;
+            Vector target = new Vector(randDouble(unit.getWorld().getMinPosition().X(), unit.getWorld().getMaxPosition().X()),
+                    randDouble(unit.getWorld().getMinPosition().Y(), unit.getWorld().getMaxPosition().Y()),
+                    randDouble(unit.getWorld().getMinPosition().Z(), unit.getWorld().getMaxPosition().Z()));
+            PathCalculator pathCalculator = new PathCalculator(unit.getPosition());
+            Path path = pathCalculator.computePath(target);
+
+            if(path!=null && path.hasNext())
+                this.path = path;
+            else if (pathCalculator.controlledPos.size() != 0)
+                this.path = new PathCalculator(pathCalculator.controlledPos.get(randInt(0, pathCalculator.controlledPos.size() - 1))).computePath(unit.getPosition());
+
+            System.out.println("[TargetMove] Number of loops to find correct target position: " + nbLoops);
+        }
     }
 
     /**
@@ -90,7 +115,7 @@ public class TargetMove extends Move {
         return 0;// Unit already gets its xp from AdjacentMove
     }
 
-    private final class PathCalculator{
+    private final class PathCalculator {
 
         /**
          * Set registering the controlled positions.
@@ -101,16 +126,16 @@ public class TargetMove extends Move {
         private final HashMap<Vector, Integer> positionDistances = new HashMap<>();
         private final Vector targetPosition;
 
-        private PathCalculator(Vector targetPosition){
+        private PathCalculator(Vector targetPosition) {
             this.targetPosition = targetPosition;
             this.add(targetPosition, 0);
         }
 
-        public boolean contains(Vector position){
+        public boolean contains(Vector position) {
             return positionDistances.containsKey(position);
         }
 
-        public void add(Vector position, int n){
+        public void add(Vector position, int n) {
             // n is hier n0+1 uit de opgave
             // => enkel toevoegen indien er een n' bestaat waarvoor geldt dat n'+1>n=n0+1
             // Dat is equivalent met NIET toevoegen als er een n' bestaat waarvoor geldt dat n'+1<=n=n0+1 of n'<=n0
@@ -120,21 +145,21 @@ public class TargetMove extends Move {
             }
         }
 
-        public boolean hasNext(){
+        public boolean hasNext() {
             return !remainingPositions.isEmpty();
         }
 
-        public Map.Entry<Vector, Integer> getNext(){
+        public Map.Entry<Vector, Integer> getNext() {
             return remainingPositions.remove();
         }
 
-        public Vector getNextPositionWithLowestDistance(Vector fromPosition){
+        public Vector getNextPositionWithLowestDistance(Vector fromPosition) {
             List<Vector> nextPositions = TargetMove.this.unit.getWorld().getNeighbouringCubesPositions(fromPosition);
             Vector next = null;
             int lowestDistance = -1;
-            for(Vector nextPosition : nextPositions){
-                if(positionDistances.containsKey(nextPosition) && (lowestDistance==-1 || positionDistances.get(nextPosition)<lowestDistance) &&
-                        TargetMove.this.isValidNextPosition(fromPosition, nextPosition)){
+            for (Vector nextPosition : nextPositions) {
+                if (positionDistances.containsKey(nextPosition) && (lowestDistance == -1 || positionDistances.get(nextPosition) < lowestDistance) &&
+                        TargetMove.this.isValidNextPosition(fromPosition, nextPosition)) {
                     lowestDistance = positionDistances.get(nextPosition);
                     next = nextPosition;
                 }
@@ -142,32 +167,32 @@ public class TargetMove extends Move {
             return next;
         }
 
-        public Path computePath(Vector fromPosition){
+        public Path computePath(Vector fromPosition) {
             controlledPos.clear();
             while (!this.contains(fromPosition.getCubeCoordinates()) && this.hasNext()) {
                 searchPath(this, this.getNext());
             }
             //controlledPos.clear();
-            if(this.contains(fromPosition.getCubeCoordinates())){// Path found
+            if (this.contains(fromPosition.getCubeCoordinates())) {// Path found
                 ArrayDeque<Vector> path = new ArrayDeque<>();
                 HashSet<Vector> pathPositions = new HashSet<>();
                 Vector pos = fromPosition.getCubeCoordinates();
-                while(!pos.equals(targetPosition)) {
+                while (!pos.equals(targetPosition)) {
                     pos = this.getNextPositionWithLowestDistance(pos);
                     path.add(pos);
                     pathPositions.add(pos);
                 }
                 return new Path(path, pathPositions);
-            }else
+            } else
                 return null;// No path found
         }
 
-        private void searchPath(PathCalculator path, Map.Entry<Vector, Integer> start){
+        private void searchPath(PathCalculator path, Map.Entry<Vector, Integer> start) {
             Set<Cube> nextCubes = TargetMove.this.unit.getWorld().getNeighbouringCubes(start.getKey());
-            for(Cube nextCube : nextCubes){
+            for (Cube nextCube : nextCubes) {
                 Vector position = nextCube.getPosition();
-                if(TargetMove.this.isValidNextPosition(start.getKey(),position) && !controlledPos.contains(position)){
-                    path.add(position, start.getValue()+1);
+                if (TargetMove.this.isValidNextPosition(start.getKey(), position) && !controlledPos.contains(position)) {
+                    path.add(position, start.getValue() + 1);
                     controlledPos.add(position);
                 }
             }

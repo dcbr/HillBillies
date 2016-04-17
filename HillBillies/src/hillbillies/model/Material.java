@@ -82,7 +82,7 @@ public class Material implements IWorldObject {
         if(!this.hasValidPosition()){
             this.fallingPosition = this.getPosition();
             this.setOwner(null);
-        }
+        }// TODO: fix this (separate method isValidPosition which checks position and not owner Unit?)
         //TODO: (for next part) move falling code to separate place
         Vector cPos = this.getPosition();
         Vector cPosCube = cPos.getCubeCenterCoordinates();

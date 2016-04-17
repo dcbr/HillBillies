@@ -110,7 +110,7 @@ public class Rest extends Activity {
      */
     @Override
     protected boolean shouldStopFor(Activity nextActivity) {
-        return false;
+        return true;
     }
 
     /**
@@ -121,7 +121,7 @@ public class Rest extends Activity {
      */
     @Override
     protected boolean shouldInterruptFor(Activity nextActivity) {
-        return false;
+        return false;// TODO: defense
     }
 
     /**

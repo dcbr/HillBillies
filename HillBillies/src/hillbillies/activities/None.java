@@ -1,8 +1,13 @@
 package hillbillies.activities;
 
+import hillbillies.model.Cube;
 import hillbillies.model.Unit;
 import hillbillies.utils.Vector;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import static hillbillies.utils.Utils.randDouble;
 import static hillbillies.utils.Utils.randInt;
 
 /**
@@ -14,35 +19,80 @@ public class None extends Activity {
         super(unit);
     }
 
+    /**
+     * Activity specific code which is called when the Activity is started.
+     */
     @Override
-    public void startActivity() {
+    protected void startActivity() {
 
     }
 
+    /**
+     * Activity specific code which is called when the Activity is stopped.
+     */
     @Override
-    public void stopActivity() {
+    protected void stopActivity() {
 
     }
 
+    /**
+     * Activity specific code which is called when the Activity is interrupted.
+     * This code is also called before stopActivity when the Activity is stopped.
+     */
     @Override
-    public void interruptActivity() {
+    protected void interruptActivity() {
 
     }
 
+    /**
+     * Activity specific code which is called when advanceTime of this Activity is called.
+     *
+     * @param dt
+     */
     @Override
-    public void advanceActivity(double dt) {
+    protected void advanceActivity(double dt) {
         if(this.isDefault())
             setDefaultBehaviour();
     }
 
+    /**
+     * Activity specific code to check whether this Activity can be started.
+     *
+     * @return True if this Activity can be started as the nextActivity of the currently active Activity.
+     */
     @Override
     public boolean isAbleTo() {
         return !unit.isInitialRestMode() && !unit.isAttacking() && !unit.isWorking();
     }
 
+    /**
+     * Activity specific code to check whether this Activity can be stopped by nextActivity.
+     *
+     * @param nextActivity The Activity which will be started when this Activity stops.
+     * @return True if this Activity should stop for nextActivity.
+     */
     @Override
-    public boolean shouldInterrupt(Activity activity) {
+    protected boolean shouldStopFor(Activity nextActivity) {
         return false;
+    }
+
+    /**
+     * Activity specific code to check whether this Activity can be interrupted by nextActivity.
+     *
+     * @param nextActivity The Activity which will be started when this Activity is interrupted.
+     * @return True if this Activity should be interrupted for nextActivity.
+     */
+    @Override
+    protected boolean shouldInterruptFor(Activity nextActivity) {
+        return false;
+    }
+
+    /**
+     * Returns the amount of XP the Unit will get when this Activity stops successfully.
+     */
+    @Override
+    public int getXp() {
+        return 0;
     }
 
     @Override
@@ -58,28 +108,60 @@ public class None extends Activity {
      * @post The new state of the default behaviour is equal to startDoingDefault()
      * | new.isDoingDefault() == startDoingDefault()
      * @throws IllegalStateException * The default behaviour is not activated for this unit.
-     * |   !this.isDefaultActive()
+     * |   !this.isDefault()
      */
-    public void setDefaultBehaviour() throws IllegalStateException{
+    private void setDefaultBehaviour() throws IllegalStateException{
         if(!this.isDefault())
             throw new IllegalStateException("The default behaviour of unit is not activated");
-        //this.startDoingDefault();
-        int activity = randInt(0,2);
-        switch(activity) {
-            case 0:
-                unit.moveToTarget(new Vector(Math.random() * (Unit.MAX_POSITION.X() - Unit.MIN_POSITION.X()) + Unit.MIN_POSITION.X(),
-                        Math.random() * (Unit.MAX_POSITION.Y() - Unit.MIN_POSITION.Y()) + Unit.MIN_POSITION.Y(),
-                        Math.random() * (Unit.MAX_POSITION.Z() - Unit.MIN_POSITION.Z()) + Unit.MIN_POSITION.Z()));
-                if (unit.isAbleToSprint() && randInt(0, 99) < 1) {
-                    unit.sprint();
-                }
-                break;
-            case 1:
-                unit.work();
-                break;
-            case 2:
-                unit.rest();
-                break;
+
+        List<Cube> AdjCubes = new ArrayList<Cube>(unit.getWorld().getDirectlyAdjacentCubes(unit.getPosition().getCubeCoordinates()));
+        List<Unit> units = new ArrayList<>();
+        for (int i = 0; i < AdjCubes.size(); i++){
+            units.addAll(unit.getWorld().getUnitsInCube(AdjCubes.get(i)));
+        }
+        units.removeIf(defender -> unit.getFaction() == defender.getFaction());
+        int nb = 2;
+        if (units.size() > 0)
+            nb +=1;
+        int activity = randInt(0,nb);
+        if (activity ==0){
+            if (unit.getHitpoints() == Unit.getMaxHitpoints(unit.getWeight(), unit.getToughness()) && unit.getStamina() == Unit.getMaxStamina(unit.getWeight(), unit.getToughness()))
+                activity = randInt(1,nb);
+            else unit.rest();
+        }
+        if (activity ==1){
+			/*PathCalculator p = new PathCalculator(this.getPosition());
+			Vector target = new Vector(-1,-1,-1);
+			this.path = p.computePath(this.getPosition());
+			int size = controlledPos.size();
+			if( size == 0)
+				activity = 2;
+			*/
+            //TODO: manier zoeken om alle bereikbare posities op te lijsten
+            Vector target = new Vector (randDouble(unit.getWorld().getMinPosition().X(), unit.getWorld().getMaxPosition().X()),
+                    randDouble(unit.getWorld().getMinPosition().Y(), unit.getWorld().getMaxPosition().Y()),
+                    randDouble(unit.getWorld().getMinPosition().Z(), unit.getWorld().getMaxPosition().Z()));
+            PathCalculator pathCalculator= new PathCalculator(this.getPosition());
+            Path path = pathCalculator.computePath(target);
+
+            if (path.hasNext())
+                this.moveToTarget(target);
+            else if (controlledPos.size() ==0)
+                activity = 2;
+            else
+                unit.moveToTarget(controlledPos.get(randInt(0, controlledPos.size()-1)));
+
+            if (this.isAbleToSprint() && randInt(0, 99) < 1){
+                unit.sprint();
+            }
+        }
+        if (activity == 2) {
+            List<Vector> workPositions = unit.getWorld().getDirectlyAdjacentCubesPositions(unit.getPosition());
+            workPositions.add(unit.getPosition());
+            unit.work(workPositions.get(randInt(0,workPositions.size()-1)));
+        }
+        if (activity == 3){
+            unit.attack(units.get(randInt(0,units.size()-1)));
         }
     }
 }

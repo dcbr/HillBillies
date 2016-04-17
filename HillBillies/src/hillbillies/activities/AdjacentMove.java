@@ -7,7 +7,7 @@ import hillbillies.utils.Vector;
 /**
  * Created by Bram on 17-4-2016.
  */
-public class AdjacentMove extends Move {
+public class AdjacentMove extends Move {// TODO: make distinction between AdjacentMoves called by Unit and called by TargetMove
 
     private final Vector nextPosition;
 

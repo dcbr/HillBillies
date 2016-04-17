@@ -7,7 +7,8 @@ import static hillbillies.utils.Utils.*;
 
 /**
  * Minpunten:
- *  - Geen private setters in unit
+ *  - Geen private setters in unit -> maybe save Unit properties in Objects instead of primitives (Integer instead of int)
+ *      and give each activity a reference to these properties?
  */
 
 /**

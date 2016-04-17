@@ -201,12 +201,6 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	 * Variable registering the orientation of this Unit.
 	 */
 	private float orientation;
-
-
-	/**
-	 * Variable registering the current Activity of this unit.
-	 */
-	private Activity activity;
 	//endregion
 
 	//region Static getters
@@ -506,19 +500,12 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	}
 
 	/**
-	 * Return the current Activity of this unit.
-	 */
-	@Raw
-	private Activity getCurrentActivity() {
-		return this.activity;
-	}
-	/**
 	 * Return the current speed of this unit.
 	 */
 	public double getCurrentSpeed(){
 		if(!this.isMoving() && !this.isFalling())
 			return (0d);
-		return ((Move)this.getCurrentActivity()).getCurrentSpeed();
+		return ((Move)this.activityController.getCurrentActivity()).getCurrentSpeed();
 	}
 
 	/**
@@ -547,15 +534,6 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	public String getName() {
 		return this.name;
 	}
-
-	/**
-	 * Return the next position of this unit.
-	 */
-	@Basic
-	@Raw
-	public Vector getNextPosition(){
-		return (this.nextPosition==null) ? null : this.nextPosition.clone();// TODO: move this to AdjacentMove
-	}
 	
 	/**
 	 * Return the orientation of this Unit.
@@ -566,23 +544,12 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 		return this.orientation;
 	}
 
-	private double getRestHitpointsGain(){
-		return this.getToughness()/200d;
-	}
-
 	/**
 	 * Return the stamina of this unit.
 	 */
 	@Basic @Raw
 	public int getStamina() {
 		return this.stamina;
-	}
-	/**
-	 * Return a integer indicating in what state the default behaviour is.
-	 */
-	@Basic
-	public int getStateDefault(){
-		return this.stateDefault;
 	}
 
 	/**
@@ -618,7 +585,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	 */
 	@Raw
 	public boolean isAttacking() {
-		return this.getCurrentActivity() instanceof Attack;
+		return this.activityController.isAttacking();
 	}
 
 	/**
@@ -626,7 +593,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	 */
 	@Basic
 	public boolean isDefaultActive(){
-		return this.getCurrentActivity().isDefault();
+		return this.activityController.getCurrentActivity().isDefault();
 	}
 
 	/**
@@ -634,25 +601,28 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	 * is in its initial resting period.
 	 */
 	public boolean isInitialRestMode(){
-		return this.isResting() && ((Rest)this.getCurrentActivity()).isInitialRestMode();
+		return this.isResting() && ((Rest)this.activityController.getCurrentActivity()).isInitialRestMode();
 	}
 	/**
 	 * Return a boolean indicating whether or not this person
 	 * is moving.
 	 */
 	public boolean isMoving(){
-		return this.getCurrentActivity() instanceof Move;
+		return this.activityController.isMoving();
+	}
+	public boolean isResting(){
+		return this.activityController.isResting();
 	}
 	/**
 	 * Return a boolean indicating whether or not this person
 	 * is sprinting.
 	 */
 	public boolean isSprinting(){
-		return this.isMoving() && ((Move)this.getCurrentActivity()).isSprinting();
+		return this.isMoving() && ((Move)this.activityController.getCurrentActivity()).isSprinting();
 	}
 
 	public boolean isWorking(){
-		return this.getCurrentActivity() instanceof Work;// TODO: check if currentActivity.isActive ?
+		return this.activityController.isWorking();
 	}
 
 	//endregion
@@ -686,96 +656,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 			this.setWeight(minWeight);
 	}
 
-	/**
-	 * Set the current Activity of this unit to the given current Activity.
-	 *
-	 * @param  activity
-	 *         The new current Activity for this unit.
-	 * @post   The current Activity of this new unit is equal to
-	 *         the given current Activity.
-	 *       | new.getCurrentActivity() == activity
-	 * @post	The activityProgress timer is reset
-	 * 			| new.activityProgress == 0d
-	 */
-	@Raw
-	private void setCurrentActivity(Activity activity) {
-		if(activity.getUnitId()!=this.getId())
-			throw new IllegalArgumentException("This activity is not bound to this unit.");
-		if(activity.isActive())
-			throw new IllegalArgumentException("This activity is already active.");
-		// TODO: check if current activity should be interrupted instead of being stopped
-		boolean isDefault = this.activity.isDefault();
-		this.activity.stop();
-		this.activity = activity;
-		if(activity!=Activity.MOVE)
-			stopSprint();
-		this.activity.start(isDefault);
-	}
-	
-	/**
-	 * Set current activity of this Unit to a random activity.
-	 * @post The new current activity of this new Unit is equal to
-	 * a random activity.
-	 * | new.getCurrentActivity()
-	 * @post The new state of the default behaviour is equal to startDoingDefault()
-	 * | new.isDoingDefault() == startDoingDefault()
-	 * @throws IllegalStateException * The default behaviour is not activated for this unit.
-	 * |   !this.isDefaultActive()
-	 */
-	public void setDefaultBehaviour() throws IllegalStateException{
-		if(!this.isDefaultActive())
-			throw new IllegalStateException("The default behaviour of unit is activated");
-		this.startDoingDefault();
-		List<Cube> AdjCubes = new ArrayList<Cube>(this.getWorld().getDirectlyAdjacentCubes(this.getPosition().getCubeCoordinates()));
-		List<Unit> units = new ArrayList<>();
-		for (int i = 0; i < AdjCubes.size(); i++){
-			units.addAll(this.getWorld().getUnitsInCube(AdjCubes.get(i)));
-		}
-		units.removeIf(unit -> this.getFaction() == unit.getFaction());
-		int nb = 2;
-		if (units.size() > 0)
-			nb +=1;
-		int activity = randInt(0,nb);
-		if (activity ==0){
-			if (getHitpoints() == getMaxHitpoints(getWeight(), getToughness()) && getStamina() == getMaxStamina(getWeight(), getToughness()))
-				activity = randInt(1,nb);
-			else this.rest();
-		}
-		if (activity ==1){
-			/*PathCalculator p = new PathCalculator(this.getPosition());
-			Vector target = new Vector(-1,-1,-1);
-			this.path = p.computePath(this.getPosition());
-			int size = controlledPos.size();
-			if( size == 0)
-				activity = 2;
-			*/
-			//TODO: manier zoeken om alle bereikbare posities op te lijsten
-			Vector target = new Vector (randDouble(getWorld().getMinPosition().X(), getWorld().getMaxPosition().X()),
-					randDouble(getWorld().getMinPosition().Y(), getWorld().getMaxPosition().Y()),
-					randDouble(getWorld().getMinPosition().Z(), getWorld().getMaxPosition().Z()));
-			PathCalculator pathCalculator= new PathCalculator(this.getPosition());
-			Path path = pathCalculator.computePath(target);
 
-			if (path.hasNext())
-				this.moveToTarget(target);
-			else if (controlledPos.size() ==0)
-				activity = 2;
-			else
-				this.moveToTarget(controlledPos.get(randInt(0, controlledPos.size()-1)));
-
-			if (this.isAbleToSprint() && randInt(0, 99) < 1){
-				this.sprint();
-			}
-		}
-		if (activity == 2) {
-			List<Vector> workPositions = getWorld().getDirectlyAdjacentCubesPositions(this.getPosition());
-			workPositions.add(this.getPosition());
-			this.work(workPositions.get(randInt(0,workPositions.size()-1)));
-		}
-		if (activity == 3){
-			this.attack(units.get(randInt(0,units.size()-1)));
-		}
-	}
 
 	/**
 	 * Set the hitpoints of this unit to the given hitpoints.
@@ -1115,8 +996,6 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 		this.setInitialHitpoints(hitpoints);
 		// Total
 		this.setOrientation(INITIAL_ORIENTATION);
-
-		this.setCurrentActivity(Activity.NONE);
 	}
 
 	//endregion
@@ -1152,13 +1031,8 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 						setPosition(nextPos);
 				}
 				break;
-
-			case NONE:
-				if (this.isDefaultActive())
-					this.setDefaultBehaviour();
-				break;
 		}
-		this.getCurrentActivity().advanceTime(dt);
+		this.activityController.advanceTime(dt);
 	}
 
 	@Override
@@ -1209,32 +1083,15 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	//region Default behaviour
 
 	/**
-	 * Variable registering the state of the default behaviour.
-	 */
-	private int stateDefault = 0
-			// 0 && 1(in moveToAdjacent)= not doing default behaviour
-			// 2= doing the default behaviour
-			// 3= starting default behaviour
-			;
-
-	/**
 	 * Activate the default behaviour of this unit.
 	 *
 	 * @post	Default behaviour of this unit is activated.
 	 *       	| new.isDefaultActive() == true
 	 */
 	public void startDefaultBehaviour(){
-		this.getCurrentActivity().setDefault(true);
+		this.activityController.getCurrentActivity().setDefault(true);
 	}
-	/**
-	 * Start the default behaviour of this unit.
-	 *
-	 * @post   Default behaviour of this unit is started.
-	 *       | new.getStateDefault()
-	 */
-	private void startDoingDefault(){
-		this.stateDefault = 3;
-	}
+
 	/**
 	 * Deactivate the default behaviour of this unit.
 	 *
@@ -1246,25 +1103,12 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	 * 			| new.getCurrentActivity() == NONE.
 	 */
 	public void stopDefaultBehaviour(){
-		this.stopDoingDefault();
-		this.getCurrentActivity().setDefault(false);
-		this.setCurrentActivity(new None(this));
-	}
-	/**
-	 * Stop the default behaviour of this unit.
-	 *
-	 * @post   Default behaviour of this unit is stopped.
-	 *       | new.getStateDefault()
-	 */
-	private void stopDoingDefault(){
-		this.stopSprint();
-		this.stateDefault = 0;
+		this.activityController.getCurrentActivity().setDefault(false);
+		this.activityController.requestActivityFinish(this.activityController.getCurrentActivity());
 	}
 	//endregion
 
 	//region Fighting
-
-	
 	/**
 	 * Let this unit attack the defender.
 	 *
@@ -1287,29 +1131,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	 * 			| !this.isValidAttack(defender)	
 	 */
 	public void attack(Unit defender) throws IllegalArgumentException{
-		/*if(this.getStateDefault()!=2){
-			if (!this.isValidAttack(defender))
-				throw new IllegalArgumentException("Cannot attack that unit");
-		}
-		if(this.getStateDefault() ==2)
-			this.stopDoingDefault();
-		this.startAttacking();
-		//Orientation
-		double dx = (defender.getPosition().X()-this.getPosition().X());
-		double dy = (defender.getPosition().Y()-this.getPosition().Y());
-		defender.setOrientation((float)Math.atan2(-dy, -dx));
-		this.setOrientation((float)Math.atan2(dy, dx));
-
-		defender.defend(this);
-		if(isSuccessFulAttack){
-			this.addXP(FIGHT_POINTS);
-			isSuccessFulAttack = false;
-		}
-		else
-			defender.addXP(FIGHT_POINTS);
-		setCurrentActivity(Activity.ATTACK);
-			this.stopDoingDefault();*/
-		setCurrentActivity(new Attack(this, defender));
+		activityController.requestNewActivity(new Attack(this, defender));
 	}
 	
 	/**
@@ -1321,26 +1143,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	 * 			If it fails to dodge and block, this unit will lose hitpoins.
 	 */
 	public void defend(Unit attacker){// Code is moved to Activity Attack
-		/*setCurrentActivity(this.getCurrentActivity());// TODO: check if this is still correct
-		//dodging
-		if ((randInt(0,99)/100.0) < this.getDodgingProbability(attacker)){
-			Boolean validDodge = false;
-			while(! validDodge) {// TODO: in part2 replace this by a list of valid positions and choose a random element from that list
-				int dodgeX = randInt(-1, 1);
-				int dodgeY = randInt(-1, 1);
-				Vector newPos = this.getPosition().add(new Vector(dodgeX, dodgeY, 0));
-				if ((dodgeX != 0 || dodgeY != 0) &&
-						(isValidDodgePos(newPos))) {
-					validDodge = true;
-					this.setPosition(getPosition().add(new Vector(dodgeX,dodgeY,0)));
-				}
-			}
-		}// fails to block
-		else if (!((randInt(0,99)/100.0) < this.getBlockingProbability(attacker))){
-			removeHitpoints(this.getDamagingPoints(attacker));
-			//this.setHitpoints(this.getHitpoints()- this.getDamagingPoints(attacker));
-			isSuccessFulAttack = true;
-		}*/
+		// TODO: what must happen when this method is called?
 	}
 	//endregion
 
@@ -1359,37 +1162,9 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	 * 			| isValidPosition(this.getPosition().getCubeCenterCoordinates().add(direction)) == false
      */
 	public void moveToAdjacent(Vector direction) throws IllegalStateException, IllegalArgumentException{
-		/*if(this.getStateDefault()!=2){
-			if(!this.isAbleToMove() )
-				throw new IllegalStateException("Unit is not able to move at this moment.");
-		}
-		if(this.getStateDefault() ==2) 
-			this.stopDoingDefault();
-		if(this.getStateDefault() >=1)
-			this.stateDefault -=1;
-		// setNextPosition throws the exception
-		this.setNextPosition(this.getPosition().getCubeCenterCoordinates().add(direction));
-		this.lastPosition = this.getPosition();
-		setCurrentActivity(Activity.MOVE);*/
-		setCurrentActivity(new AdjacentMove(this, direction));
+		activityController.requestNewActivity(new AdjacentMove(this, direction));
 	}
-	
-	/**
-	 * Method to let the Unit move to an adjacent cube.
-	 * @param dx The x direction to move towards.
-	 * @param dy The y direction to move towards.
-	 * @param dz The z direction to move towards.
-	 * @pre 	Since this method can only be used to move to neighbouring cubes,
-	 * each element must have a value of (-)1 or 0.
-	 * @post	The unit moves to the adjacent cube in direction (dx, dy, dz)
-	 * 			| this.moveToAdjacent(Vector(dx,dy,dz))
-	 * @post	targetPosition of this unit is set to its default value.
-	 * 			| new.targetPosition
-     */
-	public void moveToAdjacent(int dx, int dy, int dz){
-		this.targetPosition = null;// TODO move this to AdjacentMove
-  		this.moveToAdjacent(new Vector(dx,dy,dz));
-	}
+
 	/**
 	 * Method to let the Unit move to a target.
 	 * @param targetPosition 
@@ -1402,25 +1177,9 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	 * 		|!this.isAbleToMove()
 	 */
 	public void moveToTarget(Vector targetPosition) throws IllegalStateException, IllegalArgumentException{
-		/*if(this.getStateDefault()!=2){
-			if(!this.isAbleToMove())
-				throw new IllegalStateException("Unit is not able to move at this moment.");
-		}
-		if(this.getStateDefault() ==2)
-			this.stopDoingDefault();
-		if(this.getStateDefault() == 3)
-			this.stateDefault -=1;
-
-		this.lastPosition = this.getPosition();// TODO: lastPosition will be overriden with every call to moveToAdjacent
-		setTargetPosition(targetPosition.getCubeCenterCoordinates());// TODO: make setter and getter for targetPosition and check for invalid positions
-		PathCalculator p = new PathCalculator(targetPosition);
-		this.path = p.computePath(this.getPosition());
-		if(this.path != null)
-			setCurrentActivity(Activity.MOVE);*/
-
 		if(targetPosition==null || !isValidPosition(targetPosition))
 			throw new IllegalArgumentException("The target is not a valid position.");
-		setCurrentActivity(new TargetMove(this, targetPosition));
+		activityController.requestNewActivity(new TargetMove(this, targetPosition));
 	}
 
 	//endregion
@@ -1442,15 +1201,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	 * | !this.isAbleToRest()
 	 */
 	public void rest() throws IllegalStateException{
-		/*if(this.getStateDefault()!=2){
-			if(!isAbleToRest())
-				throw new IllegalStateException("This unit cannot rest at this moment");
-		}
-		if(this.getStateDefault() ==2)
-			this.stopDoingDefault();
-		if(this.getStateDefault() == 3)
-			this.stateDefault -=1;*/
-		setCurrentActivity(new Rest(this));
+		activityController.requestNewActivity(new Rest(this));
 	}
 
 	//endregion
@@ -1475,22 +1226,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	 * 			| !isValidWorkPosition(position)
 	 */
 	public void work(Vector position) throws IllegalStateException, IllegalArgumentException{
-		/*if(this.getStateDefault()!=2){
-			if(!this.isAbleToWork())
-				throw new IllegalStateException("Unit is not able to work at this moment");
-		}
-		if(this.getStateDefault() ==2)
-			this.stopDoingDefault();
-		if(this.getStateDefault() == 3)
-			this.stateDefault -=1;
-		setWorkCube(this.getWorld().getCube(position.getCubeCoordinates()));
-		setWorkProgress(0);// TODO: change workProgress to activityProgress
-		setWorkDuration(getWorkingTime(this.getStrength()));
-		Vector workDirection = position.getCubeCoordinates().difference(this.getPosition().getCubeCoordinates());
-		if(workDirection.X()!=0 || workDirection.Y()!=0)
-			setOrientation((float) Math.atan2(workDirection.Y(),workDirection.X()));
-		setCurrentActivity(Activity.WORK);*/
-		setCurrentActivity(new Work(this, position));
+		activityController.requestNewActivity(new Work(this, position));
 	}
 
 
@@ -1780,6 +1516,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 				try{
 					this.getCurrentActivity().stop(activity);
 					this.activityStack.pop();
+					// TODO: first stop previous activities in stack?
 				}catch(IllegalStateException stopException){
 					throw new IllegalStateException("The current activity cannot be interrupted nor stopped by the given Activity.");
 				}

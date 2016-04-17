@@ -144,7 +144,6 @@ public class Rest extends Activity {
     private double getRestHitpointsGain(){
         return unit.getToughness()/200d;
     }
-
     private double getRestStaminaGain(){
         return unit.getToughness()/100d;
     }

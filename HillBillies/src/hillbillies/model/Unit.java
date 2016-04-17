@@ -988,8 +988,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 			Vector target = new Vector (randDouble(getWorld().getMinPosition().X(), getWorld().getMaxPosition().X()),
 					randDouble(getWorld().getMinPosition().Y(), getWorld().getMaxPosition().Y()),
 					randDouble(getWorld().getMinPosition().Z(), getWorld().getMaxPosition().Z()));
-			PathCalculator pathCalculator= new PathCalculator(this.getPosition());
-			Path path = pathCalculator.computePath(target);
+			Path path = new PathCalculator(this.getPosition()).computePath(target);
 			
 			if (path!= null && path.hasNext())
 				this.moveToTarget(target);

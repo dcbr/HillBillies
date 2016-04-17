@@ -79,26 +79,28 @@ public class Material implements IWorldObject {
 
     @Override
     public void advanceTime(double dt) {
-        if(!this.hasValidPosition()){
-            this.fallingPosition = this.getPosition();
-            this.setOwner(null);
-        }
-        //TODO: (for next part) move falling code to separate place
-        Vector cPos = this.getPosition();
-        Vector cPosCube = cPos.getCubeCenterCoordinates();
-        if (cPos.equals(cPosCube) && this.hasValidPosition()){
-            this.setOwner(this.getWorld().getCube(cPos.getCubeCoordinates()));
-        }
-        else{
-            double speed = 3;
-            Vector nextPos = cPos.add(new Vector(0,0,-speed*dt));
-            if (this.hasValidPosition() && ((cPosCube.isInBetween(2, cPos, nextPos) || cPos.Z() <= cPosCube.Z() )))
-                this.fallingPosition = cPosCube;
-            else if(nextPos.getCubeCenterCoordinates().isInBetween(2, cPos, nextPos) && isValidPosition(nextPos))
-                this.fallingPosition = nextPos.getCubeCenterCoordinates();
-            else
-                this.fallingPosition = nextPos;
-        }
+    	if(! (this.getOwner() instanceof Unit)){
+	        if(!this.hasValidPosition()){
+	            this.fallingPosition = this.getPosition();
+	            this.setOwner(null);
+	        }
+	        //TODO: (for next part) move falling code to separate place
+	        Vector cPos = this.getPosition();
+	        Vector cPosCube = cPos.getCubeCenterCoordinates();
+	        if (cPos.equals(cPosCube) && this.hasValidPosition()){
+	            this.setOwner(this.getWorld().getCube(cPos.getCubeCoordinates()));
+	        }
+	        else{
+	            double speed = 3;
+	            Vector nextPos = cPos.add(new Vector(0,0,-speed*dt));
+	            if (this.hasValidPosition() && ((cPosCube.isInBetween(2, cPos, nextPos) || cPos.Z() <= cPosCube.Z() )))
+	                this.fallingPosition = cPosCube;
+	            else if(nextPos.getCubeCenterCoordinates().isInBetween(2, cPos, nextPos) && isValidPosition(nextPos))
+	                this.fallingPosition = nextPos.getCubeCenterCoordinates();
+	            else
+	                this.fallingPosition = nextPos;
+	        }
+    	}
     }
 
     //region Setters

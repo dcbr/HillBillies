@@ -73,7 +73,7 @@ public class None extends Activity {
      */
     @Override
     protected boolean shouldStopFor(Activity nextActivity) {
-        return false;
+        return true;// None can stop for any Activity
     }
 
     /**
@@ -83,8 +83,8 @@ public class None extends Activity {
      * @return True if this Activity should be interrupted for nextActivity.
      */
     @Override
-    protected boolean shouldInterruptFor(Activity nextActivity) {
-        return false;
+    protected boolean shouldInterruptFor(Activity nextActivity) {// TODO: if this is set to true, None will always be the lowest Activity on activityStack?
+        return true;// None can be interrupted for any Activity
     }
 
     /**
@@ -138,7 +138,7 @@ public class None extends Activity {
 				activity = 2;
 			*/
             //TODO: manier zoeken om alle bereikbare posities op te lijsten
-            controller.requestNewActivity(new TargetMove(unit));
+            /*controller*/unit.requestNewActivity(new TargetMove(unit));
 
             /*if (this.isAbleToSprint() && randInt(0, 99) < 1){
                 unit.sprint();

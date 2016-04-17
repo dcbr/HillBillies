@@ -505,7 +505,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	public double getCurrentSpeed(){
 		if(!this.isMoving() && !this.isFalling())
 			return (0d);
-		return ((Move)this.activityController.getCurrentActivity()).getCurrentSpeed();
+		return ((Move)this./*activityController.*/getCurrentActivity()).getCurrentSpeed();
 	}
 
 	/**
@@ -583,17 +583,17 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	 * Return a boolean indicating whether or not this person
 	 * is attacking.
 	 */
-	@Raw
+	/*@Raw
 	public boolean isAttacking() {
 		return this.activityController.isAttacking();
-	}
+	}*/
 
 	/**
 	 * Return a boolean indicating whether or not the units default behaviour is activated.
 	 */
 	@Basic
 	public boolean isDefaultActive(){
-		return this.activityController.getCurrentActivity().isDefault();
+		return this./*activityController.*/getCurrentActivity().isDefault();
 	}
 
 	/**
@@ -601,29 +601,29 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	 * is in its initial resting period.
 	 */
 	public boolean isInitialRestMode(){
-		return this.isResting() && ((Rest)this.activityController.getCurrentActivity()).isInitialRestMode();
+		return this.isResting() && ((Rest)this./*activityController.*/getCurrentActivity()).isInitialRestMode();
 	}
 	/**
 	 * Return a boolean indicating whether or not this person
 	 * is moving.
 	 */
-	public boolean isMoving(){
+	/*public boolean isMoving(){
 		return this.activityController.isMoving();
 	}
 	public boolean isResting(){
 		return this.activityController.isResting();
-	}
+	}*/
 	/**
 	 * Return a boolean indicating whether or not this person
 	 * is sprinting.
 	 */
 	public boolean isSprinting(){
-		return this.isMoving() && !this.isFalling() && ((Move)this.activityController.getCurrentActivity()).isSprinting();
+		return this.isMoving() && !this.isFalling() && ((Move)this./*activityController.*/getCurrentActivity()).isSprinting();
 	}
 
-	public boolean isWorking(){
+	/*public boolean isWorking(){
 		return this.activityController.isWorking();
-	}
+	}*/
 
 	//endregion
 
@@ -996,6 +996,13 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 		this.setInitialHitpoints(hitpoints);
 		// Total
 		this.setOrientation(INITIAL_ORIENTATION);
+
+		/*this.activityController = new ActivityController();
+		this.activityController.start();*/
+
+		this.activityStack = new Stack<>();
+		this.activityStack.push(NONE);
+		this.getCurrentActivity().start();
 	}
 
 	//endregion
@@ -1006,10 +1013,10 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	public void advanceTime(double dt){
 		// Defensively without documentation
 		if (!isFalling() && !validatePosition(getPosition())){// TODO: kheb hier && !isMoving() weggedaan, kdenk da daarmee den TODO hieronder inorde is
-			this.activityController.requestNewActivity(new Fall(this)); //TODO: bij move telkens controleren of hij opeens moet vallen als er een blok veranderd naar passable
+			this./*activityController.*/requestNewActivity(new Fall(this)); //TODO: bij move telkens controleren of hij opeens moet vallen als er een blok veranderd naar passable
 		}
 
-		this.activityController.advanceTime(dt);
+		this./*activityController.*/advanceTime2(dt);
 	}
 
 	@Override
@@ -1053,7 +1060,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	 *       	| new.isDefaultActive() == true
 	 */
 	public void startDefaultBehaviour(){
-		this.activityController.getCurrentActivity().setDefault(true);
+		this./*activityController.*/getCurrentActivity().setDefault(true);
 	}
 
 	/**
@@ -1067,8 +1074,8 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	 * 			| new.getCurrentActivity() == NONE.
 	 */
 	public void stopDefaultBehaviour(){
-		this.activityController.getCurrentActivity().setDefault(false);
-		this.activityController.requestActivityFinish(this.activityController.getCurrentActivity());
+		this./*activityController.*/getCurrentActivity().setDefault(false);
+		this./*activityController.*/requestActivityFinish(this./*activityController.*/getCurrentActivity());
 	}
 	//endregion
 
@@ -1095,7 +1102,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	 * 			| !this.isValidAttack(defender)	
 	 */
 	public void attack(Unit defender) throws IllegalArgumentException{
-		activityController.requestNewActivity(new Attack(this, defender));
+		/*activityController.*/requestNewActivity(new Attack(this, defender));
 	}
 	
 	/**
@@ -1126,7 +1133,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	 * 			| isValidPosition(this.getPosition().getCubeCenterCoordinates().add(direction)) == false
      */
 	public void moveToAdjacent(Vector direction) throws IllegalStateException, IllegalArgumentException{
-		activityController.requestNewActivity(new AdjacentMove(this, direction));
+		/*activityController.*/requestNewActivity(new AdjacentMove(this, direction));
 	}
 
 	/**
@@ -1143,19 +1150,19 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	public void moveToTarget(Vector targetPosition) throws IllegalStateException, IllegalArgumentException{
 		if(targetPosition==null || !isValidPosition(targetPosition))
 			throw new IllegalArgumentException("The target is not a valid position.");
-		activityController.requestNewActivity(new TargetMove(this, targetPosition));
+		/*activityController.*/requestNewActivity(new TargetMove(this, targetPosition));
 	}
 
 	public void sprint() throws IllegalStateException{
 		if(!this.isMoving() || this.isFalling())
 			throw new IllegalStateException("Unit is not able to sprint at this moment.");
-		((Move)activityController.getCurrentActivity()).sprint();
+		((Move)/*activityController.*/getCurrentActivity()).sprint();
 	}
 
 	public void stopSprint(){
 		if(!this.isMoving() || this.isFalling())
 			throw new IllegalStateException("Unit is not moving at this moment.");
-		((Move)activityController.getCurrentActivity()).stopSprint();
+		((Move)/*activityController.*/getCurrentActivity()).stopSprint();
 	}
 	//endregion
 	/**
@@ -1176,7 +1183,8 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	 * | !this.isAbleToRest()
 	 */
 	public void rest() throws IllegalStateException{
-		activityController.requestNewActivity(new Rest(this));
+		//activityController.
+		requestNewActivity(new Rest(this));
 	}
 
 	//endregion
@@ -1201,7 +1209,8 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	 * 			| !isValidWorkPosition(position)
 	 */
 	public void work(Vector position) throws IllegalStateException, IllegalArgumentException{
-		activityController.requestNewActivity(new Work(this, position));
+		//activityController.
+		requestNewActivity(new Work(this, position));
 	}
 
 
@@ -1424,32 +1433,44 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 
 	//region falling
 
-	public boolean isFalling(){
+	/*public boolean isFalling(){
 		return this.activityController.isFalling();
-	}
+	}*/
 
 
 	//endregion
 
-	public final ActivityController activityController = new ActivityController();
+	/*public final ActivityController activityController;
 
-	public final class ActivityController{
+	public final class ActivityController{*/
 
 		/**
 		 * Variable registering the time passed since the unit's last rest.
 		 */
 		private double restTimer = 0d;
+		/**
+		 * Boolean determining whether this ActivityController is running.
+		 */
+		private boolean started = false;
 
 		public final None NONE = new None(Unit.this);
 		public final Rest REST = new Rest(Unit.this);
 
 		private Stack<Activity> activityStack;
 
-		private ActivityController(){
+		/*private ActivityController(){
 			this.activityStack = new Stack<>();
 			this.activityStack.push(NONE);
-			this.getCurrentActivity().start();
 		}
+
+		private void start(){
+			if(started)
+				throw new IllegalStateException("An activityController can only be started once!");
+			this.getCurrentActivity().start();
+			started = true;
+			// Start should only be called after initialization. Since this call would give
+			// an error if it were placed inside the constructor.
+		}*/
 
 		public void requestNewActivity(Activity activity) throws IllegalArgumentException,IllegalStateException{
 			if(activity.getUnitId()!=Unit.this.getId())
@@ -1511,7 +1532,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 			return this.getCurrentActivity()==activity;
 		}
 
-		public void advanceTime(double dt){
+		public void advanceTime2(double dt){
 			if(!this.isResting()) {
 				restTimer += dt;
 				if (restTimer >= Rest.REST_INTERVAL && REST.isAbleTo()) {
@@ -1550,7 +1571,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 		public boolean isFalling(){
 			return this.isExecuting(Fall.class);
 		}
-	}
+	//}
 }
 
 	

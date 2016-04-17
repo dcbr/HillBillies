@@ -18,7 +18,7 @@ public class TargetMove extends Move {
 
     public TargetMove(Unit unit, Vector target) throws IllegalArgumentException{
         super(unit);
-        this.path = new PathCalculator(target.getCubeCenterCoordinates()).computePath(unit.getPosition());
+        this.path = new PathCalculator(target.getCubeCoordinates()).computePath(unit.getPosition());
         if(this.path==null)
             throw new IllegalArgumentException("The given target position is not reachable from the Unit's current position.");
     }
@@ -81,7 +81,7 @@ public class TargetMove extends Move {
         if(!path.hasNext()){// TODO: check if cubes along the path have collapsed
             requestFinish();
         }else{
-            controller.requestNewActivity(new AdjacentMove(unit, path.getNext().difference(cpos)));
+            /*controller*/unit.requestNewActivity(new AdjacentMove(unit, path.getNext().difference(cpos)));
         }
     }
 

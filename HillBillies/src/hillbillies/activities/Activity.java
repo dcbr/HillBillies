@@ -25,7 +25,7 @@ public abstract class Activity {
     /**
      * Final variable referencing the Unit's ActivityController.
      */
-    protected final Unit.ActivityController controller;
+    //protected final Unit.ActivityController controller;
 
     /**
      * Initialize a new Activity which is bound to the given Unit.
@@ -35,7 +35,7 @@ public abstract class Activity {
     public Activity(Unit unit){
         this.activityProgress = 0d;
         this.unit = unit;
-        this.controller = unit.activityController;
+        //this.controller = unit.activityController;
         this.isDefault = false;
         this.isActive = false;
         this.success = false;
@@ -60,7 +60,7 @@ public abstract class Activity {
     public final void start(boolean isDefault) throws IllegalStateException{
         if(!isDefault && !isAbleTo())
             throw new IllegalStateException("This unit cannot " + this.toString() + " at this moment");
-        if(!controller.isCurrentActivity(this))// Sort of extra check to assure this is only called from within ActivityController
+        if(!/*controller*/unit.isCurrentActivity(this))// Sort of extra check to assure this is only called from within ActivityController
             throw new IllegalStateException("This unit's current activity is not set to this activity!");
         //else if(isDefault)
         //    stopDoingDefault();// TODO: fix this
@@ -194,11 +194,11 @@ public abstract class Activity {
 
     /**
      * Request this Activity's finish. This will stop the current Activity, if possible, and
-     * resume the previous Activity in stack.
-     * @see hillbillies.model.Unit.ActivityController#requestActivityFinish(Activity)
-     */
+     * resume the previous Activity in stack.*/
+    // * @see hillbillies.model.Unit.ActivityController#requestActivityFinish(Activity)
+    // */
     protected void requestFinish(){
-        this.controller.requestActivityFinish(this);
+        this.unit/*controller*/.requestActivityFinish(this);
     }
 
     /**

@@ -17,7 +17,7 @@ public abstract class Activity {
      * Variable registering whether the default behaviour of this unit is activated.
      * Variable registering whether the current activity is being executed or not.
      */
-    private boolean isDefault, isActive;
+    private boolean isDefault, isActive, success;
     /**
      * Final variable referencing the Unit this Activity is bound to.
      */
@@ -38,6 +38,7 @@ public abstract class Activity {
         this.controller = unit.activityController;
         this.isDefault = false;
         this.isActive = false;
+        this.success = false;
     }
 
     /**
@@ -199,4 +200,24 @@ public abstract class Activity {
     protected void requestFinish(){
         this.controller.requestActivityFinish(this);
     }
+
+    /**
+     * Returns true when the Activity is stopped and was completed successfully.
+     */
+    public boolean wasSuccessful(){
+        return !this.isActive() && this.success;
+    }
+
+    /**
+     * Set success to true. Inheriting Activities should call this method as soon as
+     * the Activity is executed successfully.
+     */
+    protected void setSuccess(){
+        this.success = true;
+    }
+
+    /**
+     * Returns the amount of XP the Unit will get when this Activity stops successfully.
+     */
+    public abstract int getXp();
 }

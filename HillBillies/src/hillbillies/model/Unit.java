@@ -173,10 +173,6 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	 * Constant reflecting the interval wherein a resting unit recovers getRestStaminaGain() stamina.
 	 */
 	public static final double REST_STAMINA_GAIN_INTERVAL = 0.2d;
-	/**
-	 * Constant reflecting the duration of an attack.    
-	 */
-	public static final double ATTACK_DURATION = 1d;
 	//endregion
 
 	//region Private members
@@ -229,7 +225,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	/**
 	 * Variable registering the next position and target position of this unit.
 	 */
-	private Vector nextPosition, targetPosition;
+	private Vector nextPosition;
 	
 
 	/**
@@ -546,20 +542,6 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 		return this.agility;
 	}
 
-
-
-	/**
-	 * Return the probability a unit can block an attack.
-	 * @param	attacker
-	 * 			The attacker to check against.
-	 * @return 	The probability to block an attack is positive for all units.
-	 *       	| result >= 0.0
-	 */
-	@Basic
-	public double getBlockingProbability(Unit attacker) {
-		return (0.25*(this.getAgility()+this.getStrength())/
-				(attacker.getAgility()+attacker.getStrength()));
-	}
 	/**
 	 * Return the current Activity of this unit.
 	 */
@@ -575,35 +557,6 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 			return (0d);
 		return ((Move)this.getCurrentActivity()).getCurrentSpeed();
 	}
-	/**
-	 * Return the hitpoints a unit lose when he is taking damage.
-	 * @param	attacker
-	 * 			The attacker to check against.
-	 * @return 	The hitpoints a unit loses is positive for all units.
-	 *       	| result >= 0
-	 * @return	The hitpoints a unit loses is less than or equal the current hitpoints of
-	 * 			that unit for all units.
-	 * 			| result <= this.getHitpoints()
-	 */
-	@Basic
-	public int getDamagingPoints(Unit attacker) {
-		int damage = (int)Math.round(attacker.getStrength()/10.0);
-		if (damage < this.getHitpoints())
-			return damage;
-		return this.getHitpoints();
-	}
-	/**
-	 * Return the probability a unit can dodge an attack.
-	 * @param	attacker
-	 * 			The attacker to check against.
-	 * @return 	The probability to dodge an attack is positive for all units.
-	 *       	| result >= 0.0
-	 */
-	@Basic
-	public double getDodgingProbability(Unit attacker) {
-		return (0.20*(this.getAgility())/(attacker.getAgility()));
-	}
-
 
 	/**
 	 * Return the hitpoints of this unit.
@@ -702,7 +655,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	 */
 	@Basic @Raw
 	public int getWeight() {
-		return this.weight;
+		return this.weight;// TODO: add weight of carriedMaterial
 	}
 
 	//endregion
@@ -754,39 +707,6 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	public boolean isSprinting(){
 		return this.isMoving() && ((Move)this.getCurrentActivity()).isSprinting();
 	}
-
-	/**
-	 * Check whether an attack is a valid for any unit.
-	 *
-	 * @param  defender
-	 *         The defender to check.
-	 * @return 	is true if the position of the attackers cube lies next to the defenders cube
-	 * 			or is the same cube and the attacker do not attacks itself and
-	 * 			the attacker is not attacking another unit at the same time and
-	 * 			the attacker is not in the initial rest mode and
-	 * 			the defender has more hitpoints than MIN_HITPOINTS
-	 *       | result == (this.getId()!=defender.getId() &&
-	 *				!this.isAttacking &&
-	 *				!this.isInitialRestMode() &&
-	 *				(defender.getHitpoints()> MIN_HITPOINTS)
-	 * 				(Math.abs(defender.getPosition().cubeX()-this.getPosition().cubeX())<=1) &&
-	 *				(Math.abs(defender.getPosition().cubeY()-this.getPosition().cubeY())<=1) &&
-	 *				(Math.abs(defender.getPosition().cubeZ()-this.getPosition().cubeZ())<=1)) &&
-	 *				this.getFaction() != defender.getFaction() &&
-	 *				this.getCurrentActivity()!=Activity.FALLING &&
-	 *				defender.getCurrentActivity()!=Activity.FALLING
-	 */
-	public boolean isValidAttack(Unit defender) {
-		return this.getId()!=defender.getId() &&
-				!this.isAttacking() &&
-				!this.isInitialRestMode() &&
-				(defender.getHitpoints()> MIN_HITPOINTS) &&
-				(Math.abs(defender.getPosition().cubeX()-this.getPosition().cubeX())<=1) &&
-				(Math.abs(defender.getPosition().cubeY()-this.getPosition().cubeY())<=1) &&
-				(Math.abs(defender.getPosition().cubeZ()-this.getPosition().cubeZ())<=1) &&
-				this.getFaction() != defender.getFaction() &&
-				defender.getCurrentActivity()!=Activity.FALLING &&
-				this.getCurrentActivity()!=Activity.FALLING;
 
 	public boolean isWorking(){
 		return this.getCurrentActivity() instanceof Work;// TODO: check if currentActivity.isActive ?
@@ -1367,40 +1287,6 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 				}
 				break;
 
-			case WORK:
-				if (activityProgress >= this.getWorkDuration()) {
-					if(this.isCarryingMaterial()){
-						this.dropCarriedMaterial();// TODO: make sure the target cube is passable!
-					}else if(this.getWorkCube().getTerrain()==Terrain.WORKSHOP && this.getWorkCube().containsLogs() && this.getWorkCube().containsBoulders()){
-						this.getWorkCube().getBoulder().terminate();// TODO: make sure Materials are removed from world as soon as they are terminated!
-						this.getWorkCube().getLog().terminate();
-						if(this.getWeight()!=MAX_WEIGHT)
-							this.setWeight(this.getWeight() + 1);
-						if(this.getToughness()!=MAX_TOUGHNESS)
-							this.setToughness(this.getToughness() + 1);
-					}else if(this.getWorkCube().containsBoulders()){
-						this.setCarriedMaterial(this.getWorkCube().getBoulder());
-					}else if(this.getWorkCube().containsLogs()){
-						this.setCarriedMaterial(this.getWorkCube().getLog());
-					}else if(this.getWorkCube().getTerrain() == Terrain.WOOD){
-						this.getWorld().collapse(this.getWorkCube().getPosition());
-					}else if(this.getWorkCube().getTerrain() == Terrain.ROCK){
-						this.getWorld().collapse(this.getWorkCube().getPosition());//TODO: change collapse to cube itself
-					}
-					setCurrentActivity(Activity.NONE);
-					this.addXP(WORK_POINTS);
-				}else{
-					this.setWorkProgress(((float) activityProgress)/ (this.getWorkDuration()));
-				}
-				break;
-
-			case ATTACK:
-				if (activityProgress > 1){
-					this.stopAttacking();
-					setCurrentActivity(Activity.NONE);
-				}
-				break;
-
 			case REST:
 				int maxHp = getMaxHitpoints(this.getWeight(), this.getToughness());
 				int maxSt = getMaxStamina(this.getWeight(), this.getToughness());
@@ -1634,8 +1520,8 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	 * @effect The unit first tries to dodge the attack, then blocks it. 
 	 * 			If it fails to dodge and block, this unit will lose hitpoins.
 	 */
-	public void defend(Unit attacker){
-		setCurrentActivity(this.getCurrentActivity());// TODO: check if this is still correct
+	public void defend(Unit attacker){// Code is moved to Activity Attack
+		/*setCurrentActivity(this.getCurrentActivity());// TODO: check if this is still correct
 		//dodging
 		if ((randInt(0,99)/100.0) < this.getDodgingProbability(attacker)){
 			Boolean validDodge = false;
@@ -1654,19 +1540,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 			removeHitpoints(this.getDamagingPoints(attacker));
 			//this.setHitpoints(this.getHitpoints()- this.getDamagingPoints(attacker));
 			isSuccessFulAttack = true;
-		}
-	}
-		
-	/**
-	 * Variable registering whether an attack is successful.
-	 */
-	private boolean isSuccessFulAttack = false;
-	/**
-	 * Return a boolean indicating whether or not an attack is successful.
-	 */
-	@Basic
-	private boolean isSuccessFulAttack() {
-	    return this.isSuccessFulAttack;
+		}*/
 	}
 	//endregion
 
@@ -1951,7 +1825,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	 * 			| !isValidWorkPosition(position)
 	 */
 	public void work(Vector position) throws IllegalStateException, IllegalArgumentException{
-		if(this.getStateDefault()!=2){
+		/*if(this.getStateDefault()!=2){
 			if(!this.isAbleToWork())
 				throw new IllegalStateException("Unit is not able to work at this moment");
 		}
@@ -1965,55 +1839,9 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 		Vector workDirection = position.getCubeCoordinates().difference(this.getPosition().getCubeCoordinates());
 		if(workDirection.X()!=0 || workDirection.Y()!=0)
 			setOrientation((float) Math.atan2(workDirection.Y(),workDirection.X()));
-		setCurrentActivity(Activity.WORK);
+		setCurrentActivity(Activity.WORK);*/
+		setCurrentActivity(new Work(this, position));
 	}
-
-	/**
-	 * Return the workCube of this Unit.
-	 */
-	@Basic
-	@Raw
-	private Cube getWorkCube() {
-	    return this.workCube;
-	}
-	/**
-	 * Check whether the given workCube is a valid workCube for
-	 * this Unit.
-	 *
-	 * @param workCube
-	 * The workCube to check.
-	 * @return
-	 * | result == this.getPosition().getCubeCoordinates().equals(workCube.getPosition()) ||
-	 *				this.getWorld().getDirectlyAdjacentCubes(this.getPosition()).contains(workCube)
-	 */
-	public boolean isValidWorkCube(Cube workCube) {
-		// TODO: verify if 'neighbouring' means directly adjacent or also the diagonal cubes
-		return workCube.getWorld()==this.getWorld() &&
-				(this.getPosition().getCubeCoordinates().equals(workCube.getPosition()) ||
-				this.getWorld().getDirectlyAdjacentCubesPositions(this.getPosition().getCubeCoordinates()).contains(workCube.getPosition()));
-	}
-	/**
-	 * Set the workCube of this Unit to the given workCube.
-	 *
-	 * @param workCube
-	 * The new workCube for this Unit.
-	 * @post The workCube of this new Unit is equal to
-	 * the given workCube.
-	 * | new.getWorkCube() == workCube
-	 * @throws IllegalArgumentException * The given workCube is not a valid workCube for any
-	 * Unit.
-	 * | ! isValidWorkCube(getWorkCube())
-	 */
-	@Raw
-	private void setWorkCube(Cube workCube) throws IllegalArgumentException {
-	    if (! isValidWorkCube(workCube))
-	        throw new IllegalArgumentException();
-	    this.workCube = workCube;
-	}
-	/**
-	 * Variable registering the workCube of this Unit.
-	 */
-	private Cube workCube;
 
 
 	/**
@@ -2071,7 +1899,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 		return this.getCarriedMaterial()!=null;
 	}
 
-	private void dropCarriedMaterial(){
+	public void dropCarriedMaterial(){
 		Material m = this.getCarriedMaterial();
 		this.carriedMaterial = null;
 		m.setOwner(this.getWorkCube());
@@ -2320,6 +2148,14 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 			if(this.activityStack.size()==0)
 				this.activityStack.push(NONE);
 			this.getCurrentActivity().start();// Resume previous activity in stack
+		}
+
+		private void stopActivity(Activity nextActivity) throws IllegalStateException{
+			Activity oldActivity = this.getCurrentActivity();
+			oldActivity.stop(nextActivity);
+			this.activityStack.pop();
+			if(oldActivity.wasSuccessful())
+				Unit.this.addXP(oldActivity.getXp());
 		}
 
 		private Activity getCurrentActivity(){

@@ -618,7 +618,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	 * is sprinting.
 	 */
 	public boolean isSprinting(){
-		return this.isMoving() && ((Move)this.activityController.getCurrentActivity()).isSprinting();
+		return this.isMoving() && !this.isFalling() && ((Move)this.activityController.getCurrentActivity()).isSprinting();
 	}
 
 	public boolean isWorking(){
@@ -1005,33 +1005,10 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	@Override
 	public void advanceTime(double dt){
 		// Defensively without documentation
-		if (!isFalling() && getCurrentActivity() != Activity.MOVE && !validatePosition(getPosition())){
-			falling(); //TODO: bij move telkens controleren of hij opeens moet vallen als er een blok veranderd naar passable
+		if (!isFalling() && !validatePosition(getPosition())){// TODO: kheb hier && !isMoving() weggedaan, kdenk da daarmee den TODO hieronder inorde is
+			this.activityController.requestNewActivity(new Fall(this)); //TODO: bij move telkens controleren of hij opeens moet vallen als er een blok veranderd naar passable
 		}
 
-		switch(getCurrentActivity()) {
-
-			case FALLING:
-				Vector cPos = getPosition();
-				Vector cPosCube = cPos.getCubeCenterCoordinates();
-				if (cPos == cPosCube && isLowerSolid(cPos) && this.getWorld().getCube(cPos).isPassable()) {
-					setCurrentSpeed(0);
-					setCurrentActivity(Activity.NONE);
-					removeHitpoints((int) (fallingLevel - cPos.Z()));
-					//setHitpoints((int)(getHitpoints()-(fallingLevel-cPos.Z())));
-					fallingLevel = 0;
-				} else {
-					double speed = getCurrentSpeed();
-					Vector nextPos = cPos.add(new Vector(0, 0, -speed * dt));
-					if (isLowerSolid(cPos) && this.getWorld().getCube(cPos.getCubeCoordinates()).isPassable() && (cPosCube.isInBetween(2, cPos, nextPos) || cPos.Z() <= cPosCube.Z()))
-						setPosition(cPosCube);
-					else if (nextPos.getCubeCenterCoordinates().isInBetween(2, cPos, nextPos) && isLowerSolid(nextPos) && this.getWorld().getCube(nextPos.getCubeCoordinates()).isPassable())
-						setPosition(nextPos.getCubeCenterCoordinates());
-					else
-						setPosition(nextPos);
-				}
-				break;
-		}
 		this.activityController.advanceTime(dt);
 	}
 
@@ -1048,7 +1025,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 		return false;
 	}
 
-	private boolean isAdjacentSolid(Vector position){
+	private boolean isAdjacentSolid(Vector position){// TODO: move this to World?
 		if(position.cubeZ() == 0)
 			return true;
 		for(Cube cube : this.getWorld().getDirectlyAdjacentCubes(position.getCubeCoordinates()))
@@ -1057,23 +1034,10 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 		return false;
 	}
 
-	private boolean isLowerSolid(Vector position){
+	public boolean isLowerSolid(Vector position){// TODO: move this to World?
 		if(position.cubeZ() == 0)
 			return true;
 		if(!this.getWorld().getCube(position.getCubeCoordinates().add(new Vector(0,0,-1))).isPassable())
-			return true;
-		return false;
-	}
-	/**
-	 * Check whether a given position is a good dodging position.
-	 * @param position
-	 * The position to check against
-	 * @return true if this.getWorld().isValidPosition(position)
-	 * 				&& this.getWorld().isCubePassable(position)
-	 */
-	private boolean isValidDodgePos(Vector position){
-		IWorld world = this.getWorld();
-		if(world.isValidPosition(position) && world.isCubePassable(position))
 			return true;
 		return false;
 	}
@@ -1182,6 +1146,17 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 		activityController.requestNewActivity(new TargetMove(this, targetPosition));
 	}
 
+	public void sprint() throws IllegalStateException{
+		if(!this.isMoving() || this.isFalling())
+			throw new IllegalStateException("Unit is not able to sprint at this moment.");
+		((Move)activityController.getCurrentActivity()).sprint();
+	}
+
+	public void stopSprint(){
+		if(!this.isMoving() || this.isFalling())
+			throw new IllegalStateException("Unit is not moving at this moment.");
+		((Move)activityController.getCurrentActivity()).stopSprint();
+	}
 	//endregion
 	/**
 	 * Method to let the Unit rest.
@@ -1285,10 +1260,10 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 		return this.getCarriedMaterial()!=null;
 	}
 
-	public void dropCarriedMaterial(){
+	public void dropCarriedMaterial(Cube dropCube){
 		Material m = this.getCarriedMaterial();
 		this.carriedMaterial = null;
-		m.setOwner(this.getWorkCube());
+		m.setOwner(dropCube);
 	}
 	//endregion
 
@@ -1405,7 +1380,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	 * 			|		( (new this).getStrength() || (new this).getAgility() || (new this).Toughness())
 	 * 			| 		&& (new this).getXP()
 	 */
-	private void addXP(int xp){ //TODO: toevoegen bij methodes waar en hoeveel xp wordt verdient
+	public void addXP(int xp){ //TODO: toevoegen bij methodes waar en hoeveel xp wordt verdient
 		experiencePoints += xp;
 		while (experiencePoints >= MAX_XP){
 			final String Strength = "s", Agility = "a", Toughness = "t";
@@ -1448,37 +1423,11 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	//endregion
 
 	//region falling
-	/**
-	 * Method to let this unit fall.
-	 * @post	THe units stops its default behaviour when he was doing it.
-	 * 			|new.isDoingBehaviour
-	 * @effect	The unit's speed is changed
-	 * 			|new.getCurrentSpeed()
-	 * @effect	The units position is set to the center of the cube.
-	 * 			|new.getPosition()
-	 * @effect	The units current activity is changed to FALLING
-	 * 			|new.getCurrentActivity()
-	 * @effect	THe falling level is set to the Units Z Cube coordinate.
-	 * 			|this.fallingLevel = getPosition().cubeZ()
-	 */
-	public void falling(){
-		if(this.getStateDefault() ==2)
-			this.stopDoingDefault();
-		setCurrentSpeed(3d);
-		Vector pos = getPosition();
-		this.fallingLevel = getPosition().cubeZ();
-		setCurrentActivity(Activity.FALLING);
-		setPosition(new Vector(pos.getCubeCenterCoordinates().X(),pos.getCubeCenterCoordinates().Y(), pos.Z() ));
-	}
 
 	public boolean isFalling(){
-		return this.getCurrentActivity()==Activity.FALLING;
+		return this.activityController.isFalling();
 	}
 
-	/**
-	 * Variable registering the starting falling level of this unit.
-	 */
-	private int fallingLevel = 0;
 
 	//endregion
 
@@ -1596,6 +1545,10 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 
 		public boolean isWorking(){
 			return this.isExecuting(Work.class);
+		}
+
+		public boolean isFalling(){
+			return this.isExecuting(Fall.class);
 		}
 	}
 }

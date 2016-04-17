@@ -64,7 +64,9 @@ public class Work extends Activity {
     public void advanceActivity(double dt) {
         if (activityProgress >= this.getWorkDuration()) {
             if(unit.isCarryingMaterial()){
-                unit.dropCarriedMaterial();// TODO: make sure the target cube is passable!
+                if(workCube.isPassable()){
+                    unit.dropCarriedMaterial(this.workCube);
+                }
             }else if(workCube.getTerrain()== Terrain.WORKSHOP && workCube.containsLogs() && workCube.containsBoulders()){
                 workCube.getBoulder().terminate();// TODO: make sure Materials are removed from world as soon as they are terminated!
                 workCube.getLog().terminate();

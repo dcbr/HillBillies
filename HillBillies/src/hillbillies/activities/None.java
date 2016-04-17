@@ -140,9 +140,9 @@ public class None extends Activity {
             //TODO: manier zoeken om alle bereikbare posities op te lijsten
             controller.requestNewActivity(new TargetMove(unit));
 
-            if (this.isAbleToSprint() && randInt(0, 99) < 1){
+            /*if (this.isAbleToSprint() && randInt(0, 99) < 1){
                 unit.sprint();
-            }
+            }*/ //TODO: is het erg als dit weg is?
         }
         if (activity == 2) {
             List<Vector> workPositions = unit.getWorld().getDirectlyAdjacentCubesPositions(unit.getPosition());

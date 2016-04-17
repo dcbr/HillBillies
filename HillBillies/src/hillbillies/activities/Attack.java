@@ -1,6 +1,7 @@
 package hillbillies.activities;
 
 import be.kuleuven.cs.som.annotate.Basic;
+import hillbillies.model.IWorld;
 import hillbillies.model.Unit;
 import hillbillies.utils.Vector;
 
@@ -91,9 +92,9 @@ public class Attack extends Activity{
                 !unit.isAttacking() &&
                 !unit.isInitialRestMode() &&
                 (defender.getHitpoints() > Unit.MIN_HITPOINTS) && // TODO: !defender.isTerminated() ?
-                (Math.abs(defender.getPosition().cubeX() - unit.getPosition().cubeX()) <= 1) &&
-                (Math.abs(defender.getPosition().cubeY() - unit.getPosition().cubeY()) <= 1) &&
-                (Math.abs(defender.getPosition().cubeZ() - unit.getPosition().cubeZ()) <= 1) &&
+                (Math.abs(defender.getPosition().cubeX() - unit.getPosition().cubeX()) <= 1) && // TODO: unit.getWorld().getDirectlyAdjacentCubesPositions(
+                (Math.abs(defender.getPosition().cubeY() - unit.getPosition().cubeY()) <= 1) && //          defender.getPosition().getCubeCoordinates()
+                (Math.abs(defender.getPosition().cubeZ() - unit.getPosition().cubeZ()) <= 1) && //          .contains(unit.getPosition().getCubeCoordinates())
                 unit.getFaction() != defender.getFaction() &&
                 !defender.isFalling() &&
                 !unit.isFalling();
@@ -197,5 +198,18 @@ public class Attack extends Activity{
             return;
         }
         defender.addXP(ATTACK_XP);
+    }
+
+    /**
+     * Check whether a given position is a good dodging position.
+     * @param position
+     * The position to check against
+     * @return true if this.getWorld().isValidPosition(position)
+     * 				&& this.getWorld().isCubePassable(position)
+     */
+    private boolean isValidDodgePos(Vector position){
+        if(unit.getWorld().isValidPosition(position) && unit.getWorld().isCubePassable(position))
+            return true;
+        return false;
     }
 }

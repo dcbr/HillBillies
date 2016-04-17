@@ -78,7 +78,7 @@ public abstract class WorldObject implements IWorldObject {
      * | ! isValidPosition(getPosition())
      */
     @Raw
-    protected void setPosition(Vector position) throws IllegalArgumentException {
+    public void setPosition(Vector position) throws IllegalArgumentException {
         if (! isValidPosition(position))
             throw new IllegalArgumentException();
         this.position = position;

@@ -66,8 +66,9 @@ public abstract class Activity {
         //    stopDoingDefault();// TODO: fix this
         // this.stateDefault -= 1; (if stateDefault == 3) ??
         this.activityProgress = 0d;
-        this.startActivity();
         this.isActive = true;
+        this.startActivity();
+        
     }
 
     /**

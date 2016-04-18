@@ -27,7 +27,7 @@ public class Fall extends Move {
     protected void advanceMove(double dt) {
         Vector cPos = unit.getPosition();
         Vector cPosCube = cPos.getCubeCenterCoordinates();
-        if (cPos.equals(cPosCube) && unit.isLowerSolid(cPos) && unit.getWorld().getCube(cPos).isPassable()) {
+        if (cPos.equals(cPosCube) && unit.isLowerSolid(cPos) && unit.getWorld().getCube(cPos.getCubeCoordinates()).isPassable()) {
             setCurrentSpeed(0);
             unit.removeHitpoints(10*(int)(fallingLevel - cPos.Z()));
             //setHitpoints((int)(getHitpoints()-(fallingLevel-cPos.Z())));
@@ -62,9 +62,10 @@ public class Fall extends Move {
     @Override
     protected void startActivity() {
         this.setCurrentSpeed(3d);
-        Vector pos = unit.getPosition();
-        this.fallingLevel = unit.getPosition().cubeZ();
+    	Vector pos = unit.getPosition();
         unit.setPosition(new Vector(pos.getCubeCenterCoordinates().X(),pos.getCubeCenterCoordinates().Y(), pos.Z() ));
+        this.fallingLevel = pos.cubeZ();
+
     }
 
     /**

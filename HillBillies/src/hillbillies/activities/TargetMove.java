@@ -25,11 +25,6 @@ public class TargetMove extends Move {
 
     public TargetMove(Unit unit){// Find random target
         super(unit);
-
-        // For debugging only:
-        int nbLoops = 0;
-        while(this.path==null) {
-            nbLoops++;
             Vector target = new Vector(randDouble(unit.getWorld().getMinPosition().X(), unit.getWorld().getMaxPosition().X()),
                     randDouble(unit.getWorld().getMinPosition().Y(), unit.getWorld().getMaxPosition().Y()),
                     randDouble(unit.getWorld().getMinPosition().Z(), unit.getWorld().getMaxPosition().Z()));
@@ -41,8 +36,10 @@ public class TargetMove extends Move {
             else if (pathCalculator.controlledPos.size() != 0)
                 this.path = new PathCalculator(pathCalculator.controlledPos.get(randInt(0, pathCalculator.controlledPos.size() - 1))).computePath(unit.getPosition());
 
-            System.out.println("[TargetMove] Number of loops to find correct target position: " + nbLoops);
-        }
+            else
+            	this.requestFinish();
+            
+        
     }
 
     /**

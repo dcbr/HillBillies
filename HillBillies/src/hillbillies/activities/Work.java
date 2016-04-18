@@ -105,7 +105,7 @@ public class Work extends Activity {
      */
     @Override
     protected boolean shouldStopFor(Activity nextActivity) {
-        return nextActivity instanceof Attack;
+        return nextActivity instanceof Attack || nextActivity instanceof Fall;
     }
 
     /**

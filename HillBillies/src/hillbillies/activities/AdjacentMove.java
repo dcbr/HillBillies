@@ -10,6 +10,7 @@ import hillbillies.utils.Vector;
 public class AdjacentMove extends Move {// TODO: make distinction between AdjacentMoves called by Unit and called by TargetMove
 
     private final Vector nextPosition;
+    private TargetMove targetMove = null;
 
     public AdjacentMove(Unit unit, Vector direction) throws IllegalArgumentException{
         super(unit);
@@ -21,6 +22,11 @@ public class AdjacentMove extends Move {// TODO: make distinction between Adjace
 
     public AdjacentMove(Unit unit, int dx, int dy, int dz){
         this(unit, new Vector(dx,dy,dz));
+    }
+
+    public AdjacentMove(Unit unit, Vector direction, TargetMove extendedMovement){
+        this(unit, direction);
+        this.targetMove = extendedMovement;
     }
 
     /**
@@ -45,7 +51,7 @@ public class AdjacentMove extends Move {// TODO: make distinction between Adjace
      */
     @Override
     protected void interruptActivity() {
-        super.interruptActivity();
+        if(targetMove==null) super.interruptActivity();// Otherwise targetMove will handle stopSprinting
     }
 
     /**
@@ -107,5 +113,17 @@ public class AdjacentMove extends Move {// TODO: make distinction between Adjace
     @Override
     public int getXp() {
         return Move.MOVE_XP;
+    }
+
+    @Override
+    public void sprint(){
+        super.sprint();
+        if(targetMove!=null) targetMove.sprint();// Let previous activity in stack (extended movement) know we are sprinting
+    }
+
+    @Override
+    public void stopSprint(){
+        super.stopSprint();
+        if(targetMove!=null) targetMove.stopSprint();// Let previous activity in stack (extended movement) know we stopped sprinting
     }
 }

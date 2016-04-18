@@ -1480,19 +1480,19 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 			if(!this.getCurrentActivity().isDefault() && !activity.isAbleTo())
 				throw new IllegalStateException("This unit cannot " + activity.toString() + " at this moment");
 
+			boolean isDefault = this.getCurrentActivity().isDefault();
 			try{
 				this.getCurrentActivity().interrupt(activity);
 			}catch(IllegalStateException interruptException){
 				try{
-					this.getCurrentActivity().stop(activity);
-					this.activityStack.pop();
+					stopActivity(activity);
 					// TODO: first stop previous activities in stack?
 				}catch(IllegalStateException stopException){
 					throw new IllegalStateException("The current activity cannot be interrupted nor stopped by the given Activity.");
 				}
 			}
 			this.activityStack.push(activity);
-			this.getCurrentActivity().start();
+			this.getCurrentActivity().start(isDefault);
 			if(this.getCurrentActivity() instanceof Rest)
 				restTimer = 0d;// Reset rest timer
 		}
@@ -1507,11 +1507,11 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 				throw new IllegalArgumentException("This activity is not currently active.");
 			//if(this.activityStack.size()==1)
 			//	throw new IllegalStateException("Since this is the last activity in stack, it can not be finished.");
-			this.getCurrentActivity().stop(activity);
-			this.activityStack.pop();
+			boolean isDefault = this.getCurrentActivity().isDefault();
+			stopActivity(activity);
 			if(this.activityStack.size()==0)
 				this.activityStack.push(NONE);
-			this.getCurrentActivity().start();// Resume previous activity in stack
+			this.getCurrentActivity().start(isDefault);// Resume previous activity in stack
 		}
 
 		private void stopActivity(Activity nextActivity) throws IllegalStateException{

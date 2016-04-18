@@ -42,9 +42,27 @@ public abstract class Move extends Activity {
     /**
      * Create a new Move Activity for the given Unit.
      * @param unit The unit which will perform the movement.
+     * @effect Create a new Move Activity for the given Unit with sprinting disabled.
+     *          | this(unit, false)
      */
     public Move(Unit unit){
+        this(unit, false);
+    }
+
+    /**
+     * Create a new Move Activity for the given Unit with sprinting set to the specified value.
+     * @param unit The unit which will perform the movement.
+     * @param sprinting Boolean indicating whether the unit will start sprinting or not.
+     * @post The Unit is sprinting if it is able to do so
+     *          | if(isAbleToSprint())
+     *          |   new.isSprinting() == sprinting
+     *          | else
+     *          |   new.isSprinting() == false
+     */
+    public Move(Unit unit, boolean sprinting){
         super(unit);
+        if(sprinting)
+            this.sprint();
     }
 
     /**
@@ -140,7 +158,7 @@ public abstract class Move extends Activity {
      * is able to sprint.
      */
     public boolean isAbleToSprint(){
-        return this.isActive() && unit.getStamina()> Unit.MIN_STAMINA;
+        return /*this.isActive() &&*/ unit.getStamina()> Unit.MIN_STAMINA;
     }
 
     /**

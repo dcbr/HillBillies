@@ -65,6 +65,7 @@ public abstract class Activity {
         //else if(isDefault)
         //    stopDoingDefault();// TODO: fix this
         // this.stateDefault -= 1; (if stateDefault == 3) ??
+        this.isDefault = isDefault;
         this.activityProgress = 0d;
         this.isActive = true;
         this.startActivity();
@@ -159,6 +160,8 @@ public abstract class Activity {
      */
     public void setDefault(boolean enable){
         this.isDefault = enable;
+        if(!enable)
+            this.requestFinish();
     }
 
     /**

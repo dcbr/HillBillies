@@ -41,7 +41,12 @@ public interface IWorld {
      * | (unit != null) && (unit.getWorld() == this)
      */
     public void addUnit(Unit unit);
-    
+    /**
+     * 
+     * @param vector
+     *  	vector in cubeCoordinates
+     * @return
+     */
     public boolean isCubePassable(Vector vector);
     
     public Vector getSpawnPosition();

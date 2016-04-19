@@ -29,7 +29,7 @@ public class Fall extends Move {
         Vector cPosCube = cPos.getCubeCenterCoordinates();
         if (cPos.equals(cPosCube) && unit.isLowerSolid(cPos) && unit.getWorld().getCube(cPos.getCubeCoordinates()).isPassable()) {
             setCurrentSpeed(0);
-            unit.removeHitpoints(10*(int)(fallingLevel - cPos.Z()));
+            unit.removeHitpoints(10*(int)(fallingLevel - cPos.cubeZ()));
             //setHitpoints((int)(getHitpoints()-(fallingLevel-cPos.Z())));
             fallingLevel = 0;
             this.requestFinish();
@@ -73,7 +73,7 @@ public class Fall extends Move {
      */
     @Override
     protected void stopActivity() {
-
+    	
     }
 
     @Override

@@ -185,7 +185,7 @@ public class Attack extends Activity{
                 int dodgeY = randInt(-1, 1);
                 Vector newPos = defender.getPosition().add(new Vector(dodgeX, dodgeY, 0));
                 if ((dodgeX != 0 || dodgeY != 0) &&
-                        (isValidDodgePos(newPos))) {
+                        (isValidDodgePos(newPos.getCubeCoordinates()))) {
                     validDodge = true;
                     defender.setPosition(defender.getPosition().add(new Vector(dodgeX,dodgeY,0)));
                 }

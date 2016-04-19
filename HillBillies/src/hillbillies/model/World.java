@@ -446,7 +446,10 @@ public class World implements IWorld {
 	
 	private Map<Vector, Cube> CubeMap = new HashMap<Vector , Cube>();
 	
-	
+	/*
+	 * (non-Javadoc)
+	 * @see hillbillies.model.IWorld#isCubePassable(hillbillies.utils.Vector)
+	 */
 	@Override
 	public boolean isCubePassable(Vector vector){
 		return getCube(vector).isPassable();

@@ -457,7 +457,6 @@ public class World implements IWorld {
 	
 	@Override
 	public Vector getSpawnPosition(){
-		System.out.println("jaja");
 		boolean isPassable = false;
 		int x = 0;
 		int y = 0;
@@ -470,10 +469,8 @@ public class World implements IWorld {
 			position = (new Vector(x,y,z)).getCubeCoordinates();
 			isPassable = isCubePassable(position);
 		}
-		System.out.println(position);
 		while(!CorrectSpawnPosition(position)){
 			z -=1;
-			System.out.println(z);
 			position = new Vector(x,y,z);
 		}
 		return position;	

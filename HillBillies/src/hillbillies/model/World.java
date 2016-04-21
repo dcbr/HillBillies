@@ -451,20 +451,32 @@ public class World implements IWorld {
 	 * @see hillbillies.model.IWorld#isCubePassable(hillbillies.utils.Vector)
 	 */
 	@Override
-	public boolean isCubePassable(Vector vector){
-		return getCube(vector).isPassable();
+	public boolean isCubePassable(Vector cubeCoordinates){
+		return getCube(cubeCoordinates).isPassable();
 	}
 	
 	@Override
 	public Vector getSpawnPosition(){
-		double x = randDouble(this.getMinPosition().X(), this.getMaxPosition().X());
-		double y = randDouble(this.getMinPosition().Y(), this.getMaxPosition().Y());
-		double z = randDouble(this.getMinPosition().Z(), this.getMaxPosition().Z());
-		Vector position = new Vector(x,y,z).getCubeCoordinates();
-		if(CorrectSpawnPosition(position))
-			return position;	
-		else
-			return getSpawnPosition();
+		System.out.println("jaja");
+		boolean isPassable = false;
+		int x = 0;
+		int y = 0;
+		int z = 0;;
+		Vector position = new Vector(x,y,z);
+		while (!isPassable){
+			x = (int)(randDouble(this.getMinPosition().X(), this.getMaxPosition().X()));
+			y = (int)(randDouble(this.getMinPosition().Y(), this.getMaxPosition().Y()));
+			z = (int)(randDouble(this.getMinPosition().Z(), this.getMaxPosition().Z()));
+			position = (new Vector(x,y,z)).getCubeCoordinates();
+			isPassable = isCubePassable(position);
+		}
+		System.out.println(position);
+		while(!CorrectSpawnPosition(position)){
+			z -=1;
+			System.out.println(z);
+			position = new Vector(x,y,z);
+		}
+		return position;	
 	}
 	
 	

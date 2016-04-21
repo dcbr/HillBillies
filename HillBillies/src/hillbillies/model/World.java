@@ -563,12 +563,13 @@ public class World implements IWorld {
 			m.advanceTime(dt);
 		}
 		//COLLAPSING CUBES
-		for (Vector cube : CollapsingCubes.keySet()){
+		Iterator<Vector> cubeIterator = CollapsingCubes.keySet().iterator();
+		while(cubeIterator.hasNext()){
+			Vector cube = cubeIterator.next();
 			double time = CollapsingCubes.get(cube);
-			if (time >= 5d){
+			if (time >= 4d){
 				collapse(cube);
 				CollapsingCubes.remove(cube);
-
 			}
 			else
 				CollapsingCubes.replace(cube, time+dt);
@@ -577,7 +578,7 @@ public class World implements IWorld {
 	}
 
 	public void collapse(Vector coordinate) {
-		Vector CubeCoor = new Vector(coordinate.cubeX(),coordinate.cubeY(),coordinate.cubeZ());
+		Vector CubeCoor = coordinate.getCubeCoordinates();
 		Cube cube  = getCube(CubeCoor);
 		Terrain cubeTerrain = cube.getTerrain();
 		if (cubeTerrain == Terrain.ROCK){
@@ -591,12 +592,7 @@ public class World implements IWorld {
 				cube.addMaterial(new Log(this,cube));
 		}
 		cube.setTerrain(Terrain.AIR);
-		/*List<int[]> changingCubes = connectedToBorder.changeSolidToPassable(coordinate.cubeX(), coordinate.cubeY(), coordinate.cubeZ());
-		for (int[] coord : changingCubes){
-			Vector coordi = new Vector(coord[0], coord[1], coord[2]);
-			if(!CollapsingCubes.containsValue(coordi))
-					CollapsingCubes.put(coordi, 0d);
-		}*/
+
 
 	}
 
@@ -616,8 +612,14 @@ public class World implements IWorld {
 		int z = (int)cube.getPosition().Z();
 		if(oldTerrain!=null) {
 			terrainChangeListener.notifyTerrainChanged(x, y, z);
-			if (cube.isPassable() && !oldTerrain.isPassable())
-				connectedToBorder.changeSolidToPassable(x, y, z);
+			if (cube.isPassable() && !oldTerrain.isPassable()){
+				List<int[]> changingCubes = connectedToBorder.changeSolidToPassable(x, y, z);
+				for (int[] coord : changingCubes){
+					Vector coordi = new Vector(coord[0], coord[1], coord[2]);
+					if(!CollapsingCubes.containsKey(coordi))
+							CollapsingCubes.put(coordi, 0d);
+				}
+			}
 			else if (!cube.isPassable() && oldTerrain.isPassable())
 				connectedToBorder.changePassableToSolid(x, y, z);
 		}else if(cube.isPassable()){

@@ -78,13 +78,11 @@ public abstract class Activity {
             throw new IllegalStateException("This unit cannot " + this.toString() + " at this moment");
         if(!/*controller*/unit.isCurrentActivity(this))// Sort of extra check to assure this is only called from within ActivityController
             throw new IllegalStateException("This unit's current activity is not set to this activity!");
-        //else if(isDefault)
-        //    stopDoingDefault();// TODO: fix this
-        // this.stateDefault -= 1; (if stateDefault == 3) ??
         this.isDefault = isDefault;
         this.activityProgress = 0d;
         this.isActive = true;
         this.startActivity();
+        System.out.println(this);
         
     }
 

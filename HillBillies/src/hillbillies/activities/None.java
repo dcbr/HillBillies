@@ -113,6 +113,7 @@ public class None extends Activity {
         if (units.size() > 0)
             nb +=1;
         int activity = randInt(0,nb);
+        System.out.println(activity);
         if (activity ==0){
             if (unit.getHitpoints() == Unit.getMaxHitpoints(unit.getWeight(), unit.getToughness()) && unit.getStamina() == Unit.getMaxStamina(unit.getWeight(), unit.getToughness()))
                 activity = randInt(1,nb);
@@ -132,10 +133,6 @@ public class None extends Activity {
             }catch (IllegalStateException e){
             	activity =2;
             }
-
-            /*if (this.isAbleToSprint() && randInt(0, 99) < 1){
-                unit.sprint();
-            }*/ //TODO: is het erg als dit weg is?
         }
         if (activity == 2) {
             List<Vector> workPositions = unit.getWorld().getDirectlyAdjacentCubesPositions(unit.getPosition());

@@ -208,14 +208,14 @@ public class World implements IWorld {
 	 */
 	@Override
 	public void addUnit(Unit unit){
-		assert canHaveAsUnit(unit);//TODO: check MAX_UNITS?
+		assert canHaveAsUnit(unit);
 		// Bind unit to this world
 		unit.setWorld(this);
 		units.add(unit);
 
 		Faction f;
 		if(this.factions.size()<MAX_FACTIONS) {
-			f = new Faction(); //TODO: "Units that belong to other factions act autonomously" =?= startDefault?
+			f = new Faction();
 			this.factions.add(f);
 		}else {
 			f = getFactionWithLeastUnits();
@@ -332,7 +332,7 @@ public class World implements IWorld {
 	private Faction getFactionWithLeastUnits(){
 		Faction result = null;
 		for(Faction f : factions){
-			if(result==null || result.getNbUnits()<f.getNbUnits())
+			if(result==null || result.getNbUnits()>f.getNbUnits())
 				result = f;
 		}
 		return result;
@@ -369,7 +369,7 @@ public class World implements IWorld {
 	 */
 	@Raw
 	public boolean canHaveAsUnit(Unit unit) {
-		return (unit != null) && (Unit.isValidWorld(this));
+		return (unit != null) && (Unit.isValidWorld(this)) && (this.getNbUnits() < MAX_UNITS);
 	}
 	/**
 	 * Check whether this world has proper units attached to it.
@@ -457,7 +457,6 @@ public class World implements IWorld {
 	
 	@Override
 	public Vector getSpawnPosition(){
-		System.out.println("NB units" + getNbUnits());
 		boolean isPassable = false;
 		int x = 0;
 		int y = 0;

@@ -83,7 +83,6 @@ public class Fall extends Move {
     @Override
     protected void interruptActivity() {
         // This Activity cannot be interrupted
-        assert false;
     }
 
     @Override

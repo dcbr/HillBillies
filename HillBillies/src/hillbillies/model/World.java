@@ -457,10 +457,11 @@ public class World implements IWorld {
 	
 	@Override
 	public Vector getSpawnPosition(){
+		System.out.println("NB units" + getNbUnits());
 		boolean isPassable = false;
 		int x = 0;
 		int y = 0;
-		int z = 0;;
+		int z = 0;
 		Vector position = new Vector(x,y,z);
 		while (!isPassable){
 			x = (int)(randDouble(this.getMinPosition().X(), this.getMaxPosition().X()));

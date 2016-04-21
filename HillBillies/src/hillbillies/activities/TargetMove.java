@@ -37,7 +37,7 @@ public class TargetMove extends Move {
                 this.path = new PathCalculator(pathCalculator.controlledPos.get(randInt(0, pathCalculator.controlledPos.size() - 1))).computePath(unit.getPosition());
 
             else
-            	this.requestFinish();
+            	throw new IllegalStateException();
             
         
     }

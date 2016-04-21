@@ -127,7 +127,11 @@ public class None extends Activity {
 				activity = 2;
 			*/
             //TODO: manier zoeken om alle bereikbare posities op te lijsten
-            /*controller*/unit.requestNewActivity(new TargetMove(unit));
+            try{
+            	/*controller*/unit.requestNewActivity(new TargetMove(unit));
+            }catch (IllegalStateException e){
+            	activity =2;
+            }
 
             /*if (this.isAbleToSprint() && randInt(0, 99) < 1){
                 unit.sprint();

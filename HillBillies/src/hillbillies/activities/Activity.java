@@ -104,8 +104,6 @@ public abstract class Activity {
         this.stopActivity();
         this.activityProgress = 0d;
         this.isActive = false;
-        if(this.parentActivity!=null)
-            this.parentActivity.stop();
     }
 
     /**
@@ -232,4 +230,8 @@ public abstract class Activity {
      * Returns the amount of XP the Unit will get when this Activity stops successfully.
      */
     public abstract int getXp();
+
+    public boolean isParentActivity(Activity activity){
+        return this.parentActivity==activity;
+    }
 }

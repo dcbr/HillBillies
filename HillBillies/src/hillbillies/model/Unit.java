@@ -1485,8 +1485,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 				this.getCurrentActivity().interrupt(activity);
 			}catch(IllegalStateException interruptException){
 				try{
-					stopCurrentActivity();
-					// TODO: first stop previous activities in stack?
+					stopCurrentActivity(true);
 				}catch(IllegalStateException stopException){
 					throw new IllegalStateException("The current activity cannot be interrupted nor stopped by the given Activity.");
 				}
@@ -1497,7 +1496,11 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 				restTimer = 0d;// Reset rest timer
 		}
 
-		public void requestActivityFinish(Activity activity) throws IllegalArgumentException{
+		public void requestActivityFinish(Activity activity){
+			requestActivityFinish(activity, false);
+		}
+
+		public void requestActivityFinish(Activity activity, boolean finishParent) throws IllegalArgumentException{
 			// TODO: maybe change this to reportActivityFinish and check for inactiviy of current activity and then resume previous in stack
 			if(activity == null)
 				throw new IllegalArgumentException("Invalid activity.");
@@ -1508,7 +1511,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 			//if(this.activityStack.size()==1)
 			//	throw new IllegalStateException("Since this is the last activity in stack, it can not be finished.");
 			boolean isDefault = this.getCurrentActivity().isDefault();
-			stopCurrentActivity();
+			stopCurrentActivity(finishParent);
 			if(this.activityStack.size()==0)
 				this.activityStack.push(NONE);
 			this.getCurrentActivity().start(isDefault);// Resume previous activity in stack
@@ -1521,7 +1524,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 			activity.start(isDefault);
 		}
 
-		private void stopCurrentActivity() throws IllegalStateException{
+		private void stopCurrentActivity(boolean finishParent) throws IllegalStateException{
 			Activity oldActivity = this.getCurrentActivity();
 			oldActivity.stop();
 			this.activityStack.pop();
@@ -1529,6 +1532,8 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 				Unit.this.addXP(oldActivity.getXp());
 			if(oldActivity instanceof Rest)
 				restTimer = 0d;// Reset rest timer
+			if(finishParent && oldActivity.isParentActivity(this.getCurrentActivity()))
+				stopCurrentActivity(true);
 		}
 
 		private Activity getCurrentActivity(){

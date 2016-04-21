@@ -100,8 +100,8 @@ public class Faction {
 	 * | (!hasAsUnit(unit)) && Unit.isValidFaction(this)
 	 */
 	@Raw
-	public boolean canHaveAsUnit(Unit unit) {//TODO: this.hasAsUnit(unit) is not necessary since it is a Set??
-		return (unit != null) && (!unit.isTerminated()) && (!this.hasAsUnit(unit)) && (unit.isValidFaction(this));
+	public boolean canHaveAsUnit(Unit unit) {
+		return (unit != null) && (!unit.isTerminated()) && (unit.isValidFaction(this));
 	}
 	/**
 	 * Check whether this faction has proper units attached to it.

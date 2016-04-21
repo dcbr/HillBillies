@@ -1,6 +1,7 @@
 package hillbillies.activities;
 
 import hillbillies.model.Cube;
+import hillbillies.model.Terrain;
 import hillbillies.model.Unit;
 import hillbillies.utils.Vector;
 
@@ -48,6 +49,7 @@ public class TargetMove extends Move {
     @Override
     protected void startActivity() {
         // TODO: check if cubes along the path have collapsed
+        // Recalculate path?
     }
 
     /**
@@ -75,7 +77,7 @@ public class TargetMove extends Move {
     @Override
     protected void advanceMove(double dt) {
         Vector cpos = unit.getPosition().getCubeCoordinates();
-        if(!path.hasNext()){// TODO: check if cubes along the path have collapsed
+        if(!path.hasNext()){
             requestFinish();
         }else{
             AdjacentMove nextMove = new AdjacentMove(unit, path.getNext().difference(cpos), this.isSprinting(), this);
@@ -111,6 +113,13 @@ public class TargetMove extends Move {
         return 0;// Unit already gets its xp from AdjacentMove
     }
 
+    public void notifyTerrainChange(Terrain oldTerrain, Cube cube){
+        if(this.path.contains(cube.getPosition()))
+            this.path = new PathCalculator(this.path.getTarget()).computePath(unit.getPosition());
+        if(this.path==null)
+            this.requestFinish();
+    }
+
     private final class PathCalculator {
 
         /**
@@ -123,8 +132,8 @@ public class TargetMove extends Move {
         private final Vector targetPosition;
 
         private PathCalculator(Vector targetPosition) {
-            this.targetPosition = targetPosition;
-            this.add(targetPosition, 0);
+            this.targetPosition = targetPosition.getCubeCoordinates();
+            this.add(targetPosition.getCubeCoordinates(), 0);
         }
 
         public boolean contains(Vector position) {
@@ -177,6 +186,9 @@ public class TargetMove extends Move {
                     pos = this.getNextPositionWithLowestDistance(pos);
                     path.add(pos);
                     pathPositions.add(pos);
+                    List<Vector> adjacentPositions = unit.getWorld().getDirectlyAdjacentCubesPositions(pos);
+                    adjacentPositions.removeIf(adjPos -> unit.getWorld().isCubePassable(adjPos));
+                    pathPositions.addAll(adjacentPositions);
                 }
                 return new Path(path, pathPositions);
             } else
@@ -198,7 +210,7 @@ public class TargetMove extends Move {
     public class Path{
 
         private final ArrayDeque<Vector> path;
-        private final HashSet<Vector> pathPositions;// TODO: path positions must also contain all directly adjacent cubes in order to check the path validity
+        private final HashSet<Vector> pathPositions;
 
         private Path(ArrayDeque<Vector> path, HashSet<Vector> pathPositions){
             this.path = path;
@@ -217,6 +229,10 @@ public class TargetMove extends Move {
 
         public boolean contains(Vector pathPosition){
             return pathPositions.contains(pathPosition);
+        }
+
+        public Vector getTarget(){
+            return this.path.getLast();
         }
     }
 }

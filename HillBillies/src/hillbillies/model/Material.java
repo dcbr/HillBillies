@@ -195,7 +195,6 @@ public class Material implements IWorldObject {
     public boolean isValidOwner(WorldObject owner) {
         if(owner == null) return true;
         if(owner instanceof Cube){
-            // TODO: check if Cube doesn't contain other Materials
             return owner.getWorld() == this.world;
         }else if(owner instanceof Unit){
             Unit carrier = (Unit)owner;

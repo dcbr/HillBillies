@@ -1,7 +1,10 @@
 package hillbillies.model;
 
 import java.util.*;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
+import be.kuleuven.cs.som.annotate.Raw;
 import hillbillies.utils.Vector;
 
 public class LobbyWorld implements IWorld {
@@ -85,6 +88,11 @@ public class LobbyWorld implements IWorld {
 	}
 
 	@Override
+	public <T> void getDirectlyAdjacentCubesSatisfying(Collection<T> collection, Vector cubeCoordinates, Predicate<Cube> condition, Function<Cube, T> mapper) {
+		throw new NoSuchMethodError("This method is not supported by the lobby.");
+	}
+
+	@Override
 	public Set<Cube> getNeighbouringCubes(Vector position) {
 		throw new NoSuchMethodError("This method is not supported by the lobby.");
 	}
@@ -116,6 +124,11 @@ public class LobbyWorld implements IWorld {
 	@Override
 	public void collapse(Vector cube) {
 
+	}
+
+	@Override
+	public boolean hasAsFaction(@Raw Faction faction) {
+		return this.factions.contains(faction);
 	}
 
 }

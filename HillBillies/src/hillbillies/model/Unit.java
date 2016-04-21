@@ -44,7 +44,7 @@ import java.util.*;
  * Unit.
  * | isValidFaction(getFaction())
  */
-public class Unit extends WorldObject {// TODO: extend WorldObject
+public class Unit extends WorldObject {
 
 	//region Constants
 
@@ -573,7 +573,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	 */
 	@Basic @Raw
 	public int getWeight() {
-		return this.weight;// TODO: add weight of carriedMaterial
+		return this.weight + (this.isCarryingMaterial() ? this.getCarriedMaterial().getWeight() : 0);
 	}
 
 	//endregion
@@ -921,9 +921,9 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	 *       | super(world, position)
 	 * @effect This new Unit is added to the given world. This world will
 	 * 			put the Unit in a Faction related to that world.
-	 * 			| world.addUnit(this) // TODO
+	 * 			| world.addUnit(this)
 	 * @post	This new Unit belongs to a Faction related to the given world.
-	 * 			| world.getFactions().contains(this.getFaction()) == true // TODO
+	 * 			| world.getFactions().contains(this.getFaction()) == true
 	 * @effect The name of this new Unit is set to
 	 * the given name.
 	 * | this.setName(name)
@@ -1324,7 +1324,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	 * | result ==
 	 */
 	public boolean isValidFaction(Faction faction) {
-		return true;// TODO: check if the Unit's world contains this faction
+		return this.getWorld().hasAsFaction(faction);
 	}
 	/**
 	 * Set the faction of this Unit to the given faction.
@@ -1431,6 +1431,15 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	}
 	//endregion
 
+	public void notifyTerrainChange(Terrain oldTerrain, Cube cube){
+		if(!this.isFalling() && this.isMoving()){
+			if(this.isExecuting(AdjacentMove.class))
+				this.requestActivityFinish(this.getCurrentActivity());
+			assert this.getCurrentActivity() instanceof TargetMove;
+			((TargetMove)this.getCurrentActivity()).notifyTerrainChange(oldTerrain, cube);
+		}
+	}
+
 	//region falling
 
 	/*public boolean isFalling(){
@@ -1518,10 +1527,20 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 		}
 
 		public void restartActivity(){
+			restartActivity(false);
+		}
+
+		public void restartActivity(boolean restartParent){
 			Activity activity = this.getCurrentActivity();
 			boolean isDefault = activity.isDefault();
-			activity.stop();
-			activity.start(isDefault);
+			if(restartParent && !activity.isParentActivity(null)){
+				stopCurrentActivity(false);
+				this.getCurrentActivity().setDefault(isDefault);
+				restartActivity(true);
+			}else {
+				activity.stop();
+				activity.start(isDefault);
+			}
 		}
 
 		private void stopCurrentActivity(boolean finishParent) throws IllegalStateException{

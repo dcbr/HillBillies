@@ -4,8 +4,11 @@ package hillbillies.model;
 import static hillbillies.utils.Utils.*;
 
 import java.util.*;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 import be.kuleuven.cs.som.annotate.*;
+import hillbillies.activities.AdjacentMove;
 import hillbillies.part2.listener.TerrainChangeListener;
 import hillbillies.util.ConnectedToBorder;
 import hillbillies.utils.Vector;
@@ -72,7 +75,7 @@ public class World implements IWorld {
 	 * @post This new world has no materials yet.
 	 * | new.getNbMaterials() == 0
 	 */
-	public World(int[][][] terrainTypes, TerrainChangeListener terrainChangeListener)// TODO: terrainChangeListener, see Facade
+	public World(int[][][] terrainTypes, TerrainChangeListener terrainChangeListener)
 			throws IllegalArgumentException {
 		this.terrainChangeListener = terrainChangeListener;
 		setNbCubesX(terrainTypes.length);
@@ -80,22 +83,6 @@ public class World implements IWorld {
 		setNbCubesZ(terrainTypes[0][0].length);
 		connectedToBorder = new ConnectedToBorder(this.getNbCubesX(),this.getNbCubesY(),this.getNbCubesZ());
 		this.setTerrainMatrix(terrainTypes);
-	}
-	
-
-	
-	/**
-	 * Check whether the given Terrain Matrix is a valid Terrain Matrix for
-	 * any World.
-	 *  
-	 * @param  terrainTypes
-	 *         The Terrain Matrix to check.
-	 * @return 
-	 *       | result == 
-	*/
-	public static boolean isValidTerrainMatrix(int[][][] terrainTypes) {
-		//TODO
-		return false;
 	}
 
 	/**
@@ -499,23 +486,13 @@ public class World implements IWorld {
 
 	@Override
 	public Set<Cube> getDirectlyAdjacentCubes(Vector cubeCoordinates){
-		Set<Cube> adjacentCubes = new HashSet<>(NB_DIRECTLY_ADJACENT_DIRECTIONS);
-		for(Vector adjacentDirection : DIRECTLY_ADJACENT_DIRECTIONS) {
-			Vector adjacentPos = cubeCoordinates.add(adjacentDirection);
-			if (isValidPosition(adjacentPos))
-				adjacentCubes.add(getCube(adjacentPos));
-		}
-		return adjacentCubes;
+		Set<Cube> result = new HashSet<>(NB_DIRECTLY_ADJACENT_DIRECTIONS);
+		getDirectlyAdjacentCubesSatisfying(result, cubeCoordinates, cube -> true, cube -> cube);
+		return result;
 	}
 
 	public Set<Cube> getNeighbouringCubes(Vector cubeCoordinates){
-		Set<Cube> neighbouringCubes = new HashSet<>(NB_NEIGHBOURING_DIRECTIONS);// TODO: fuckt die 26 het op of niet?
-		for(Vector neighbouringDirection : NEIGHBOURING_DIRECTIONS) {
-			Vector neighbouringPos = cubeCoordinates.getCubeCoordinates().add(neighbouringDirection);
-			if (isValidPosition(neighbouringPos)){
-				neighbouringCubes.add(getCube(neighbouringPos));}
-		}
-		return neighbouringCubes;
+		return getNeighbouringCubesSatisfying(cubeCoordinates, cube -> true, cube -> cube);
 	}
 
 	public Set<Cube> getDirectlyAdjacentCubes(Cube cube){
@@ -526,8 +503,63 @@ public class World implements IWorld {
 		return getNeighbouringCubes(cube.getPosition());
 	}
 
+	/**
+	 * Fill the given collection with directly adjacent cubes, of the Cube with position cubeCoordinates,
+	 * which satisfy the given condition. The resulting cubes are mapped to a custom type using the given
+	 * mapper. These mapped cubes are then added to the given collection.
+	 * @param cubeCoordinates The CUBE-coordinates of the Cube. The method will only return the directly
+	 *                        adjacent cubes relative to this Cube.
+	 * @param condition The condition imposed on the directly adjacent cubes. Only directly adjacent
+	 *                  cubes satisfying this condition will be added to the resulting collection.
+	 * @param mapper The mapper used to map the resulting adjacent cubes to the custom Type of the given collection
+	 * @param <T> The type of the resulting collection after mapping it.
+     * @post The given collection contains valid directly adjacent cubes satisfying condition.
+	 * 			| foreach(new T element in collection)
+	 * 			|	exists(Cube c | isValidPosition(c.getPosition()) && condition.test(c) &&
+	 * 			|		exists(Vector adjDirection | DIRECTLY_ADJACENT_DIRECTIONS.contains(adjDirection) &&
+	 * 			|			cubeCoordinates.add(adjDirection).equals(c.getPosition())
+	 * 			|		)
+	 * 			|	)
+     */
 	@Override
-	public List<Vector> getDirectlyAdjacentCubesPositions(Vector cubeCoordinates){
+	public <T> void getDirectlyAdjacentCubesSatisfying(Collection<T> collection, Vector cubeCoordinates, Predicate<Cube> condition, Function<Cube, T> mapper){
+		for(Vector adjacentDirection : DIRECTLY_ADJACENT_DIRECTIONS) {
+			Vector adjacentPos = cubeCoordinates.add(adjacentDirection);
+			if (isValidPosition(adjacentPos) && condition.test(this.getCube(adjacentPos)))
+				collection.add(mapper.apply(this.getCube(adjacentPos)));
+		}
+	}
+
+	/**
+	 * Return the set of neighbouring cubes, of the Cube with position cubeCoordinates, which
+	 * satisfy the given condition. The resulting set is mapped to a custom type using the given
+	 * mapper.
+	 * @param cubeCoordinates The CUBE-coordinates of the Cube. The method will return the neighbouring
+	 *                        cubes relative to this Cube.
+	 * @param condition The condition imposed on the neighbouring cubes. Only neighbouring cubes
+	 *                  satisfying this condition will be added to the resulting Set.
+	 * @param mapper The mapper used to map the resulting neighbouring cubes set to a set of custom Type
+	 * @param <T> The type of the resulting Set after mapping it.
+	 * @return The mapped set of valid neighbouring cubes satisfying condition.
+	 * 			| foreach(T element in result)
+	 * 			|	exists(Cube c | isValidPosition(c.getPosition()) && condition.test(c) &&
+	 * 			|		exists(Vector neighbouringDirection | NEIGHBOURING_DIRECTIONS.contains(neighbouringDirection) &&
+	 * 			|			cubeCoordinates.add(neighbouringDirection).equals(c.getPosition())
+	 * 			|		)
+	 * 			|	)
+	 */
+	public <T> Set<T> getNeighbouringCubesSatisfying(Vector cubeCoordinates, Predicate<Cube> condition, Function<Cube, T> mapper){
+		Set<T> neighbouringCubes = new HashSet<>(NB_NEIGHBOURING_DIRECTIONS);
+		for(Vector neighbouringDirection : NEIGHBOURING_DIRECTIONS) {
+			Vector neighbouringPos = cubeCoordinates.add(neighbouringDirection);
+			if (isValidPosition(neighbouringPos) && condition.test(this.getCube(neighbouringPos)))
+				neighbouringCubes.add(mapper.apply(this.getCube(neighbouringPos)));
+		}
+		return neighbouringCubes;
+	}
+
+	@Override
+	public List<Vector> getDirectlyAdjacentCubesPositions(Vector cubeCoordinates){// TODO: update this so it supports more general method
 		List<Vector> adjacentCubes = new ArrayList<>(NB_DIRECTLY_ADJACENT_DIRECTIONS);
 		for(Vector adjacentDirection : DIRECTLY_ADJACENT_DIRECTIONS) {
 			Vector adjacentPos = cubeCoordinates.add(adjacentDirection);
@@ -622,6 +654,9 @@ public class World implements IWorld {
 			}
 			else if (!cube.isPassable() && oldTerrain.isPassable())
 				connectedToBorder.changePassableToSolid(x, y, z);
+			for(Unit unit : units){
+				unit.notifyTerrainChange(oldTerrain, cube);
+			}
 		}else if(cube.isPassable()){
 			connectedToBorder.changeSolidToPassable(x, y, z);
 		}

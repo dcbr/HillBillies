@@ -92,7 +92,7 @@ public final class Utils {
      * 			| newTime == (prevProgress % delta) + dt
      * 			| result == (newTime - newTime % delta) / delta
      */
-    public static int getIntervalTicks(double prevProgress, double dt, double delta){// TODO: move to utils? + find better name
+    public static int getIntervalTicks(double prevProgress, double dt, double delta){// TODO: find better name
         double newTime = (prevProgress % delta) + dt;
         return (int)((newTime - newTime % delta) / delta);
     }

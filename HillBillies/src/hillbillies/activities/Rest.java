@@ -103,17 +103,6 @@ public class Rest extends Activity {
     }
 
     /**
-     * Activity specific code to check whether this Activity can be stopped by nextActivity.
-     *
-     * @param nextActivity The Activity which will be started when this Activity stops.
-     * @return True if this Activity should stop for nextActivity.
-     */
-    @Override
-    protected boolean shouldStopFor(Activity nextActivity) {
-        return true;
-    }
-
-    /**
      * Activity specific code to check whether this Activity can be interrupted by nextActivity.
      *
      * @param nextActivity The Activity which will be started when this Activity is interrupted.
@@ -121,7 +110,7 @@ public class Rest extends Activity {
      */
     @Override
     protected boolean shouldInterruptFor(Activity nextActivity) {
-        return false;// TODO: defense
+        return false;
     }
 
     /**

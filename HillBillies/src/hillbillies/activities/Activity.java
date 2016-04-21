@@ -79,14 +79,11 @@ public abstract class Activity {
 
     /**
      * Stop this Activity
-     * @param nextActivity The Activity which will be started after this one has stopped. (OR this activity if requestFinish is called)
      * @throws IllegalStateException
      *          When this Activity should not stop for nextActivity and nextActivity is not this Activity (=> requestFinish is not called)
      *          | nextActivity!=this && !shouldStopFor(nextActivity)
      */
-    public final void stop(Activity nextActivity) throws IllegalStateException{
-        if(nextActivity!=this && !shouldStopFor(nextActivity))// Activities can always be stopped by themselves (through requestFinish)
-            throw new IllegalStateException("This Activity cannot be stopped by the next Activity.");
+    public final void stop() throws IllegalStateException{
         this.interruptActivity();// First interrupt and then stop activity
         this.stopActivity();
         this.activityProgress = 0d;
@@ -137,13 +134,6 @@ public abstract class Activity {
      * @return True if this Activity can be started as the nextActivity of the currently active Activity.
      */
     public abstract boolean isAbleTo();
-
-    /**
-     * Activity specific code to check whether this Activity can be stopped by nextActivity.
-     * @param nextActivity The Activity which will be started when this Activity stops.
-     * @return True if this Activity should stop for nextActivity.
-     */
-    protected abstract boolean shouldStopFor(Activity nextActivity);
 
     /**
      * Activity specific code to check whether this Activity can be interrupted by nextActivity.

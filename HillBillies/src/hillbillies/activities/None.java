@@ -66,17 +66,6 @@ public class None extends Activity {
     }
 
     /**
-     * Activity specific code to check whether this Activity can be stopped by nextActivity.
-     *
-     * @param nextActivity The Activity which will be started when this Activity stops.
-     * @return True if this Activity should stop for nextActivity.
-     */
-    @Override
-    protected boolean shouldStopFor(Activity nextActivity) {
-        return true;// None can stop for any Activity
-    }
-
-    /**
      * Activity specific code to check whether this Activity can be interrupted by nextActivity.
      *
      * @param nextActivity The Activity which will be started when this Activity is interrupted.

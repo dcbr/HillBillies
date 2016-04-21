@@ -64,7 +64,7 @@ public class TargetMove extends Move {
      */
     @Override
     protected void interruptActivity() {
-        super.interruptActivity();
+
     }
 
     /**
@@ -78,19 +78,20 @@ public class TargetMove extends Move {
         if(!path.hasNext()){// TODO: check if cubes along the path have collapsed
             requestFinish();
         }else{
-            /*controller*/unit.requestNewActivity(new AdjacentMove(unit, path.getNext().difference(cpos), this));
+            AdjacentMove nextMove = new AdjacentMove(unit, path.getNext().difference(cpos), this);
+            if(this.isSprinting())
+                nextMove.sprint();
+            /*controller*/unit.requestNewActivity(nextMove);
         }
     }
 
     /**
-     * Activity specific code to check whether this Activity can be stopped by nextActivity.
-     *
-     * @param nextActivity The Activity which will be started when this Activity stops.
-     * @return True if this Activity should stop for nextActivity.
+     * Return a boolean indicating whether or not this unit
+     * is able to perform an extended movement. (When not in default mode!)
      */
     @Override
-    protected boolean shouldStopFor(Activity nextActivity) {
-        return super.shouldStopFor(nextActivity) || nextActivity instanceof TargetMove;// New target was set => stop this Activity
+    public boolean isAbleTo() {
+        return super.isAbleTo() || unit.isExecuting(TargetMove.class);// New target was set => stop this Activity and execute new one
     }
 
     /**

@@ -66,13 +66,12 @@ public abstract class Move extends Activity {
     }
 
     /**
-     * Activity specific code which is called when the Activity is interrupted.
-     * This code is also called before stopActivity when the Activity is stopped.
-     * @effect  The unit stops sprinting when this Activity is interrupted.
+     * Activity specific code which is called when the Activity is stopped.
+     * @effect  The unit stops sprinting when this Activity is stopped.
      *          | stopSprint()
      */
     @Override
-    protected void interruptActivity() {
+    protected void stopActivity(){
         this.stopSprint();
     }
 
@@ -114,17 +113,7 @@ public abstract class Move extends Activity {
      */
     @Override
     protected boolean shouldInterruptFor(Activity nextActivity) {
-        return nextActivity instanceof Attack;
-    }
-
-    /**
-     * Movement will be stopped if nextActivity is an instance of the Work, Rest or Fall Activities.
-     * @param nextActivity The Activity which will be started when this Activity stops.
-     * @return True if nextActivity is an instance of Work, Rest or Fall
-     */
-    @Override
-    protected boolean shouldStopFor(Activity nextActivity){
-        return nextActivity instanceof Work || nextActivity instanceof Rest;// TODO: Falling
+        return false;// A general movement cannot be interrupted
     }
 
     @Override

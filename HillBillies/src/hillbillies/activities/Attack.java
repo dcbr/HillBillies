@@ -101,17 +101,6 @@ public class Attack extends Activity{
     }
 
     /**
-     * Activity specific code to check whether this Activity can be stopped by nextActivity.
-     *
-     * @param nextActivity The Activity which will be started when this Activity stops.
-     * @return True if this Activity should stop for nextActivity.
-     */
-    @Override
-    protected boolean shouldStopFor(Activity nextActivity) {
-        return false;// Falling?
-    }
-
-    /**
      * Activity specific code to check whether this Activity can be interrupted by nextActivity.
      *
      * @param nextActivity The Activity which will be started when this Activity is interrupted.
@@ -119,7 +108,7 @@ public class Attack extends Activity{
      */
     @Override
     protected boolean shouldInterruptFor(Activity nextActivity) {
-        return false;
+        return false;// An attack cannot be interrupted
     }
 
     /**
@@ -176,7 +165,6 @@ public class Attack extends Activity{
      * 			If it fails to dodge and block, this unit will lose hitpoins.
      */
     public void defend(){
-        //setCurrentActivity(this.getCurrentActivity());// TODO: check if this is still correct
         //dodging
         if ((randInt(0,99)/100.0) < this.getDodgingProbability()){
             Boolean validDodge = false;
@@ -190,14 +178,16 @@ public class Attack extends Activity{
                     defender.setPosition(defender.getPosition().add(new Vector(dodgeX,dodgeY,0)));
                 }
             }
+            defender.addXP(ATTACK_XP);
         }// fails to block
         else if (!((randInt(0,99)/100.0) < this.getBlockingProbability())){
             defender.removeHitpoints(this.getDamagingPoints());
             //this.setHitpoints(this.getHitpoints()- this.getDamagingPoints(attacker));
             unit.addXP(ATTACK_XP);// TODO: let ActivityController set the XP via getXp and wasSuccessful
-            return;
-        }
-        defender.addXP(ATTACK_XP);
+        }else
+            defender.addXP(ATTACK_XP);
+
+        defender.restartActivity();
     }
 
     /**

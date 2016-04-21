@@ -76,6 +76,16 @@ public class Fall extends Move {
     	
     }
 
+    /**
+     * Activity specific code which is called when the Activity is interrupted.
+     * This code is also called before stopActivity when the Activity is stopped.
+     */
+    @Override
+    protected void interruptActivity() {
+        // This Activity cannot be interrupted
+        assert false;
+    }
+
     @Override
     public boolean isAbleTo(){
         return true;// Unit can fall at any moment, no matter what he's doing
@@ -83,11 +93,6 @@ public class Fall extends Move {
 
     @Override
     protected boolean shouldInterruptFor(Activity nextActivity){
-        return false;// If a unit is falling, he can't do anything else
-    }
-
-    @Override
-    protected boolean shouldStopFor(Activity nextActivity){
         return false;// If a unit is falling, he can't do anything else
     }
 

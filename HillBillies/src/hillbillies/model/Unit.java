@@ -1114,7 +1114,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 	 * 			If it fails to dodge and block, this unit will lose hitpoins.
 	 */
 	public void defend(Unit attacker){// Code is moved to Activity Attack
-		// TODO: what must happen when this method is called?
+		// empty method since attacking is controlled by the attacker
 	}
 	//endregion
 
@@ -1485,7 +1485,7 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 				this.getCurrentActivity().interrupt(activity);
 			}catch(IllegalStateException interruptException){
 				try{
-					stopActivity(activity);
+					stopCurrentActivity();
 					// TODO: first stop previous activities in stack?
 				}catch(IllegalStateException stopException){
 					throw new IllegalStateException("The current activity cannot be interrupted nor stopped by the given Activity.");
@@ -1508,15 +1508,22 @@ public class Unit extends WorldObject {// TODO: extend WorldObject
 			//if(this.activityStack.size()==1)
 			//	throw new IllegalStateException("Since this is the last activity in stack, it can not be finished.");
 			boolean isDefault = this.getCurrentActivity().isDefault();
-			stopActivity(activity);
+			stopCurrentActivity();
 			if(this.activityStack.size()==0)
 				this.activityStack.push(NONE);
 			this.getCurrentActivity().start(isDefault);// Resume previous activity in stack
 		}
 
-		private void stopActivity(Activity nextActivity) throws IllegalStateException{
+		public void restartActivity(){
+			Activity activity = this.getCurrentActivity();
+			boolean isDefault = activity.isDefault();
+			activity.stop();
+			activity.start(isDefault);
+		}
+
+		private void stopCurrentActivity() throws IllegalStateException{
 			Activity oldActivity = this.getCurrentActivity();
-			oldActivity.stop(nextActivity);
+			oldActivity.stop();
 			this.activityStack.pop();
 			if(oldActivity.wasSuccessful())
 				Unit.this.addXP(oldActivity.getXp());

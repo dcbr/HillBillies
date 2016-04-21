@@ -42,7 +42,10 @@ public class AdjacentMove extends Move {// TODO: make distinction between Adjace
      */
     @Override
     protected void stopActivity() {
-
+        // Only stop sprinting when this is an individual adjacentMove, otherwise stop sprinting will be handled by
+        // TargetMove.
+        if(this.targetMove==null)
+            super.stopActivity();
     }
 
     /**
@@ -51,7 +54,7 @@ public class AdjacentMove extends Move {// TODO: make distinction between Adjace
      */
     @Override
     protected void interruptActivity() {
-        if(targetMove==null) super.interruptActivity();// Otherwise targetMove will handle stopSprinting
+
     }
 
     /**
@@ -86,14 +89,12 @@ public class AdjacentMove extends Move {// TODO: make distinction between Adjace
     }
 
     /**
-     * Activity specific code to check whether this Activity can be stopped by nextActivity.
-     *
-     * @param nextActivity The Activity which will be started when this Activity stops.
-     * @return True if this Activity should stop for nextActivity.
+     * Return a boolean indicating whether or not this unit
+     * is able to perform an adjacent movement. (When not in default mode!)
      */
     @Override
-    protected boolean shouldStopFor(Activity nextActivity) {
-        return super.shouldStopFor(nextActivity) || nextActivity instanceof Move;// New Movement to perform => stop Activity
+    public boolean isAbleTo() {
+        return super.isAbleTo() || unit.isExecuting(Move.class);// New movement to perform => stop Activity and perform new one
     }
 
     /**

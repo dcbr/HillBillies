@@ -39,7 +39,7 @@ public class Work extends Activity {
      *       	| result >= 0
      */
     public static int getWorkingTime(int strength) {
-        return (500/strength);// TODO: moet dit geen float zijn?
+        return (500/strength);
     }
 
     @Override

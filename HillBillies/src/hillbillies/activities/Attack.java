@@ -1,9 +1,14 @@
 package hillbillies.activities;
 
 import be.kuleuven.cs.som.annotate.Basic;
+import hillbillies.model.Cube;
 import hillbillies.model.IWorld;
 import hillbillies.model.Unit;
 import hillbillies.utils.Vector;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 import static hillbillies.utils.Utils.randInt;
 
@@ -92,9 +97,9 @@ public class Attack extends Activity{
                 !unit.isAttacking() &&
                 !unit.isInitialRestMode() &&
                 (defender.getHitpoints() > Unit.MIN_HITPOINTS) && // TODO: !defender.isTerminated() ?
-                (Math.abs(defender.getPosition().cubeX() - unit.getPosition().cubeX()) <= 1) && // TODO: unit.getWorld().getDirectlyAdjacentCubesPositions(
-                (Math.abs(defender.getPosition().cubeY() - unit.getPosition().cubeY()) <= 1) && //          defender.getPosition().getCubeCoordinates()
-                (Math.abs(defender.getPosition().cubeZ() - unit.getPosition().cubeZ()) <= 1) && //          .contains(unit.getPosition().getCubeCoordinates())
+                unit.getWorld().getDirectlyAdjacentCubesPositions(
+                        defender.getPosition().getCubeCoordinates()
+                ).contains(unit.getPosition().getCubeCoordinates()) &&
                 unit.getFaction() != defender.getFaction() &&
                 !defender.isFalling() &&
                 !unit.isFalling();
@@ -167,16 +172,18 @@ public class Attack extends Activity{
     public void defend(){
         //dodging
         if ((randInt(0,99)/100.0) < this.getDodgingProbability()){
-            Boolean validDodge = false;
-            while(! validDodge) {// TODO: in part2 replace this by a list of valid positions and choose a random element from that list
-                int dodgeX = randInt(-1, 1);
-                int dodgeY = randInt(-1, 1);
-                Vector newPos = defender.getPosition().add(new Vector(dodgeX, dodgeY, 0));
-                if ((dodgeX != 0 || dodgeY != 0) &&
-                        (isValidDodgePos(newPos.getCubeCoordinates()))) {
-                    validDodge = true;
-                    defender.setPosition(defender.getPosition().add(new Vector(dodgeX,dodgeY,0)));
-                }
+            List<Vector> validDodgePositions = new ArrayList<>();
+            unit.getWorld().getDirectlyAdjacentCubesSatisfying(
+                    validDodgePositions,
+                    defender.getPosition().getCubeCoordinates(),
+                    cube -> cube.getPosition().difference(defender.getPosition()).Z() == 0 &&
+                            isValidDodgePos(cube.getPosition().getCubeCoordinates()),
+                    Cube::getPosition);
+            if(validDodgePositions.size()>0)
+                defender.setPosition(validDodgePositions.get(randInt(0,validDodgePositions.size()-1)));
+            else {
+                //PANIC
+                assert false;
             }
             defender.addXP(ATTACK_XP);
         }// fails to block

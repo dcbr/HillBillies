@@ -86,7 +86,7 @@ public class Rest extends Activity {
                 newStamina = maxSt;
                 newRestStamina = 0;
                 restHitpoints = 0;
-                this.requestFinish();// TODO: this won't execute next statement
+                this.requestFinish();
             }
             unit.setStamina(newStamina);
             restStamina = newRestStamina;

@@ -26,6 +26,10 @@ public abstract class Activity {
      * Final variable referencing the Unit's ActivityController.
      */
     //protected final Unit.ActivityController controller;
+    /**
+     * Final variable referencing this Activity's parentActivity
+     */
+    protected final Activity parentActivity;
 
     /**
      * Initialize a new Activity which is bound to the given Unit.
@@ -33,6 +37,18 @@ public abstract class Activity {
      * @param unit The Unit this new Activity is bound to.
      */
     public Activity(Unit unit){
+        this(null, unit);
+    }
+
+    /**
+     * Initialize a new Activity which is bound to the given Unit and has parentActivity
+     * as its parent Activity.
+     * This means that this Activity can only be executed by the given Unit.
+     * @param parentActivity The parent Activity of this Activity
+     * @param unit The Unit this new Activity is bound to.
+     */
+    public Activity(Activity parentActivity, Unit unit){
+        this.parentActivity = parentActivity;
         this.activityProgress = 0d;
         this.unit = unit;
         //this.controller = unit.activityController;
@@ -88,6 +104,8 @@ public abstract class Activity {
         this.stopActivity();
         this.activityProgress = 0d;
         this.isActive = false;
+        if(this.parentActivity!=null)
+            this.parentActivity.stop();
     }
 
     /**

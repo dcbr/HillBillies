@@ -78,9 +78,7 @@ public class TargetMove extends Move {
         if(!path.hasNext()){// TODO: check if cubes along the path have collapsed
             requestFinish();
         }else{
-            AdjacentMove nextMove = new AdjacentMove(unit, path.getNext().difference(cpos), this);
-            if(this.isSprinting())
-                nextMove.sprint();
+            AdjacentMove nextMove = new AdjacentMove(unit, path.getNext().difference(cpos), this.isSprinting(), this);
             /*controller*/unit.requestNewActivity(nextMove);
         }
     }

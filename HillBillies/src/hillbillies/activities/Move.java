@@ -46,7 +46,7 @@ public abstract class Move extends Activity {
      *          | this(unit, false)
      */
     public Move(Unit unit){
-        this(unit, false);
+        this(null, unit, false);
     }
 
     /**
@@ -60,7 +60,23 @@ public abstract class Move extends Activity {
      *          |   new.isSprinting() == false
      */
     public Move(Unit unit, boolean sprinting){
-        super(unit);
+        this(null, unit, sprinting);
+    }
+
+    /**
+     * Create a new Move Activity for the given Unit with sprinting set to the specified value.
+     * And the given parentActivity as parent Activity.
+     * @param parentActivity The parent of this Move Activity.
+     * @param unit The unit which will perform the movement.
+     * @param sprinting Boolean indicating whether the unit will start sprinting or not.
+     * @post The Unit is sprinting if it is able to do so
+     *          | if(isAbleToSprint())
+     *          |   new.isSprinting() == sprinting
+     *          | else
+     *          |   new.isSprinting() == false
+     */
+    public Move(Activity parentActivity, Unit unit, boolean sprinting){
+        super(parentActivity, unit);
         if(sprinting)
             this.sprint();
     }

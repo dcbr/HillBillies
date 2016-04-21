@@ -12,20 +12,20 @@ public class AdjacentMove extends Move {// TODO: make distinction between Adjace
     private final Vector nextPosition;
     private TargetMove targetMove = null;
 
-    public AdjacentMove(Unit unit, Vector direction) throws IllegalArgumentException{
-        super(unit);
-        Vector nextPosition = unit.getPosition().getCubeCenterCoordinates().add(direction);
-        if (nextPosition==null || !isValidNextPosition(unit.getPosition(), nextPosition))
-            throw new IllegalArgumentException("Invalid position to move to.");
-        this.nextPosition = nextPosition;
-    }
-
     public AdjacentMove(Unit unit, int dx, int dy, int dz){
         this(unit, new Vector(dx,dy,dz));
     }
 
-    public AdjacentMove(Unit unit, Vector direction, TargetMove extendedMovement){
-        this(unit, direction);
+    public AdjacentMove(Unit unit, Vector direction) throws IllegalArgumentException{
+        this(unit, direction, false, null);
+    }
+
+    public AdjacentMove(Unit unit, Vector direction, boolean sprinting, TargetMove extendedMovement){
+        super(extendedMovement, unit, sprinting);
+        Vector nextPosition = unit.getPosition().getCubeCenterCoordinates().add(direction);
+        if (nextPosition==null || !isValidNextPosition(unit.getPosition(), nextPosition))
+            throw new IllegalArgumentException("Invalid position to move to.");
+        this.nextPosition = nextPosition;
         this.targetMove = extendedMovement;
     }
 

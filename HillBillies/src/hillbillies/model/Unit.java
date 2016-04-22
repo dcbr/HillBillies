@@ -858,12 +858,30 @@ public class Unit extends WorldObject {
 	//endregion
 
 	//region Constructors
+	/**
+	 * Initialize this new Unit in the given world. All other properties are set to random chosen
+	 * initial values.
+	 * @param world The world this new Unit belongs to
+	 * @effect This Unit is initialized in the given world with random initial values for its other properties
+	 * 			| this(world, random toughness, random weight)
+	 */
 	public Unit(IWorld world) throws IllegalArgumentException{	//TODO: Random value for hitpoints and stamina
-		this(world, "Unnamed Unit", world.getSpawnPosition(), randInt(INITIAL_MIN_STRENGTH, INITIAL_MAX_STRENGTH),
-				randInt(INITIAL_MIN_AGILITY, INITIAL_MAX_AGILITY), randInt(INITIAL_MIN_TOUGHNESS, INITIAL_MAX_TOUGHNESS),
+		this(world,randInt(INITIAL_MIN_TOUGHNESS, INITIAL_MAX_TOUGHNESS),
 				randInt(getInitialMinWeight(INITIAL_MIN_STRENGTH,INITIAL_MIN_AGILITY), INITIAL_MAX_WEIGHT) );
 	}
-
+	/**
+	 * Initialize this new Unit in the given world with the given toughness and weight. 
+	 * All other properties are set to random chosen initial values.
+	 * @param world The world this new Unit belongs to
+	 * @param toughness The toughness of this new Unit
+	 * @param weigth The weight of this new Unit
+	 * @effect This Unit is initialized in the given world with random initial values for its other properties
+	 * 			| this(world, random Name, random position, random strength, random agility, toughness, weight, random stamina, random hitpoints)
+	 */
+	private Unit(IWorld world, int toughness, int weight) throws IllegalArgumentException{
+		this(world, "Unnamed Unit", world.getSpawnPosition(), randInt(INITIAL_MIN_STRENGTH, INITIAL_MAX_STRENGTH),
+				randInt(INITIAL_MIN_AGILITY, INITIAL_MAX_AGILITY), toughness, weight, randInt(INITIAL_MIN_STAMINA, getMaxStamina(weight, toughness)), randInt(INITIAL_MIN_HITPOINTS, getMaxHitpoints(weight, toughness)));
+	}
 	/**
 	 * Initialize this new Unit with given name and position in the given world. All other properties are set to their
 	 * default initial values.
@@ -871,7 +889,7 @@ public class Unit extends WorldObject {
 	 * @param name The name of this new Unit
 	 * @param position The position of this new Unit
 	 * @effect This Unit is initialized with the given name and position and the default initial values for its other properties
-	 * 			| this(name, position, INITIAL_MIN_STRENGTH, INITIAL_MIN_AGILITY, INITIAL_MIN_TOUGHNESS, INITIAL_MIN_WEIGHT, INITIAL_MIN_STAMINA, INITIAL_MIN_HITPOINTS)
+	 * 			| this(world, name, position, INITIAL_MIN_STRENGTH, INITIAL_MIN_AGILITY, INITIAL_MIN_TOUGHNESS, INITIAL_MIN_WEIGHT, INITIAL_MIN_STAMINA, INITIAL_MIN_HITPOINTS)
 	 */
 	public Unit(IWorld world, String name, Vector position) throws IllegalArgumentException {
 		this(world, name, position, INITIAL_MIN_STRENGTH, INITIAL_MIN_AGILITY, INITIAL_MIN_TOUGHNESS, INITIAL_MIN_WEIGHT, INITIAL_MIN_STAMINA, INITIAL_MIN_HITPOINTS);

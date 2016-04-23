@@ -691,6 +691,7 @@ public class Unit extends WorldObject {
 	 */
 	@Raw
 	public void removeHitpoints(int hitpoints){
+		assert hitpoints>=0;
 		int newHit = getHitpoints()-hitpoints;
 		if (newHit <= MIN_HITPOINTS)
 			this.terminate();
@@ -1011,6 +1012,8 @@ public class Unit extends WorldObject {
 
 	@Override
 	public void advanceTime(double dt){
+		if(dt<0 || dt>0.2)
+			throw new IllegalArgumentException("The parameter dt must be in the range [0;0.2]");
 		// Defensively without documentation
 		if (!isFalling() && !validatePosition(getPosition())){// TODO: kheb hier && !isMoving() weggedaan, kdenk da daarmee den TODO hieronder inorde is
 			this./*activityController.*/requestNewActivity(new Fall(this)); //TODO: bij move telkens controleren of hij opeens moet vallen als er een blok veranderd naar passable
@@ -1273,6 +1276,7 @@ public class Unit extends WorldObject {
 		Material m = this.getCarriedMaterial();
 		this.carriedMaterial = null;
 		m.setOwner(dropCube);
+		dropCube.addMaterial(m);
 	}
 	//endregion
 
@@ -1289,6 +1293,10 @@ public class Unit extends WorldObject {
 	public void terminate() {
 	    this.isTerminated = true;
 		this.setHitpoints(0);
+		this.getWorld().removeUnit(this);
+		Faction f = this.getFaction();
+		this.faction = null;
+		f.removeUnit(this);
 	}
 	/**
 	 * Return a boolean indicating whether or not this Unit
@@ -1360,18 +1368,6 @@ public class Unit extends WorldObject {
 //	}
 
 	//region XP points
-	/**
-	 * Constant reflecting XP gaining after a fight.
-	 */
-	private static final int FIGHT_POINTS = 20;
-	/**
-	 * Constant reflecting XP gaining after a move.
-	 */
-	private static final int MOVE_POINTS = 1;
-	/**
-	 * Constant reflecting XP gaining after a work.
-	 */
-	private static final int WORK_POINTS = 10;
 	/**
 	 * Variable registering the experience points of this unit.
 	 */

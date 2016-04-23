@@ -13,7 +13,7 @@ import hillbillies.utils.Vector;
 /**
  * Created by Bram on 2-4-2016.
  */
-public interface IWorld {// TODO: fix this ugly shizzle
+public interface IWorld {// TODO: fix this ugly shizzle -> when everything is finished, delete this class and let LobbyWorld extend World
 
     /**
      * Check whether the given position is a valid position
@@ -72,6 +72,8 @@ public interface IWorld {// TODO: fix this ugly shizzle
     public Cube getCube(Vector position);
 
     public void collapse(Vector coordinate);// TODO: change collapse to Cube
+
+    public void removeUnit(Unit unit);
 
     public boolean hasAsFaction(@Raw Faction faction);
 }

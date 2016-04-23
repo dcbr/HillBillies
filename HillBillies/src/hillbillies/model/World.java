@@ -396,17 +396,16 @@ public class World implements IWorld {
 	 * @param unit
 	 * The unit to be removed.
 	 * @pre This world has the given unit as one of
-	 * its units, and the given unit does not
-	 * reference any world.
+	 * its units. And the given unit is terminated.
 	 * | this.hasAsUnit(unit) &&
-	 * | (unit.getWorld() == null)
+	 * | unit.isTerminated()
 	 * @post This world no longer has the given unit as
 	 * one of its units.
 	 * | ! new.hasAsUnit(unit)
 	 */
 	@Raw
 	public void removeUnit(Unit unit) {
-		assert this.hasAsUnit(unit) && (unit.getWorld() == null);
+		assert this.hasAsUnit(unit) && unit.isTerminated();
 		units.remove(unit);
 	}
 	/**
@@ -766,21 +765,58 @@ public class World implements IWorld {
 	 */
 	private final Set<Material> materials = new HashSet<>();
 
-	public Set<Material> getMaterials(){
-		return new HashSet<>(materials);
+	/**
+	 * Get all materials of the given type in this world. If inCube
+	 * is set to true, only materials with an owner of type Cube
+	 * will be returned.
+	 * @param type The type of Material to get. This type must extend
+	 *             Material.
+	 * @param inCube Boolean indicating whether only materials with
+	 *               an owner of type Cube should be returned
+	 * @param <T> The type of Material to get. This type must extend
+	 *            Material.
+     * @return A Set<T> containing all materials of given type in this
+	 * 			world. If inCube is true, only materials with an owner
+	 * 		 	of type Cube will be present in the Set.
+	 * 		 | foreach(T material in result : if(inCube) T.getOwner instanceof Cube)
+     */
+	public <T extends Material> Set<T> getMaterials(Class<T> type, boolean inCube){
+		Set<T> result = new HashSet<>();
+		for(Material m : materials){
+			if(type.isInstance(m) && (!inCube || m.getOwner() instanceof Cube || m.getOwner() == null))
+				result.add((T)m);
+		}
+		return result;
 	}
 
-	public Set<Log> getLogs(){
-		Set<? extends Material> logs = this.getMaterials();
-		logs.removeIf(m -> !(m instanceof Log));
-		return ((Set<Log>)logs);
+	/**
+	 * Get all Logs in this world. If inCube is true, only Logs with
+	 * an owner of type Cube will be returned.
+	 * @param inCube Boolean indicating whether only Logs with an owner
+	 *               of type Cube should be returned
+	 * @return A Set<Log> containing all Logs in this world. If inCube
+	 * 			is true, only Logs with an owner of type Cube will be
+	 * 			present in the Set.
+	 * @effect getMaterials(Log.class, inCube)
+     */
+	public Set<Log> getLogs(boolean inCube){
+		return getMaterials(Log.class, inCube);
 	}
 
-	public Set<Boulder> getBoulders(){
-		Set<? extends Material> boulders = this.getMaterials();
-		boulders.removeIf(m -> !(m instanceof Boulder));
-		return ((Set<Boulder>)boulders);
+	/**
+	 * Get all Boulders in this world. If inCube is true, only Boulders
+	 * with an owner of type Cube will be returned.
+	 * @param inCube Boolean indicating whether only Boulders with
+	 *               an owner of type Cube should be returned
+	 * @return A Set<Boulder> containing all Boulders in this world.
+	 * 			If inCube is true, only Logs with an owner of type
+	 * 			Cube will be present in the Set.
+	 * @effect getMaterials(Boulder.class, inCube)
+	 */
+	public Set<Boulder> getBoulders(boolean inCube){
+		return getMaterials(Boulder.class, inCube);
 	}
+
 	public void checkWorld(){
 		for(int x = 0; x < this.getNbCubesX(); x++){
 			for(int y = 0; y < this.getNbCubesX(); y++){

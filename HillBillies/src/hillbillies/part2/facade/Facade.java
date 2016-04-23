@@ -325,7 +325,7 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public Set<Boulder> getBoulders(World world) throws ModelException {
-        return world.getBoulders();
+        return world.getBoulders(true);
     }
 
     /**
@@ -351,7 +351,7 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public Set<Log> getLogs(World world) throws ModelException {
-        return world.getLogs();
+        return world.getLogs(true);
     }
 
     /**

@@ -84,20 +84,21 @@ public class Material implements IWorldObject {
             this.setOwner(null);
         }// TODO: fix this (separate method isValidPosition which checks position and not owner Unit?)
         //TODO: (for next part) move falling code to separate place
-        Vector cPos = this.getPosition();
-        Vector cPosCube = cPos.getCubeCenterCoordinates();
-        if (cPos.equals(cPosCube) && this.hasValidPosition()){
-            this.setOwner(this.getWorld().getCube(cPos.getCubeCoordinates()));
-        }
-        else{
-            double speed = 3;
-            Vector nextPos = cPos.add(new Vector(0,0,-speed*dt));
-            if (this.hasValidPosition() && ((cPosCube.isInBetween(2, cPos, nextPos) || cPos.Z() <= cPosCube.Z() )))
-                this.fallingPosition = cPosCube;
-            else if(nextPos.getCubeCenterCoordinates().isInBetween(2, cPos, nextPos) && isValidPosition(nextPos))
-                this.fallingPosition = nextPos.getCubeCenterCoordinates();
-            else
-                this.fallingPosition = nextPos;
+        if(this.getOwner() == null) {
+            Vector cPos = this.getPosition();
+            Vector cPosCube = cPos.getCubeCenterCoordinates();
+            if (cPos.equals(cPosCube) && this.isValidPosition(cPos)) {
+                this.setOwner(this.getWorld().getCube(cPos.getCubeCoordinates()));
+            } else {
+                double speed = 3;
+                Vector nextPos = cPos.add(new Vector(0, 0, -speed * dt));
+                if (this.hasValidPosition() && ((cPosCube.isInBetween(2, cPos, nextPos) || cPos.Z() <= cPosCube.Z())))
+                    this.fallingPosition = cPosCube;
+                else if (nextPos.getCubeCenterCoordinates().isInBetween(2, cPos, nextPos) && isValidPosition(nextPos))
+                    this.fallingPosition = nextPos.getCubeCenterCoordinates();
+                else
+                    this.fallingPosition = nextPos;
+            }
         }
     }
 
@@ -222,7 +223,7 @@ public class Material implements IWorldObject {
     }
 
     private boolean isValidPosition(Vector position){
-        return getPosition().cubeZ()==0 || !getWorld().getCube(this.getPosition().getCubeCoordinates().add(new Vector(0,0,-1))).isPassable();
+        return position.cubeZ()==0 || !getWorld().getCube(position.getCubeCoordinates().add(new Vector(0,0,-1))).isPassable();
     }
     //endregion
 

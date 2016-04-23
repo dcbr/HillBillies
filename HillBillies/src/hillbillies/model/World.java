@@ -27,16 +27,36 @@ public class World implements IWorld {
  *         World.
  *       | isValidTerrainMatrix(getTerrainMatrix())
  */
-	
+	/**
+	 * Constant reflecting the maximum units in a world.    
+	 */
 	private static final int MAX_UNITS = 100;
+	/**
+	 * Constant reflecting the maximum factions in a world.    
+	 */
 	private static final int MAX_FACTIONS = 5;
-
+	
+	/**
+	 * A list of vectors reflecting the directly adjacent directions of a cube.    
+	 */
 	private static final List<Vector> DIRECTLY_ADJACENT_DIRECTIONS;
+	/**
+	 * A list of vectors reflecting the neighboring adjacent directions of a cube.    
+	 */
 	private static final List<Vector> NEIGHBOURING_DIRECTIONS;
 
+	/**
+	 * Constant reflecting number of adjacent directions.    
+	 */
 	private static final int NB_DIRECTLY_ADJACENT_DIRECTIONS = 6;
+	/**
+	 * Constant reflecting number of neighboring directions.    
+	 */
 	private static final int NB_NEIGHBOURING_DIRECTIONS = 26;
 
+	/**
+	 * TODO
+	 */
 	private TerrainChangeListener terrainChangeListener;
 
 	/**
@@ -133,28 +153,72 @@ public class World implements IWorld {
 		
 	}
 	
-	
+	/**
+	 * Constant reflecting number of cubes in the x-direction.    
+	 */
 	private int NbCubesX;
+	/**
+	 * Constant reflecting number of cubes in the x-direction.    
+	 */
 	private int NbCubesY;
+	/**
+	 * Constant reflecting number of cubes in the x-direction.    
+	 */
 	private int NbCubesZ;
 	
+	/**
+	 * Set NbCubesX of this world to the given number of cubes.
+	 *
+	 * @param nbCubesX
+	 * The new numbers of cubes in x-direction of this world.
+	 * @post NbCubesX of this world is equal to
+	 * the given number.
+	 * | new.getNbCubesX() == nbCubesX
+	 */
 	private void setNbCubesX(int nbCubesX){
 		this.NbCubesX = nbCubesX;
 	}
+	/**
+	 * Return the number of x-cubes of this world.
+	 */
 	public int getNbCubesX(){
 		return this.NbCubesX;
 	}
 	
+	/**
+	 * Set NbCubesY of this world to the given number of cubes.
+	 *
+	 * @param nbCubesY
+	 * The new numbers of cubes in y-direction of this world.
+	 * @post NbCubesY of this world is equal to
+	 * the given number.
+	 * | new.getNbCubesY() == nbCubesY
+	 */
 	private void setNbCubesY(int nbCubesY){
 		this.NbCubesY = nbCubesY;
 	}
+	/**
+	 * Return the number of y-cubes of this world.
+	 */
 	public int getNbCubesY(){
 		return this.NbCubesY;
 	}
 	
+	/**
+	 * Set NbCubesZ of this world to the given number of cubes.
+	 *
+	 * @param nbCubesZ
+	 * The new numbers of cubes in z-direction of this world.
+	 * @post NbCubesZ of this world is equal to
+	 * the given number.
+	 * | new.getNbCubesZ() == nbCubesZ
+	 */
 	private void setNbCubesZ(int nbCubesZ){
 		this.NbCubesZ = nbCubesZ;
 	}
+	/**
+	 * Return the number of z-cubes of this world.
+	 */
 	public int getNbCubesZ(){
 		return this.NbCubesZ;
 	}
@@ -601,6 +665,7 @@ public class World implements IWorld {
 			double time = CollapsingCubes.get(cube);
 			if (time >= 4d){
 				collapse(cube);
+				cubeIterator.remove();
 				CollapsingCubes.remove(cube);
 			}
 			else

@@ -69,26 +69,29 @@ public class Material implements IWorldObject {
      * | ! canHaveAsWorld(this.getWorld())
      */
     public Material(World world, WorldObject owner) throws IllegalArgumentException{
-        if (! canHaveAsWorld(world))
-            throw new IllegalArgumentException();
         this.world = world;
         world.addMaterial(this);
         this.setOwner(owner);
+        owner.addOwnedMaterial(this);
         this.weight = randInt(MIN_WEIGHT, MAX_WEIGHT);
     }
 
     @Override
     public void advanceTime(double dt) {
-        if(!this.hasValidPosition()){
+        if(!this.hasValidPosition() && this.getOwner()!=null){
             this.fallingPosition = this.getPosition();
+            WorldObject owner = this.getOwner();
             this.setOwner(null);
+            owner.removeOwnedMaterial(this);
         }// TODO: fix this (separate method isValidPosition which checks position and not owner Unit?)
         //TODO: (for next part) move falling code to separate place
         if(this.getOwner() == null) {
             Vector cPos = this.getPosition();
             Vector cPosCube = cPos.getCubeCenterCoordinates();
             if (cPos.equals(cPosCube) && this.isValidPosition(cPos)) {
-                this.setOwner(this.getWorld().getCube(cPos.getCubeCoordinates()));
+                Cube newOwner = this.getWorld().getCube(cPos.getCubeCoordinates());
+                this.setOwner(newOwner);
+                newOwner.addOwnedMaterial(this);
             } else {
                 double speed = 3;
                 Vector nextPos = cPos.add(new Vector(0, 0, -speed * dt));
@@ -170,19 +173,6 @@ public class Material implements IWorldObject {
     //endregion
 
     //region Checkers
-    /**
-     * Check whether this Material can have the given world as its world.
-     *
-     * @param world
-     * The world to check.
-     * @return
-     * | result ==
-     */
-    @Raw
-    public boolean canHaveAsWorld(World world) {
-        // TODO
-        return true;
-    }
 
     /**
      * Check whether the given owner is a valid owner for
@@ -191,17 +181,10 @@ public class Material implements IWorldObject {
      * @param owner
      * The owner to check.
      * @return
-     * | result ==
+     * | result == (owner==null || owner.getWorld()==this.world)
      */
     public boolean isValidOwner(WorldObject owner) {
-        if(owner == null) return true;
-        if(owner instanceof Cube){
-            return owner.getWorld() == this.world;
-        }else if(owner instanceof Unit){
-            Unit carrier = (Unit)owner;
-            return owner.getWorld() == this.world && carrier.getCarriedMaterial() == this;
-        }
-        return false;
+        return owner == null || owner.getWorld() == this.world;
     }
 
     /**
@@ -240,6 +223,9 @@ public class Material implements IWorldObject {
     public void terminate() {
         this.isTerminated = true;
         this.getWorld().removeMaterial(this);
+        WorldObject oldOwner = this.getOwner();
+        this.setOwner(null);
+        oldOwner.removeOwnedMaterial(this);
     }
     /**
      * Return a boolean indicating whether or not this Material

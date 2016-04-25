@@ -680,12 +680,12 @@ public class World implements IWorld {
 		if (cubeTerrain == Terrain.ROCK){
 			if (randInt(0, 99) < 25)
 				//cubeTerrain = Terrain.AIR;
-				cube.addMaterial(new Boulder(this,cube));
+				new Boulder(this,cube);
 		}
 		else if (cubeTerrain == Terrain.WOOD){
 			if (randInt(0, 99) < 25)
 				//cubeTerrain = Terrain.AIR;
-				cube.addMaterial(new Log(this,cube));
+				new Log(this,cube);
 		}
 		cube.setTerrain(Terrain.AIR);
 

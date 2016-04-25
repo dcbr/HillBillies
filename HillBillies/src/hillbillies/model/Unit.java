@@ -875,7 +875,7 @@ public class Unit extends WorldObject {
 	 * All other properties are set to random chosen initial values.
 	 * @param world The world this new Unit belongs to
 	 * @param toughness The toughness of this new Unit
-	 * @param weigth The weight of this new Unit
+	 * @param weight The weight of this new Unit
 	 * @effect This Unit is initialized in the given world with random initial values for its other properties
 	 * 			| this(world, random Name, random position, random strength, random agility, toughness, weight, random stamina, random hitpoints)
 	 */
@@ -1234,6 +1234,10 @@ public class Unit extends WorldObject {
 		requestNewActivity(new Work(this, position));
 	}
 
+	@Override
+	public int getMaxNbOwnedMaterials() {
+		return 1;
+	}
 
 	/**
 	 * Return the carriedMaterial of this Unit.
@@ -1241,20 +1245,9 @@ public class Unit extends WorldObject {
 	@Basic
 	@Raw
 	public Material getCarriedMaterial() {
-	    return this.carriedMaterial;
+	    return (this.getNbOwnedMaterials()==0) ? null : this.getOwnedMaterialAt(1);
 	}
-	/**
-	 * Check whether the given material is a valid carriedMaterial for
-	 * any Unit.
-	 *
-	 * @param material
-	 * The carriedMaterial to check.
-	 * @return
-	 * | result == material.getWorld() == this.getWorld()
-	 */
-	public boolean isValidMaterial(Material material) {
-	    return material==null || material.getWorld()==this.getWorld();
-	}
+
 	/**
 	 * Set the carriedMaterial of this Unit to the given material.
 	 *
@@ -1268,15 +1261,11 @@ public class Unit extends WorldObject {
 	 * | ! isValidMaterial(getMaterial())
 	 */
 	public void setCarriedMaterial(@Raw Material material) throws IllegalArgumentException {
-	    if (! isValidMaterial(material))
+	    if (! canHaveAsOwnedMaterial(material))
 	        throw new IllegalArgumentException();
-	    this.carriedMaterial = material;
 		material.setOwner(this);
+		this.addOwnedMaterial(material);
 	}
-	/**
-	 * Variable registering the carriedMaterial of this Unit.
-	 */
-	private Material carriedMaterial;
 
 	public boolean isCarryingLog(){
 		return this.getCarriedMaterial()!=null && this.getCarriedMaterial() instanceof Log;
@@ -1292,9 +1281,11 @@ public class Unit extends WorldObject {
 
 	public void dropCarriedMaterial(Cube dropCube){
 		Material m = this.getCarriedMaterial();
-		this.carriedMaterial = null;
-		m.setOwner(dropCube);
-		dropCube.addMaterial(m);
+		if(m!=null) {
+			m.setOwner(dropCube);
+			this.removeOwnedMaterial(m);
+			dropCube.addOwnedMaterial(m);
+		}
 	}
 	//endregion
 

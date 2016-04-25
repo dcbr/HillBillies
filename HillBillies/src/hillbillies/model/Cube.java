@@ -105,10 +105,10 @@ public class Cube extends WorldObject {
             terrain = Terrain.AIR;
         Terrain oldTerrain = this.terrain;
         this.terrain = terrain;
-        if(!this.isPassable() && this.materials.size()>0){
-            for(Material material : this.materials)
+        if(!this.isPassable() && this.getNbOwnedMaterials()>0){
+            for(Material material : this.ownedMaterials)
                 material.terminate();
-            this.materials.clear();
+            this.ownedMaterials.clear();
         }
         this.terrainChangeListener.accept(oldTerrain, this);
     }
@@ -122,18 +122,8 @@ public class Cube extends WorldObject {
     }
 
 
-    /**
-     * Return the materials in this Cube.
-     */
-    @Basic
-    @Raw
-    @Immutable
-    public List<Material> getMaterials() {
-        return new ArrayList<>(this.materials);
-    }
-
     public boolean containsMaterials(){
-        return this.isPassable() && this.materials.size()>0;
+        return this.isPassable() && this.getNbOwnedMaterials()>0;
     }
 
     public boolean containsLogs(){
@@ -146,7 +136,7 @@ public class Cube extends WorldObject {
 
     public boolean containsMaterialType(Class<? extends Material> material){
         if(this.containsMaterials()){
-            for(Material m : this.materials)
+            for(Material m : this.ownedMaterials)
                 if(material.isInstance(m))
                     return true;
         }
@@ -164,190 +154,17 @@ public class Cube extends WorldObject {
     public <T extends Material> T getMaterialOfType(Class<T> material){
         if(!this.containsMaterialType(material))
             throw new IllegalArgumentException("This cube doesn't contain a material of given type.");
-        for(Material m : this.materials)
+        for(Material m : this.ownedMaterials)
             if(material.isInstance(m))
                 return (T)m;
         assert false;
         return null;// Will never happen
     }
-    /** TO BE ADDED TO THE CLASS INVARIANTS
-     * @invar Each cube must have proper materials.
-     * | hasProperMaterials()
-     */
 
-    /**
-     * Return the material associated with this cube at the
-     * given index.
-     *
-     * @param index
-     * The index of the material to return.
-     * @throws IndexOutOfBoundsException
-     * The given index is not positive or it exceeds the
-     * number of materials for this cube.
-     * | (index < 1) || (index > getNbMaterials())
-     */
-    @Basic
-    @Raw
-    public Material getMaterialAt(int index) throws IndexOutOfBoundsException {
-    	return materials.get(index - 1);
+    @Override
+    public int getMaxNbOwnedMaterials() {
+        return -1;
     }
-    /**
-     * Return the number of materials associated with this cube.
-     */
-    @Basic
-    @Raw
-    public int getNbMaterials() {
-    	return materials.size();
-    }
-    /**
-     * Check whether this cube can have the given material
-     * as one of its materials.
-     *
-     * @param material
-     * The material to check.
-     * @return True if and only if the given material is effective
-     * and that material can have this cube as its cube.
-     * | result ==
-     * | (material != null) &&
-     * | Material.isValidCube(this)
-     */
-    @Raw
-    public boolean canHaveAsMaterial(Material material) {
-    	return (material != null) && (material.isValidOwner(this));
-    }
-    /**
-     * Check whether this cube can have the given material
-     * as one of its materials at the given index.
-     *
-     * @param material
-     * The material to check.
-     * @return False if the given index is not positive or exceeds the
-     * number of materials for this cube + 1.
-     * | if ( (index < 1) || (index > getNbMaterials()+1) )
-     * | then result == false
-     * Otherwise, false if this cube cannot have the given
-     * material as one of its materials.
-     * | else if ( ! this.canHaveAsMaterial(material) )
-     * | then result == false
-     * Otherwise, true if and only if the given material is
-     * not registered at another index than the given index.
-     * | else result ==
-     * | for each I in 1..getNbMaterials():
-     * | (index == I) || (getMaterialAt(I) != material)
-     */
-    @Raw
-    public boolean canHaveAsMaterialAt(Material material, int index) {
-    	if ((index < 1) || (index > getNbMaterials() + 1))
-    	    return false;
-    	if (!this.canHaveAsMaterial(material))
-    	    return false;
-    	for (int i = 1; i < getNbMaterials(); i++)
-    		if ((i != index) && (getMaterialAt(i) == material))
-    		    return false;
-    	return true;
-    }
-    /**
-     * Check whether this cube has proper materials attached to it.
-     *
-     * @return True if and only if this cube can have each of the
-     * materials attached to it as a material at the given index,
-     * and if each of these materials references this cube as
-     * the cube to which they are attached.
-     * | result ==
-     * | for each I in 1..getNbMaterials():
-     * | ( this.canHaveAsMaterialAt(getMaterialAt(I) &&
-     * | (getMaterialAt(I).getCube() == this) )
-     */
-    public boolean hasProperMaterials() {
-    	for (int i = 1; i <= getNbMaterials(); i++) {
-    		if (!canHaveAsMaterialAt(getMaterialAt(i), i))
-    		    return false;
-    		if (getMaterialAt(i).getOwner() != this)
-    		    return false;
-    	}
-    	return true;
-    }
-    /**
-     * Check whether this cube has the given material as one of its
-     * materials.
-     *
-     * @param material
-     * The material to check.
-     * @return The given material is registered at some position as
-     * a material of this cube.
-     * | for some I in 1..getNbMaterials():
-     * | getMaterialAt(I) == material
-     */
-    public boolean hasAsMaterial(@Raw Material material) {
-    	return materials.contains(material);
-    }
-    /**
-     * Add the given material to the list of materials of this cube.
-     *
-     * @param material
-     * The material to be added.
-     * @pre The given material is effective and already references
-     * this cube, and this cube does not yet have the given
-     * material as one of its materials.
-     * | (material != null) && (material.getCube() == this) &&
-     * | (! this.hasAsMaterial(material))
-     * @post The number of materials of this cube is
-     * incremented by 1.
-     * | new.getNbMaterials() == getNbMaterials() + 1
-     * @post This cube has the given material as its very last material.
-     * | new.getMaterialAt(getNbMaterials()+1) == material
-     */
-    public void addMaterial(@Raw Material material) {
-    	assert(material != null) && (material.getOwner() == this) && (!this.hasAsMaterial(material));
-    	materials.add(material);
-    }
-    /**
-     * Remove the given material from the list of materials of this cube.
-     *
-     * @param material
-     * The material to be removed.
-     * @pre The given material is effective, this cube has the
-     * given material as one of its materials, and the given
-     * material does not reference any cube.
-     * | (material != null) &&
-     * | this.hasAsMaterial(material) &&
-     * | (material.getCube() == null)
-     * @post The number of materials of this cube is
-     * decremented by 1.
-     * | new.getNbMaterials() == getNbMaterials() - 1
-     * @post This cube no longer has the given material as
-     * one of its materials.
-     * | ! new.hasAsMaterial(material)
-     * @post All materials registered at an index beyond the index at
-     * which the given material was registered, are shifted
-     * one position to the left.
-     * | for each I,J in 1..getNbMaterials():
-     * | if ( (getMaterialAt(I) == material) and (I < J) )
-     * | then new.getMaterialAt(J-1) == getMaterialAt(J)
-     */
-    @Raw
-    public void removePurchase(Material material) {
-    	assert(material != null) && this.hasAsMaterial(material) && (material.getOwner() == null);
-    	materials.remove(material);
-    }
-    /**
-     * Variable referencing a list collecting all the materials
-     * of this cube.
-     *
-     * @invar The referenced list is effective.
-     * | materials != null
-     * @invar Each material registered in the referenced list is
-     * effective and not yet terminated.
-     * | for each material in materials:
-     * | ( (material != null) &&
-     * | (! material.isTerminated()) )
-     * @invar No material is registered at several positions
-     * in the referenced list.
-     * | for each I,J in 0..materials.size()-1:
-     * | ( (I == J) ||
-     * | (materials.get(I) != materials.get(J))
-     */
-    private final List<Material> materials = new ArrayList <>();
 
     /**
      * Terminate this Cube.

@@ -2,6 +2,7 @@ package hillbillies.utils;
 
 import be.kuleuven.cs.som.annotate.Basic;
 import be.kuleuven.cs.som.annotate.Immutable;
+import be.kuleuven.cs.som.annotate.Value;
 import hillbillies.model.Cube;
 import hillbillies.model.Unit;
 
@@ -14,6 +15,7 @@ import java.util.List;
  * @author Kenneth & Bram
  * @version 1.0
  */
+@Value
 public class Vector {
 	/**
 	 * Constant reflecting the equals precision.    

@@ -3,8 +3,8 @@ package hillbillies.part3.facade;
 import hillbillies.model.*;
 import hillbillies.part2.listener.TerrainChangeListener;
 import hillbillies.part3.programs.ITaskFactory;
-import hillbillies.utils.Utils;
-import hillbillies.utils.Vector;
+import hillbillies.part3.programs.Task;
+import hillbillies.utils.*;
 import ogp.framework.util.ModelException;
 
 import java.util.Collection;
@@ -967,7 +967,7 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public String getName(Task task) throws ModelException {
-        return null;
+        return task.getName();
     }
 
     /**
@@ -979,6 +979,6 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public int getPriority(Task task) throws ModelException {
-        return 0;
+        return task.getPriority();
     }
 }

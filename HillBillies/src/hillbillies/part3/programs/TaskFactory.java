@@ -1,11 +1,23 @@
 package hillbillies.part3.programs;
 
+import hillbillies.part3.programs.expressions.Expression;
+import hillbillies.part3.programs.statements.Statement;
+import hillbillies.part3.programs.statements.While;
+
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by Bram on 27-4-2016.
  */
 public class TaskFactory implements ITaskFactory<Expression, Statement, Task> {
+
+    private final Map<String, Expression<?>> assignedVariables;
+
+    public TaskFactory(){
+        this.assignedVariables = new HashMap<>();
+    }
 
     /**
      * Create a list of tasks from the given arguments.
@@ -35,7 +47,7 @@ public class TaskFactory implements ITaskFactory<Expression, Statement, Task> {
      */
     @Override
     public Statement createAssignment(String variableName, Expression value, SourceLocation sourceLocation) {
-        return null;
+        return () -> assignedVariables.put(variableName, value);
     }
 
     /**
@@ -47,7 +59,7 @@ public class TaskFactory implements ITaskFactory<Expression, Statement, Task> {
      */
     @Override
     public Statement createWhile(Expression condition, Statement body, SourceLocation sourceLocation) {
-        return null;
+        return new While(condition, body, sourceLocation);
     }
 
     /**

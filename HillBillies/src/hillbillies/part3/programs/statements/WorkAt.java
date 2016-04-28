@@ -21,7 +21,7 @@ public class WorkAt extends Statement{
 	}
 	@Override
 	public void execute(Task.TaskBuilder taskBuilder) {
-		taskBuilder.addActivity(new Work(null, position.evaluate()));
+		taskBuilder.addActivity(new Work(null, position.evaluate(taskBuilder)));
 		
 	}
 

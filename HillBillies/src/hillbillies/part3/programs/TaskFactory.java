@@ -1,6 +1,13 @@
 package hillbillies.part3.programs;
 
+import hillbillies.part3.programs.expressions.CarriesItem;
 import hillbillies.part3.programs.expressions.Expression;
+import hillbillies.part3.programs.expressions.IsAlive;
+import hillbillies.part3.programs.expressions.IsEnemy;
+import hillbillies.part3.programs.expressions.IsFriend;
+import hillbillies.part3.programs.expressions.IsPassable;
+import hillbillies.part3.programs.expressions.IsSolid;
+import hillbillies.part3.programs.expressions.ReadVariable;
 import hillbillies.part3.programs.statements.*;
 import hillbillies.utils.Vector;
 
@@ -104,7 +111,7 @@ public class TaskFactory implements ITaskFactory<Expression, Statement, Task> {
      */
     @Override
     public Statement createPrint(Expression value, SourceLocation sourceLocation) {
-        return null;
+        return new Print(value, sourceLocation);
     }
 
     /**
@@ -115,7 +122,7 @@ public class TaskFactory implements ITaskFactory<Expression, Statement, Task> {
      */
     @Override
     public Statement createSequence(List<Statement> statements, SourceLocation sourceLocation) {
-        return null;
+        return new Sequence(statements, sourceLocation);
     }
 
     /**
@@ -159,7 +166,7 @@ public class TaskFactory implements ITaskFactory<Expression, Statement, Task> {
      */
     @Override
     public Statement createAttack(Expression unit, SourceLocation sourceLocation) {
-        return null;
+        return new AttackUnit(unit, sourceLocation);
     }
 
     /**
@@ -171,7 +178,7 @@ public class TaskFactory implements ITaskFactory<Expression, Statement, Task> {
      */
     @Override
     public Expression createReadVariable(String variableName, SourceLocation sourceLocation) {
-        return null;
+        return new ReadVariable(variableName, sourceLocation);
     }
 
     /**
@@ -183,7 +190,7 @@ public class TaskFactory implements ITaskFactory<Expression, Statement, Task> {
      */
     @Override
     public Expression createIsSolid(Expression position, SourceLocation sourceLocation) {
-        return null;
+        return new IsSolid(position, sourceLocation);
     }
 
     /**
@@ -195,7 +202,7 @@ public class TaskFactory implements ITaskFactory<Expression, Statement, Task> {
      */
     @Override
     public Expression createIsPassable(Expression position, SourceLocation sourceLocation) {
-        return null;
+        return new IsPassable(position, sourceLocation);
     }
 
     /**
@@ -207,7 +214,7 @@ public class TaskFactory implements ITaskFactory<Expression, Statement, Task> {
      */
     @Override
     public Expression createIsFriend(Expression unit, SourceLocation sourceLocation) {
-        return null;
+        return new IsFriend(unit, sourceLocation);
     }
 
     /**
@@ -219,7 +226,7 @@ public class TaskFactory implements ITaskFactory<Expression, Statement, Task> {
      */
     @Override
     public Expression createIsEnemy(Expression unit, SourceLocation sourceLocation) {
-        return null;
+        return new IsEnemy(unit, sourceLocation);
     }
 
     /**
@@ -231,7 +238,7 @@ public class TaskFactory implements ITaskFactory<Expression, Statement, Task> {
      */
     @Override
     public Expression createIsAlive(Expression unit, SourceLocation sourceLocation) {
-        return null;
+        return new IsAlive(unit, sourceLocation);
     }
 
     /**
@@ -243,7 +250,7 @@ public class TaskFactory implements ITaskFactory<Expression, Statement, Task> {
      */
     @Override
     public Expression createCarriesItem(Expression unit, SourceLocation sourceLocation) {
-        return null;
+        return new CarriesItem(unit, sourceLocation);
     }
 
     /**

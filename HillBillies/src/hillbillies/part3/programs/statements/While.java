@@ -21,7 +21,7 @@ public class While extends Statement {
 
     @Override
     public void execute(Task.TaskBuilder taskBuilder) {
-        while(condition.evaluate()){
+        while(condition.evaluate(taskBuilder)){
             body.execute(taskBuilder);
             if(taskBuilder.breakLoop){
                 taskBuilder.breakLoop = false;

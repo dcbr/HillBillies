@@ -19,14 +19,14 @@ public class FollowUnit extends Statement{
 	/**
 	 * 
 	 */
-	public FollowUnit(Expression unit, SourceLocation sourceLocation) {
+	public FollowUnit(Expression<Unit> unit, SourceLocation sourceLocation) {
 		this.unit = unit;
 		this.sourceLocation = sourceLocation;
 	}
 
 	@Override
 	protected void execute(Task.TaskBuilder taskBuilder) {	
-		taskBuilder.addActivity(new Follow(null,unit.evaluate()));
+		taskBuilder.addActivity(new Follow(null,unit.evaluate(taskBuilder)));
 		
 	}
 

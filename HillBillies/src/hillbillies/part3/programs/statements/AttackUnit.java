@@ -16,14 +16,14 @@ public class AttackUnit extends Statement{
 	/**
 	 * 
 	 */
-	public AttackUnit(Expression unit, SourceLocation sourceLocation) {
+	public AttackUnit(Expression<Unit> unit, SourceLocation sourceLocation) {
 		this.unit = unit;
 		this.sourceLocation = sourceLocation;
 	}
 
 	@Override
 	protected void execute(TaskBuilder taskBuilder) {
-		taskBuilder.addActivity(new Attack(null,unit.evaluate()));
+		taskBuilder.addActivity(new Attack(null,unit.evaluate(taskBuilder)));
 		
 	}
 

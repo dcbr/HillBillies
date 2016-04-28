@@ -5,28 +5,26 @@ import hillbillies.part3.programs.Task;
 import hillbillies.part3.programs.expressions.Expression;
 
 /**
- * Created by Bram on 27-4-2016.
+ * Created by Bram on 28-4-2016.
  */
-public class While extends Statement {
+public class IfElse extends Statement {
 
     private final Expression<Boolean> condition;
-    private final Statement body;
+    private final Statement ifBody, elseBody;
     private final SourceLocation sourceLocation;
 
-    public While(Expression<Boolean> condition, Statement body, SourceLocation sourceLocation){
+    public IfElse(Expression<Boolean> condition, Statement ifBody, Statement elseBody, SourceLocation sourceLocation){
         this.condition = condition;
-        this.body = body;
+        this.ifBody = ifBody;
+        this.elseBody = elseBody;
         this.sourceLocation = sourceLocation;
     }
 
     @Override
     public void execute(Task.TaskBuilder taskBuilder) {
-        while(condition.evaluate()){
-            body.execute(taskBuilder);
-            if(taskBuilder.breakLoop){
-                taskBuilder.breakLoop = false;
-                break;
-            }
-        }
+        if(condition.evaluate())
+            ifBody.execute(taskBuilder);
+        else
+            elseBody.execute(taskBuilder);
     }
 }

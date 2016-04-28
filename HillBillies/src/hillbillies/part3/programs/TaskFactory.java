@@ -3,7 +3,9 @@ package hillbillies.part3.programs;
 import hillbillies.part3.programs.expressions.Expression;
 import hillbillies.part3.programs.statements.Statement;
 import hillbillies.part3.programs.statements.While;
+import hillbillies.utils.Vector;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,7 +37,13 @@ public class TaskFactory implements ITaskFactory<Expression, Statement, Task> {
      */
     @Override
     public List<Task> createTasks(String name, int priority, Statement activity, List<int[]> selectedCubes) {
-        return null;
+        List<Task> tasks = new ArrayList<>();
+        for(int[] cubeCoordinates : selectedCubes){
+            Task.TaskBuilder taskBuilder = new Task.TaskBuilder(name, priority, new Vector(cubeCoordinates));
+            activity.run(taskBuilder);
+            tasks.add(taskBuilder.build());
+        }
+        return tasks;
     }
 
     /**
@@ -119,7 +127,12 @@ public class TaskFactory implements ITaskFactory<Expression, Statement, Task> {
      */
     @Override
     public Statement createMoveTo(Expression position, SourceLocation sourceLocation) {
-        return null;
+        return new Statement() {
+            @Override
+            public void execute() {
+
+            }
+        };
     }
 
     /**

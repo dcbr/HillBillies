@@ -1,12 +1,13 @@
 package hillbillies.part3.programs.statements;
 
 import hillbillies.part3.programs.SourceLocation;
+import hillbillies.part3.programs.Task;
 import hillbillies.part3.programs.expressions.Expression;
 
 /**
  * Created by Bram on 27-4-2016.
  */
-public class Assignment<T> implements Statement {
+public class Assignment<T> extends Statement {
 
     private final String variableName;
     private final Expression<T> value;
@@ -19,7 +20,7 @@ public class Assignment<T> implements Statement {
     }
 
     @Override
-    public void execute() {
-        value.evaluate();
+    public void execute(Task.TaskBuilder taskBuilder) {
+        taskBuilder.assignVariable(variableName, value);
     }
 }

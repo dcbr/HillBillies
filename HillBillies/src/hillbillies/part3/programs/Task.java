@@ -2,10 +2,10 @@ package hillbillies.part3.programs;
 
 import be.kuleuven.cs.som.annotate.*;
 import hillbillies.activities.Activity;
+import hillbillies.part3.programs.expressions.Expression;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
+import hillbillies.utils.Vector;
 
 /**
  * Class representing a Task
@@ -242,11 +242,15 @@ public class Task implements Iterable<Activity> {
         private final String taskName;
         private final int taskPriority;
         private final List<Activity> taskActivities;
+        private final Vector selectedCubeCoordinates;
+        private final Map<String, Expression> assignedVariables;
 
-        public TaskBuilder(String taskName, int taskPriority){
+        public TaskBuilder(String taskName, int taskPriority, Vector selectedCubeCoordinates){
             this.taskName = taskName;
             this.taskPriority = taskPriority;
             this.taskActivities = new ArrayList<>();
+            this.selectedCubeCoordinates = selectedCubeCoordinates;
+            this.assignedVariables = new HashMap<>();
         }
 
         public Task build(){
@@ -318,6 +322,22 @@ public class Task implements Iterable<Activity> {
         public boolean hasAsActivity(Activity activity) {
             return taskActivities.contains(activity);
         }
+
+        public void assignVariable(String variableName, Expression value){
+            this.assignedVariables.put(variableName, value);
+        }
+
+        public boolean isVariableAssigned(String variableName){
+            return this.assignedVariables.containsKey(variableName);
+        }
+
+        public Expression getVariableValue(String variableName){
+            if(!this.isVariableAssigned(variableName))
+                throw new IllegalArgumentException("This variable isn't assigned.");
+            return this.assignedVariables.get(variableName);
+        }
+
+        public boolean breakLoop = false;
 
     }
 }

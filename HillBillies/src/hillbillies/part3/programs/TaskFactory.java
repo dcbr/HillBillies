@@ -1,8 +1,7 @@
 package hillbillies.part3.programs;
 
 import hillbillies.part3.programs.expressions.Expression;
-import hillbillies.part3.programs.statements.Statement;
-import hillbillies.part3.programs.statements.While;
+import hillbillies.part3.programs.statements.*;
 import hillbillies.utils.Vector;
 
 import java.util.ArrayList;
@@ -127,12 +126,7 @@ public class TaskFactory implements ITaskFactory<Expression, Statement, Task> {
      */
     @Override
     public Statement createMoveTo(Expression position, SourceLocation sourceLocation) {
-        return new Statement() {
-            @Override
-            public void execute() {
-
-            }
-        };
+    	return new MoveTo(position, sourceLocation);
     }
 
     /**
@@ -143,7 +137,7 @@ public class TaskFactory implements ITaskFactory<Expression, Statement, Task> {
      */
     @Override
     public Statement createWork(Expression position, SourceLocation sourceLocation) {
-        return null;
+        return new WorkAt(position, sourceLocation);
     }
 
     /**
@@ -154,7 +148,7 @@ public class TaskFactory implements ITaskFactory<Expression, Statement, Task> {
      */
     @Override
     public Statement createFollow(Expression unit, SourceLocation sourceLocation) {
-        return null;
+        return new FollowUnit(unit, sourceLocation);
     }
 
     /**

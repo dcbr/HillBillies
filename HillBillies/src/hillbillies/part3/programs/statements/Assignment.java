@@ -1,7 +1,7 @@
 package hillbillies.part3.programs.statements;
 
 import hillbillies.part3.programs.SourceLocation;
-import hillbillies.part3.programs.Task;
+import hillbillies.model.Task.TaskRunner;
 import hillbillies.part3.programs.expressions.Expression;
 
 /**
@@ -20,7 +20,7 @@ public class Assignment<T> extends Statement {
     }
 
     @Override
-    public void execute(Task.TaskBuilder taskBuilder) {
-        taskBuilder.assignVariable(variableName, value);
+    public void execute(TaskRunner taskRunner) {
+        taskRunner.assignVariable(variableName, value);
     }
 }

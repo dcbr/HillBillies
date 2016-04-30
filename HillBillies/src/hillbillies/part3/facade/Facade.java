@@ -3,8 +3,8 @@ package hillbillies.part3.facade;
 import hillbillies.model.*;
 import hillbillies.part2.listener.TerrainChangeListener;
 import hillbillies.part3.programs.ITaskFactory;
-import hillbillies.part3.programs.Scheduler;
-import hillbillies.part3.programs.Task;
+import hillbillies.model.Scheduler;
+import hillbillies.model.Task;
 import hillbillies.utils.*;
 import ogp.framework.util.ModelException;
 

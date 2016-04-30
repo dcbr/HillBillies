@@ -3,8 +3,7 @@ package hillbillies.part3.programs.statements;
 import hillbillies.model.Unit;
 import hillbillies.activities.Follow;
 import hillbillies.part3.programs.SourceLocation;
-import hillbillies.part3.programs.Task;
-import hillbillies.part3.programs.Task.TaskBuilder;
+import hillbillies.model.Task.TaskRunner;
 import hillbillies.part3.programs.expressions.Expression;
 
 /**
@@ -25,9 +24,8 @@ public class FollowUnit extends Statement{
 	}
 
 	@Override
-	protected void execute(Task.TaskBuilder taskBuilder) {	
-		taskBuilder.addActivity(new Follow(null,unit.evaluate(taskBuilder)));
-		
+	protected void execute(TaskRunner taskRunner) {
+		taskRunner.getExecutingUnit().follow(unit.evaluate(taskRunner));
 	}
 
 }

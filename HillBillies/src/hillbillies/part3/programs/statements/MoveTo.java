@@ -3,7 +3,7 @@ package hillbillies.part3.programs.statements;
 import hillbillies.activities.TargetMove;
 import hillbillies.model.Cube;
 import hillbillies.part3.programs.SourceLocation;
-import hillbillies.part3.programs.Task;
+import hillbillies.model.Task.TaskRunner;
 import hillbillies.part3.programs.expressions.Expression;
 
 /**
@@ -23,9 +23,8 @@ public class MoveTo extends Statement{
 	}
 
 	@Override
-	public void execute(Task.TaskBuilder taskBuilder) {
-		taskBuilder.addActivity(new TargetMove(null, cube.evaluate(taskBuilder).getPosition().getCubeCenterCoordinates()));
-		
+	public void execute(TaskRunner taskRunner) {
+		taskRunner.getExecutingUnit().moveToTarget(cube.evaluate(taskRunner).getPosition().getCubeCoordinates());
 	}
 
 }

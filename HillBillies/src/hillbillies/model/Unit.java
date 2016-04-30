@@ -43,6 +43,9 @@ import java.util.*;
  * @invar The faction of each Unit must be a valid faction for any
  * Unit.
  * | isValidFaction(getFaction())
+ * @invar The task of each Unit must be a valid task for any
+ * Unit.
+ * | isValidTask(getTask())
  */
 public class Unit extends WorldObject {
 
@@ -1289,6 +1292,10 @@ public class Unit extends WorldObject {
 	}
 	//endregion
 
+	public void follow(Unit unit){
+		requestNewActivity(new Follow(this, unit));
+	}
+
 	//TODO: work this out
 	/**
 	 * Terminate this Unit.
@@ -1364,6 +1371,49 @@ public class Unit extends WorldObject {
 	 * Variable registering the faction of this Unit.
 	 */
 	private Faction faction;
+
+	/**
+	 * Return the task of this Unit.
+	 */
+	@Basic
+	@Raw
+	public Task getTask() {
+	    return this.task;
+	}
+	/**
+	 * Check whether the given task is a valid task for
+	 * any Unit.
+	 *
+	 * @param task
+	 * The task to check.
+	 * @return
+	 * | result == true
+	 */
+	public static boolean isValidTask(Task task) {
+	    return true;
+	}
+	/**
+	 * Set the task of this Unit to the given task.
+	 *
+	 * @param task
+	 * The new task for this Unit.
+	 * @post The task of this new Unit is equal to
+	 * the given task.
+	 * | new.getTask() == task
+	 * @throws IllegalArgumentException * The given task is not a valid task for any
+	 * Unit.
+	 * | ! isValidTask(getTask())
+	 */
+	@Raw
+	public void setTask(Task task) throws IllegalArgumentException {
+	    if (! isValidTask(task))
+	        throw new IllegalArgumentException();
+	    this.task = task;
+	}
+	/**
+	 * Variable registering the task of this Unit.
+	 */
+	private Task task;
 
 //	private Vector getValidatePosition(IWorld world){
 //		double x = randDouble(world.getMinPosition().X(), world.getMaxPosition().X());

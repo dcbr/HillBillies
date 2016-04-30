@@ -2,7 +2,7 @@ package hillbillies.part3.programs.expressions;
 
 import hillbillies.model.Unit;
 import hillbillies.part3.programs.SourceLocation;
-import hillbillies.part3.programs.Task.TaskBuilder;
+import hillbillies.model.Task.TaskRunner;
 
 /**
  * @author kenneth
@@ -19,8 +19,7 @@ public class IsEnemy implements Expression<Boolean>{
 		this.sourceLocation = sourceLocation;
 	}
 	@Override
-	public Boolean evaluate(TaskBuilder taskBuilder) {
-		
-		return !unit.evaluate(taskBuilder).getFaction().equals(thisUnit.getFaction());
+	public Boolean evaluate(TaskRunner taskRunner) {
+		return !taskRunner.getExecutingUnit().getFaction().equals(unit.evaluate(taskRunner).getFaction());
 	}
 }

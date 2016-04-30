@@ -1,7 +1,7 @@
 package hillbillies.part3.programs.statements;
 
 import hillbillies.part3.programs.SourceLocation;
-import hillbillies.part3.programs.Task;
+import hillbillies.model.Task.TaskRunner;
 
 import java.util.List;
 
@@ -19,8 +19,8 @@ public class Sequence extends Statement {
     }
 
     @Override
-    public void execute(Task.TaskBuilder taskBuilder) {
+    public void execute(TaskRunner taskRunner) {
         for(Statement s : statements)
-            s.execute(taskBuilder);
+            s.run(taskRunner);
     }
 }

@@ -2,7 +2,7 @@ package hillbillies.part3.programs.expressions;
 
 import hillbillies.model.Cube;
 import hillbillies.part3.programs.SourceLocation;
-import hillbillies.part3.programs.Task.TaskBuilder;
+import hillbillies.model.Task.TaskRunner;
 
 /**
  * @author kenneth
@@ -20,8 +20,8 @@ public class IsSolid implements Expression<Boolean>{
 	}
 
 	@Override
-	public Boolean evaluate(TaskBuilder taskBuilder) {
-		return !cube.evaluate(taskBuilder).isPassable();
+	public Boolean evaluate(TaskRunner taskRunner) {
+		return !cube.evaluate(taskRunner).isPassable();
 	}
 
 }

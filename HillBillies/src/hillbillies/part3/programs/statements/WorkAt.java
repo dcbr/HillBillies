@@ -2,7 +2,7 @@ package hillbillies.part3.programs.statements;
 
 import hillbillies.activities.Work;
 import hillbillies.part3.programs.SourceLocation;
-import hillbillies.part3.programs.Task;
+import hillbillies.model.Task.TaskRunner;
 import hillbillies.part3.programs.expressions.Expression;
 import hillbillies.utils.Vector;
 /**
@@ -20,9 +20,8 @@ public class WorkAt extends Statement{
 		this.sourceLocation = sourceLocation;
 	}
 	@Override
-	public void execute(Task.TaskBuilder taskBuilder) {
-		taskBuilder.addActivity(new Work(null, position.evaluate(taskBuilder)));
-		
+	public void execute(TaskRunner taskRunner) {
+		taskRunner.getExecutingUnit().work(position.evaluate(taskRunner));
 	}
 
 }

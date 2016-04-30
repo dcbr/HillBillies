@@ -4,7 +4,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import be.kuleuven.cs.som.annotate.*;
-import hillbillies.part3.programs.Scheduler;
 
 /**
  * Class representing a Faction which contains a limited number of Units.

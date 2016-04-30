@@ -4,7 +4,7 @@
 package hillbillies.part3.programs.expressions;
 
 import hillbillies.part3.programs.SourceLocation;
-import hillbillies.part3.programs.Task.TaskBuilder;
+import hillbillies.model.Task.TaskRunner;
 
 /**
  * @author kenneth
@@ -22,7 +22,7 @@ public class True implements Expression<Boolean>{
     }
 
     @Override
-    public Boolean evaluate(TaskBuilder taskBuilder) {
+    public Boolean evaluate(TaskRunner taskRunner) {
         return true;
     }
 

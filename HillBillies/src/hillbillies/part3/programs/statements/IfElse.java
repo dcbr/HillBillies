@@ -1,7 +1,7 @@
 package hillbillies.part3.programs.statements;
 
 import hillbillies.part3.programs.SourceLocation;
-import hillbillies.part3.programs.Task;
+import hillbillies.model.Task.TaskRunner;
 import hillbillies.part3.programs.expressions.Expression;
 
 /**
@@ -21,10 +21,10 @@ public class IfElse extends Statement {
     }
 
     @Override
-    public void execute(Task.TaskBuilder taskBuilder) {
-        if(condition.evaluate())
-            ifBody.execute(taskBuilder);
+    public void execute(TaskRunner taskRunner) {
+        if(condition.evaluate(taskRunner))
+            ifBody.run(taskRunner);
         else
-            elseBody.execute(taskBuilder);
+            elseBody.run(taskRunner);
     }
 }

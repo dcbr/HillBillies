@@ -1,5 +1,6 @@
 package hillbillies.part3.programs;
 
+import hillbillies.model.Task;
 import hillbillies.part3.programs.expressions.*;
 import hillbillies.part3.programs.statements.*;
 import hillbillies.utils.Vector;
@@ -37,11 +38,8 @@ public class TaskFactory implements ITaskFactory<Expression, Statement, Task> {
     @Override
     public List<Task> createTasks(String name, int priority, Statement activity, List<int[]> selectedCubes) {
         List<Task> tasks = new ArrayList<>();
-        for(int[] cubeCoordinates : selectedCubes){
-            Task.TaskBuilder taskBuilder = new Task.TaskBuilder(name, priority, new Vector(cubeCoordinates));
-            activity.run(taskBuilder);
-            tasks.add(taskBuilder.build());
-        }
+        for(int[] cubeCoordinates : selectedCubes)
+            tasks.add(new Task(name, priority, activity, cubeCoordinates));
         return tasks;
     }
 

@@ -1,7 +1,7 @@
 package hillbillies.part3.programs.statements;
 
 import hillbillies.part3.programs.SourceLocation;
-import hillbillies.part3.programs.Task;
+import hillbillies.model.Task.TaskRunner;
 import hillbillies.part3.programs.expressions.Expression;
 
 /**
@@ -20,11 +20,11 @@ public class While extends Statement {
     }
 
     @Override
-    public void execute(Task.TaskBuilder taskBuilder) {
-        while(condition.evaluate(taskBuilder)){
-            body.execute(taskBuilder);
-            if(taskBuilder.breakLoop){
-                taskBuilder.breakLoop = false;
+    public void execute(TaskRunner taskRunner) {
+        while(condition.evaluate(taskRunner)){
+            body.run(taskRunner);
+            if(taskRunner.breakLoop){
+                taskRunner.breakLoop = false;
                 break;
             }
         }

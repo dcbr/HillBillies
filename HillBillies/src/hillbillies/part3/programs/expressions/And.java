@@ -4,7 +4,7 @@
 package hillbillies.part3.programs.expressions;
 
 import hillbillies.part3.programs.SourceLocation;
-import hillbillies.part3.programs.Task.TaskBuilder;
+import hillbillies.model.Task.TaskRunner;
 
 /**
  * @author kenneth
@@ -25,8 +25,8 @@ public class And implements Expression<Boolean>{
     }
 
     @Override
-    public Boolean evaluate(TaskBuilder taskBuilder) {
-        return left.evaluate(taskBuilder) && right.evaluate(taskBuilder);
+    public Boolean evaluate(TaskRunner taskRunner) {
+        return left.evaluate(taskRunner) && right.evaluate(taskRunner);
     }
 
 

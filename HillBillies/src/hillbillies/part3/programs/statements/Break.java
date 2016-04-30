@@ -1,8 +1,7 @@
 package hillbillies.part3.programs.statements;
 
 import hillbillies.part3.programs.SourceLocation;
-import hillbillies.part3.programs.Task;
-import org.stringtemplate.v4.ST;
+import hillbillies.model.Task.TaskRunner;
 
 /**
  * Created by Bram on 28-4-2016.
@@ -14,7 +13,7 @@ public class Break extends Statement {
     }
 
     @Override
-    public void execute(Task.TaskBuilder taskBuilder) {
-        taskBuilder.breakLoop = true;
+    public void execute(TaskRunner taskRunner) {
+        taskRunner.breakLoop = true;
     }
 }

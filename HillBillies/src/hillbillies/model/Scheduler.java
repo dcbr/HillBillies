@@ -1,11 +1,9 @@
-package hillbillies.part3.programs;
+package hillbillies.model;
 
 import be.kuleuven.cs.som.annotate.*;
-import hillbillies.model.Faction;
 
-import java.util.Comparator;
-import java.util.PriorityQueue;
-import java.util.Queue;
+import java.util.*;
+import java.util.function.Predicate;
 
 /**
  * Class representing a Faction's Task Scheduler
@@ -71,6 +69,24 @@ public class Scheduler {
     public boolean hasAsTask(@Raw Task task) {
     	return tasks.contains(task);
     }
+
+    /**
+     * Check whether this scheduler has all the tasks in the given
+     * collection as one of its tasks.
+     * @param tasks The collection of tasks to check
+     * @return True if all tasks are part of this scheduler.
+     *          | if(foreach(Task task in tasks : hasAsTask(task)))
+     *          |      result == true
+     *          | else
+     *          |      result == false
+     */
+    public boolean hasAsTasks(Collection<Task> tasks){
+        for(Task task : tasks)
+            if(!hasAsTask(task))
+                return false;
+        return true;
+    }
+
     /**
      * Check whether this scheduler can have the given task
      * as one of its tasks.
@@ -85,7 +101,7 @@ public class Scheduler {
      */
     @Raw
     public boolean canHaveAsTask(Task task) {
-    	return (task != null) && (Task.isValidScheduler(this));
+    	return (task != null) && (task.canHaveAsScheduler(this));
     }
     /**
      * Check whether this scheduler has proper tasks attached to it.
@@ -103,7 +119,7 @@ public class Scheduler {
     	for (Task task: tasks) {
     		if (!canHaveAsTask(task))
     		    return false;
-    		if (!task.getSchedulers().contains(this))// TODO make method containsScheduler?
+    		if (!task.hasAsScheduler(this))
     		    return false;
     	}
     	return true;
@@ -123,15 +139,18 @@ public class Scheduler {
      *
      * @param task
      * The task to be added.
-     * @pre The given task is effective and already references
-     * this scheduler.
-     * | (task != null) && (task.getScheduler() == this)
+     * @pre The given task is effective and does not reference
+     * this scheduler yet.
+     * | (task != null) && (!task.hasAsScheduler(this))
      * @post This scheduler has the given task as one of its tasks.
      * | new.hasAsTask(task)
+     * @post The given task has this scheduler as one of its schedulers.
+     * | task.hasAsScheduler(this)
      */
     public void addTask(@Raw Task task) {
-    	assert(task != null) && (task.getSchedulers().contains(this));
+    	assert(task != null) && (!task.hasAsScheduler(this));
     	tasks.add(task);
+        task.addScheduler(this);
     }
     /**
      * Remove the given task from the set of tasks of this scheduler.
@@ -139,19 +158,62 @@ public class Scheduler {
      * @param task
      * The task to be removed.
      * @pre This scheduler has the given task as one of
-     * its tasks, and the given task does not
-     * reference any scheduler.
+     * its tasks, and the given task still references
+     * this scheduler.
      * | this.hasAsTask(task) &&
-     * | (task.getScheduler() == null)
+     * | (task.hasAsScheduler(this))
      * @post This scheduler no longer has the given task as
      * one of its tasks.
      * | ! new.hasAsTask(task)
+     * @post The given task no longer has this scheduler as
+     * one of its schedulers.
+     * | ! task.hasAsScheduler(this)
      */
     @Raw
     public void removeTask(Task task) {
-    	assert this.hasAsTask(task) && (!task.getSchedulers().contains(this));
-    	tasks.remove(task);
+    	assert this.hasAsTask(task) && (task.hasAsScheduler(this));
+        tasks.remove(task);
+        task.removeScheduler(this);
     }
+
+    /**
+     * Get a collection of all tasks in this scheduler satisfying the given condition.
+     * @param condition The condition to select upon
+     * @return A collection of all tasks in this scheduler satisfying the given condition.
+     *          | foreach(Task task in result : condition.test(task) == true)
+     */
+    public Collection<Task> getAllTasksSatisfying(Predicate<Task> condition){
+        Set<Task> result = new HashSet<>();
+        for(Task task : tasks){
+            if(condition.test(task))
+                result.add(task);
+        }
+        return result;
+    }
+
+    /**
+     * Get the first task which satisfies the given condition. The tasks are
+     * iterated in decreasing order of priority. So the first task that
+     * satisfies the given condition is also the task with the highest priority
+     * which satisfies the given condition.
+     * @param condition The condition to select upon
+     * @return The Task with highest priority AND which satisfies the given
+     *          condition. Null is returned if no such task exists in this
+     *          scheduler.
+     *          | if(exists(Task task in tasks : condition.test(task)))
+     *          |   result == Task task in tasks : condition.test(task) AND
+     *          |               not exists(Task other in tasks :
+     *          |                       other.priority > task.priority)
+     *          | else
+     *          |   result == null
+     */
+    public Task getTaskSatisfying(Predicate<Task> condition){
+        for(Task task : tasks)
+            if(condition.test(task))
+                return task;
+        return null;
+    }
+
     /**
      * Variable referencing a priority queue collecting all
      * the tasks of this scheduler.

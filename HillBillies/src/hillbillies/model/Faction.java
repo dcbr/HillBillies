@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import be.kuleuven.cs.som.annotate.*;
+import hillbillies.part3.programs.Scheduler;
 
 /**
  * Class representing a Faction which contains a limited number of Units.
@@ -14,6 +15,8 @@ import be.kuleuven.cs.som.annotate.*;
  *       | isValidFaction()
  * @invar Each faction must have proper units.
  * | hasProperUnits()
+ * @invar Each Faction can have its scheduler as scheduler.
+ * | canHaveAsScheduler(this.getScheduler())
  */
 public class Faction {
 	
@@ -28,8 +31,12 @@ public class Faction {
 	 * @post This new faction contains the given unit.
 	 * | new.getNbUnits() == 1
 	 * | new.hasAsUnit(unit) == true
+	 * @post The scheduler of this new Faction is a valid Scheduler for
+	 * this Faction.
+	 * | canHaveAsScheduler(new.getScheduler())
 	 */
 	public Faction(Unit unit) {
+		this();
 		this.addUnit(unit);
 	}
 
@@ -39,10 +46,13 @@ public class Faction {
 	 *
 	 * @post This new faction has no units yet.
 	 * | new.getNbUnits() == 0
+	 * @post The scheduler of this new Faction is a valid Scheduler for
+	 * this Faction.
+	 * | canHaveAsScheduler(new.getScheduler())
 	 */
 	@Raw
 	public Faction() {
-
+		this.scheduler = new Scheduler(this);
 	}
 
 
@@ -186,4 +196,30 @@ public class Faction {
 	 * | (! unit.isTerminated()) )
 	 */
 	private final Set<Unit> units = new HashSet<>();
+
+	/**
+	 * Return the scheduler of this Faction.
+	 */
+	@Basic
+	@Raw
+	@Immutable
+	public Scheduler getScheduler() {
+	    return this.scheduler;
+	}
+	/**
+	 * Check whether this Faction can have the given scheduler as its scheduler.
+	 *
+	 * @param scheduler
+	 * The scheduler to check.
+	 * @return
+	 * | result == (scheduler.getFaction()==this)
+	 */
+	@Raw
+	public boolean canHaveAsScheduler(Scheduler scheduler) {
+	    return scheduler.getFaction()==this;
+	}
+	/**
+	 * Variable registering the scheduler of this Faction.
+	 */
+	private final Scheduler scheduler;
 }

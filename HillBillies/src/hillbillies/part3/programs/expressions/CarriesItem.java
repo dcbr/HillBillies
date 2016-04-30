@@ -11,7 +11,7 @@ import hillbillies.part3.programs.Task.TaskBuilder;
  * @author kenneth
  *
  */
-public class CarriesItem implements Expression{
+public class CarriesItem implements Expression<Boolean>{
 
 	private final Expression<Unit> unit;
 	private final SourceLocation sourceLocation;
@@ -25,7 +25,7 @@ public class CarriesItem implements Expression{
 	}
 
 	@Override
-	public Object evaluate(TaskBuilder taskBuilder) {
+	public Boolean evaluate(TaskBuilder taskBuilder) {
 		return unit.evaluate(taskBuilder).isCarryingMaterial();
 	}
 

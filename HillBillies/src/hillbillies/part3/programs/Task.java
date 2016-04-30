@@ -2,6 +2,7 @@ package hillbillies.part3.programs;
 
 import be.kuleuven.cs.som.annotate.*;
 import hillbillies.activities.Activity;
+import hillbillies.model.Unit;
 import hillbillies.part3.programs.expressions.Expression;
 
 import java.util.*;
@@ -17,8 +18,11 @@ import hillbillies.utils.Vector;
  * | canHaveAsPriority(this.getPriority())
  * @invar Each task must have proper activities.
  * | hasProperActivities()
+ * @invar The assignedUnit of each Task must be a valid assignedUnit for any
+ * Task.
+ * | isValidAssignedUnit(getAssignedUnit())
  */
-public class Task implements Iterable<Activity> {
+public class Task implements Iterable<Activity>, Comparable<Task> {
 
     /**
      * Variable registering the name of this Task.
@@ -228,6 +232,61 @@ public class Task implements Iterable<Activity> {
     }
 
     /**
+     * Initialize this new Task with given assignedUnit.
+     *
+     * @param assignedUnit
+     * The assignedUnit for this new Task.
+     * @effect The assignedUnit of this new Task is set to
+     * the given assignedUnit.
+     * | this.setAssignedUnit(assignedUnit)
+     */
+    public Task(Unit assignedUnit) throws IllegalArgumentException {
+        this.setAssignedUnit(assignedUnit);
+    }
+    /**
+     * Return the assignedUnit of this Task.
+     */
+    @Basic
+    @Raw
+    public Unit getAssignedUnit() {
+        return this.assignedUnit;
+    }
+    /**
+     * Check whether the given assignedUnit is a valid assignedUnit for
+     * any Task.
+     *
+     * @param assignedUnit
+     * The assignedUnit to check.
+     * @return
+     * | result ==
+     */
+    public static boolean isValidAssignedUnit(Unit assignedUnit) {
+        return false;
+    }
+    /**
+     * Set the assignedUnit of this Task to the given assignedUnit.
+     *
+     * @param assignedUnit
+     * The new assignedUnit for this Task.
+     * @post The assignedUnit of this new Task is equal to
+     * the given assignedUnit.
+     * | new.getAssignedUnit() == assignedUnit
+     * @throws IllegalArgumentException * The given assignedUnit is not a valid assignedUnit for any
+     * Task.
+     * | ! isValidAssignedUnit(getAssignedUnit())
+     */
+    @Raw
+    public void setAssignedUnit(Unit assignedUnit) throws IllegalArgumentException {
+        if (! isValidAssignedUnit(assignedUnit))
+            throw new IllegalArgumentException();
+        this.assignedUnit = assignedUnit;
+    }
+    /**
+     * Variable registering the assignedUnit of this Task.
+     */
+    private Unit assignedUnit;
+
+    /**
      * Returns an iterator over elements of type {@code Activity}.
      *
      * @return an Iterator.
@@ -235,6 +294,49 @@ public class Task implements Iterable<Activity> {
     @Override
     public Iterator<Activity> iterator() {
         return activities.iterator();
+    }
+
+    /**
+     * Compares this object with the specified object for order.  Returns a
+     * negative integer, zero, or a positive integer as this object is less
+     * than, equal to, or greater than the specified object.
+     * <p>
+     * <p>The implementor must ensure <tt>sgn(x.compareTo(y)) ==
+     * -sgn(y.compareTo(x))</tt> for all <tt>x</tt> and <tt>y</tt>.  (This
+     * implies that <tt>x.compareTo(y)</tt> must throw an exception iff
+     * <tt>y.compareTo(x)</tt> throws an exception.)
+     * <p>
+     * <p>The implementor must also ensure that the relation is transitive:
+     * <tt>(x.compareTo(y)&gt;0 &amp;&amp; y.compareTo(z)&gt;0)</tt> implies
+     * <tt>x.compareTo(z)&gt;0</tt>.
+     * <p>
+     * <p>Finally, the implementor must ensure that <tt>x.compareTo(y)==0</tt>
+     * implies that <tt>sgn(x.compareTo(z)) == sgn(y.compareTo(z))</tt>, for
+     * all <tt>z</tt>.
+     * <p>
+     * <p>It is strongly recommended, but <i>not</i> strictly required that
+     * <tt>(x.compareTo(y)==0) == (x.equals(y))</tt>.  Generally speaking, any
+     * class that implements the <tt>Comparable</tt> interface and violates
+     * this condition should clearly indicate this fact.  The recommended
+     * language is "Note: this class has a natural ordering that is
+     * inconsistent with equals."
+     * <p>
+     * <p>In the foregoing description, the notation
+     * <tt>sgn(</tt><i>expression</i><tt>)</tt> designates the mathematical
+     * <i>signum</i> function, which is defined to return one of <tt>-1</tt>,
+     * <tt>0</tt>, or <tt>1</tt> according to whether the value of
+     * <i>expression</i> is negative, zero or positive.
+     *
+     * @param o the object to be compared.
+     * @return a negative integer, zero, or a positive integer as this object
+     * is less than, equal to, or greater than the specified object.
+     * @throws NullPointerException if the specified object is null
+     * @throws ClassCastException   if the specified object's type prevents it
+     *                              from being compared to this object.
+     */
+    @Override
+    public int compareTo(Task o) throws NullPointerException{
+        return this.getPriority()-o.getPriority();
     }
 
     public static class TaskBuilder{

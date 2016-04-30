@@ -7,7 +7,7 @@ import hillbillies.part3.programs.Task;
  * @author kenneth
  *
  */
-public class ReadVariable implements Expression{
+public class ReadVariable<T> implements Expression<T>{
 	private final String variableName;
 	private final SourceLocation sourceLocation;
 	/**
@@ -21,9 +21,12 @@ public class ReadVariable implements Expression{
 	}
 
 	@Override
-	public Object evaluate(Task.TaskBuilder taskBuilder) {
-		return taskBuilder.getVariableValue(variableName);
-		
+	public T evaluate(Task.TaskBuilder taskBuilder) throws ClassCastException, IllegalArgumentException{
+		try {
+			return (T) taskBuilder.getVariableValue(variableName).evaluate(taskBuilder);
+		}catch(IllegalArgumentException e){
+			throw new IllegalStateException("The variable to evaluate isn't assigned.", e);
+		}
 	}
 
 }

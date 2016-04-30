@@ -1,13 +1,6 @@
 package hillbillies.part3.programs;
 
-import hillbillies.part3.programs.expressions.CarriesItem;
-import hillbillies.part3.programs.expressions.Expression;
-import hillbillies.part3.programs.expressions.IsAlive;
-import hillbillies.part3.programs.expressions.IsEnemy;
-import hillbillies.part3.programs.expressions.IsFriend;
-import hillbillies.part3.programs.expressions.IsPassable;
-import hillbillies.part3.programs.expressions.IsSolid;
-import hillbillies.part3.programs.expressions.ReadVariable;
+import hillbillies.part3.programs.expressions.*;
 import hillbillies.part3.programs.statements.*;
 import hillbillies.utils.Vector;
 
@@ -61,7 +54,7 @@ public class TaskFactory implements ITaskFactory<Expression, Statement, Task> {
      */
     @Override
     public Statement createAssignment(String variableName, Expression value, SourceLocation sourceLocation) {
-        return () -> assignedVariables.put(variableName, value);
+        return new Assignment<>(variableName, value, sourceLocation);
     }
 
     /**
@@ -88,7 +81,7 @@ public class TaskFactory implements ITaskFactory<Expression, Statement, Task> {
      */
     @Override
     public Statement createIf(Expression condition, Statement ifBody, Statement elseBody, SourceLocation sourceLocation) {
-        return null;
+        return new IfElse(condition, ifBody, elseBody, sourceLocation);
     }
 
     /**
@@ -99,7 +92,7 @@ public class TaskFactory implements ITaskFactory<Expression, Statement, Task> {
      */
     @Override
     public Statement createBreak(SourceLocation sourceLocation) {
-        return null;
+        return new Break(sourceLocation);
     }
 
     /**
@@ -178,7 +171,7 @@ public class TaskFactory implements ITaskFactory<Expression, Statement, Task> {
      */
     @Override
     public Expression createReadVariable(String variableName, SourceLocation sourceLocation) {
-        return new ReadVariable(variableName, sourceLocation);
+        return new ReadVariable(variableName, sourceLocation);// TODO: find a way to pass the type
     }
 
     /**
@@ -262,7 +255,7 @@ public class TaskFactory implements ITaskFactory<Expression, Statement, Task> {
      */
     @Override
     public Expression createNot(Expression expression, SourceLocation sourceLocation) {
-        return null;
+        return new Not(expression, sourceLocation);
     }
 
     /**

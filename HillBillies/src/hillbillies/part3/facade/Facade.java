@@ -3,6 +3,7 @@ package hillbillies.part3.facade;
 import hillbillies.model.*;
 import hillbillies.part2.listener.TerrainChangeListener;
 import hillbillies.part3.programs.ITaskFactory;
+import hillbillies.part3.programs.Scheduler;
 import hillbillies.part3.programs.Task;
 import hillbillies.utils.*;
 import ogp.framework.util.ModelException;
@@ -861,7 +862,7 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public Scheduler getScheduler(Faction faction) throws ModelException {
-        return null;
+        return faction.getScheduler();
     }
 
     /**

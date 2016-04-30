@@ -8,7 +8,7 @@ import hillbillies.part3.programs.Task.TaskBuilder;
  * @author kenneth
  *
  */
-public class IsFriend implements Expression{
+public class IsFriend implements Expression<Boolean>{
 	private final Expression<Unit> unit;
 	private final SourceLocation sourceLocation;
 	/**
@@ -19,7 +19,7 @@ public class IsFriend implements Expression{
 		this.sourceLocation = sourceLocation;
 	}
 	@Override
-	public Object evaluate(TaskBuilder taskBuilder) {
+	public Boolean evaluate(TaskBuilder taskBuilder) {
 		
 		return unit.evaluate(taskBuilder).getFaction().equals(thisUnit.getFaction());
 	}

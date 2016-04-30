@@ -10,7 +10,7 @@ import hillbillies.part3.programs.Task.TaskBuilder;
  * @author kenneth
  *
  */
-public class Not implements Expression{
+public class Not implements Expression<Boolean>{
 
 	private final Expression<Boolean> expression;
 	private final SourceLocation sourceLocation;
@@ -24,7 +24,7 @@ public class Not implements Expression{
 	}
 
 	@Override
-	public Object evaluate(TaskBuilder taskBuilder) {
+	public Boolean evaluate(TaskBuilder taskBuilder) {
 		return !expression.evaluate(taskBuilder);
 	}
 	

@@ -8,7 +8,7 @@ import hillbillies.part3.programs.Task.TaskBuilder;
  * @author kenneth
  *
  */
-public class IsSolid implements Expression{
+public class IsSolid implements Expression<Boolean>{
 	private final Expression<Cube> cube;
 	private final SourceLocation sourceLocation;
 	/**
@@ -20,7 +20,7 @@ public class IsSolid implements Expression{
 	}
 
 	@Override
-	public Object evaluate(TaskBuilder taskBuilder) {
+	public Boolean evaluate(TaskBuilder taskBuilder) {
 		return !cube.evaluate(taskBuilder).isPassable();
 	}
 

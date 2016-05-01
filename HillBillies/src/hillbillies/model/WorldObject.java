@@ -16,6 +16,8 @@ import java.util.*;
  * @invar The position of each WorldObject must be a valid position for any
  * WorldObject.
  * | isValidPosition(getPosition())
+ * @invar Each worldObject must have proper ownedMaterials.
+ * | hasProperOwnedMaterials()
  */
 public abstract class WorldObject implements IWorldObject {
 
@@ -25,7 +27,8 @@ public abstract class WorldObject implements IWorldObject {
     private IWorld world;
 
     /**
-     * Initialize this new WorldObject with given position.
+     * Initialize this new WorldObject with given position in the
+     * given world with no ownedMaterials yet.
      *
      * @param world The World this WorldObject belongs to.
      * @param position The position for this new WorldObject.
@@ -35,6 +38,8 @@ public abstract class WorldObject implements IWorldObject {
      * @effect The position of this new WorldObject is set to
      * the given position.
      * | this.setPosition(position)
+     * @post This new worldObject has no ownedMaterials yet.
+     * | new.getNbOwnedMaterials() == 0
      */
     public WorldObject(IWorld world, Vector position){
         this.setWorld(world);
@@ -44,6 +49,19 @@ public abstract class WorldObject implements IWorldObject {
     @Override
     public abstract void advanceTime(double dt);
 
+    /**
+     * Subclasses must implement this method. The result must be
+     * true when the given position is a valid position for
+     * the worldObject. The given position is not null and
+     * is already checked for validity inside the current
+     * world. (See isValidPosition)
+     * @param position The position to check
+     * @pre The given position is effective and already checked
+     *      inside the current world.
+     *      | position != null && this.getWorld().isValidPosition(position)
+     * @return True if the given position is a valid position
+     *          for this worldObject.
+     */
     protected abstract boolean validatePosition(Vector position);
 
     /**
@@ -90,7 +108,6 @@ public abstract class WorldObject implements IWorldObject {
      */
     private Vector position;
 
-
     /**
      * Return the world of this WorldObject.
      */
@@ -136,18 +153,6 @@ public abstract class WorldObject implements IWorldObject {
             throw new IllegalArgumentException("The WorldObject's current position is not valid in the new world.");
         }
     }
-
-    /** TO BE ADDED TO THE CLASS INVARIANTS
-     * @invar Each worldObject must have proper ownedMaterials.
-     * | hasProperOwnedMaterials()
-     */
-    /**
-     * Initialize this new worldObject as a non-terminated worldObject with
-     * no ownedMaterials yet.
-     *
-     * @post This new worldObject has no ownedMaterials yet.
-     * | new.getNbOwnedMaterials() == 0
-     */
 
     /**
      * Return the ownedMaterial associated with this worldObject at the

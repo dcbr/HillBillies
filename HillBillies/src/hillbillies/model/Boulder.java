@@ -1,7 +1,9 @@
 package hillbillies.model;
 
 /**
- * Created by Bram on 2-4-2016.
+ * Class representing a Boulder
+ * @author Kenneth & Bram
+ * @version 1.0
  */
 public class Boulder extends Material {
 

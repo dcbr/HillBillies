@@ -200,11 +200,28 @@ public class Material implements IWorldObject {
         return 10 <= weight && weight <= 50;
     }
 
+    /**
+     * Check whether this Material has a valid position.
+     * @return True when the material is owned by a Unit or
+     *          its position is valid.
+     *          | result == (this.getOwner() instanceof Unit) ||
+     *          |               isValidPosition(this.getPosition())
+     */
     private boolean hasValidPosition(){
         if(this.getOwner() instanceof Unit) return true;
         return isValidPosition(this.getPosition());
     }
 
+    /**
+     * Check whether the given position is a valid position for
+     * this Material when it's not carried by a Unit.
+     * @param position The position to check
+     * @return True if the position's z-cube coordinate is 0
+     *          (Material lies on the bottom of the world) or
+     *          the cube beneath the material isn't passable.
+     *          | result == (position.cubeZ()==0) ||
+     *          |               !getWorld().getCube(position.getCubeCoordinates().add(new Vector(0,0,-1)).isPassable()
+     */
     private boolean isValidPosition(Vector position){
         return position.cubeZ()==0 || !getWorld().getCube(position.getCubeCoordinates().add(new Vector(0,0,-1))).isPassable();
     }

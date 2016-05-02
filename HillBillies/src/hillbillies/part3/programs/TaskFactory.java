@@ -268,7 +268,7 @@ public class TaskFactory implements ITaskFactory<Expression, Statement, Task> {
      */
     @Override
     public Expression createAnd(Expression left, Expression right, SourceLocation sourceLocation) {
-        return null;
+        return new And(left, right, sourceLocation);
     }
 
     /**
@@ -283,7 +283,7 @@ public class TaskFactory implements ITaskFactory<Expression, Statement, Task> {
      */
     @Override
     public Expression createOr(Expression left, Expression right, SourceLocation sourceLocation) {
-        return null;
+        return new Or(left, right, sourceLocation);
     }
 
     /**
@@ -294,7 +294,7 @@ public class TaskFactory implements ITaskFactory<Expression, Statement, Task> {
      */
     @Override
     public Expression createHerePosition(SourceLocation sourceLocation) {
-        return null;
+        return new HerePosition(sourceLocation);
     }
 
     /**

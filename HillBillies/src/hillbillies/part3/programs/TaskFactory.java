@@ -306,7 +306,7 @@ public class TaskFactory implements ITaskFactory<Expression, Statement, Task> {
      */
     @Override
     public Expression createLogPosition(SourceLocation sourceLocation) {
-        return null;
+        return new LogPosition(sourceLocation); // TODO: create this in unit for log boulder and workshop, enemy, friend and any
     }
 
     /**
@@ -318,7 +318,7 @@ public class TaskFactory implements ITaskFactory<Expression, Statement, Task> {
      */
     @Override
     public Expression createBoulderPosition(SourceLocation sourceLocation) {
-        return null;
+        return new BoulderPosition(sourceLocation);
     }
 
     /**
@@ -330,7 +330,7 @@ public class TaskFactory implements ITaskFactory<Expression, Statement, Task> {
      */
     @Override
     public Expression createWorkshopPosition(SourceLocation sourceLocation) {
-        return null;
+        return new WorkshopPosition(sourceLocation);
     }
 
     /**
@@ -342,7 +342,7 @@ public class TaskFactory implements ITaskFactory<Expression, Statement, Task> {
      */
     @Override
     public Expression createSelectedPosition(SourceLocation sourceLocation) {
-        return null;
+        return null;//TODO
     }
 
     /**
@@ -354,7 +354,7 @@ public class TaskFactory implements ITaskFactory<Expression, Statement, Task> {
      */
     @Override
     public Expression createNextToPosition(Expression position, SourceLocation sourceLocation) {
-        return null;
+        return new NextToPosition(position, sourceLocation); //TODO zie NTP
     }
 
     /**

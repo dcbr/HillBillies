@@ -1658,6 +1658,10 @@ public class Unit extends WorldObject {
 			return this.isExecuting(Fall.class);
 		}
 	//}
+		public Vector getPosition(Object object){
+			
+			return null; //TODO
+		}
 }
 
 	

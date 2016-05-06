@@ -5,6 +5,9 @@ import hillbillies.part2.listener.TerrainChangeListener;
 import hillbillies.part3.programs.ITaskFactory;
 import hillbillies.model.Scheduler;
 import hillbillies.model.Task;
+import hillbillies.part3.programs.TaskFactory;
+import hillbillies.part3.programs.TaskParser;
+import hillbillies.tests.facade.Part3TestPartial;
 import hillbillies.utils.*;
 import ogp.framework.util.ModelException;
 
@@ -13,7 +16,9 @@ import java.util.Iterator;
 import java.util.Set;
 
 /**
- * Created by Bram on 26-4-2016.
+ * Class implementing the IFacade interface
+ * @author Kenneth & Bram
+ * @version 1.0
  */
 public class Facade implements IFacade {// TODO: check if some methods throw Exceptions and cast them to ModelExceptions
     /**
@@ -830,7 +835,7 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public ITaskFactory<?, ?, Task> createTaskFactory() {
-        return null;
+        return new TaskFactory();
     }
 
     /**
@@ -850,7 +855,7 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public boolean isWellFormed(Task task) throws ModelException {
-        return false;
+        return false;//TODO
     }
 
     /**
@@ -874,7 +879,7 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public void schedule(Scheduler scheduler, Task task) throws ModelException {
-
+        //TODO
     }
 
     /**
@@ -887,7 +892,11 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public void replace(Scheduler scheduler, Task original, Task replacement) throws ModelException {
-
+        try{
+            scheduler.replaceTask(original, replacement);
+        }catch(IllegalArgumentException e){
+            throw new ModelException("The original or replacement task are invalid.", e);
+        }
     }
 
     /**
@@ -901,7 +910,7 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public boolean areTasksPartOf(Scheduler scheduler, Collection<Task> tasks) throws ModelException {
-        return false;
+        return scheduler.hasAsTasks(tasks);
     }
 
     /**
@@ -918,7 +927,7 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public Iterator<Task> getAllTasksIterator(Scheduler scheduler) throws ModelException {
-        return null;
+        return scheduler.iterator();
     }
 
     /**
@@ -930,7 +939,7 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public Set<Scheduler> getSchedulersForTask(Task task) throws ModelException {
-        return null;
+        return task.getSchedulers();
     }
 
     /**
@@ -943,7 +952,7 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public Unit getAssignedUnit(Task task) throws ModelException {
-        return null;
+        return task.getAssignedUnit();
     }
 
     /**
@@ -956,7 +965,7 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public Task getAssignedTask(Unit unit) throws ModelException {
-        return null;
+        return unit.getTask();
     }
 
     /**

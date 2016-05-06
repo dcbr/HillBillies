@@ -20,7 +20,7 @@ public class WorkshopPosition implements Expression<Vector> {
 
 	@Override
 	public Vector evaluate(TaskRunner taskRunner) {
-		return taskRunner.getExecutingUnit().getPosition(Terrain.WORKSHOP); //TODO
+		return taskRunner.getExecutingWorld().getCube(Terrain.WORKSHOP); //TODO -> aangezien workshops niet van cube kunnen veranderen miss een lijst bijhouden van waar ze staan?
 	}
 
 }

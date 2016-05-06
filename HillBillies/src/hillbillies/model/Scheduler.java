@@ -14,7 +14,7 @@ import java.util.function.Predicate;
  * @invar Each scheduler must have proper tasks.
  * | hasProperTasks()
  */
-public class Scheduler {
+public class Scheduler implements Iterable<Task> {
 
     /**
      * Initialize this new Scheduler with given faction and no tasks yet.
@@ -81,10 +81,7 @@ public class Scheduler {
      *          |      result == false
      */
     public boolean hasAsTasks(Collection<Task> tasks){
-        for(Task task : tasks)
-            if(!hasAsTask(task))
-                return false;
-        return true;
+        return this.tasks.containsAll(tasks);
     }
 
     /**
@@ -177,6 +174,28 @@ public class Scheduler {
     }
 
     /**
+     * Replace the given oldTask by the given newTask.
+     * @param oldTask The task to replace
+     * @param newTask The new task
+     * @effect The oldTask is removed
+     *          | this.removeTask(oldTask)
+     * @effect The newTask is added
+     *          | this.addTask(newTask)
+     * @throws IllegalArgumentException
+     *          When oldTask or newTask do not satisfy removeTask's respectively addTask's preconditions.
+     *          | !this.hasAsTask(oldTask) || !oldTask.hasAsScheduler(this) ||
+     *          | newTask == null || newTask.hasAsScheduler(this)
+     */
+    public void replaceTask(Task oldTask, Task newTask){
+        if(!this.hasAsTask(oldTask) || !(oldTask.hasAsScheduler(this)))
+            throw new IllegalArgumentException("The given oldTask does not satisfy removeTask's preconditions.");
+        if((newTask == null) || (newTask.hasAsScheduler(this)))
+            throw new IllegalArgumentException("The given newTask does not satisfy addTask's preconditions.");
+        removeTask(oldTask);
+        addTask(newTask);
+    }
+
+    /**
      * Get a collection of all tasks in this scheduler satisfying the given condition.
      * @param condition The condition to select upon
      * @return A collection of all tasks in this scheduler satisfying the given condition.
@@ -214,6 +233,29 @@ public class Scheduler {
         return null;
     }
 
+    public Task getHighestPriorityAssignableTask(){
+        return getTaskSatisfying(task -> !task.isRunning());
+    }
+
+    public Collection<Task> getAllTasks(){
+        return getAllTasksSatisfying(task -> true);
+    }
+
+    public void schedule(Task task, Unit unit){
+        if(task.hasAsScheduler(this) && !task.isRunning()){
+            unit.setTask(task);
+            task.setAssignedUnit(unit);
+        }
+    }
+
+    public void deschedule(Task task){
+        if(task.hasAsScheduler(this) && task.isRunning()){
+            task.stopRunning();
+            task.getAssignedUnit().setTask(null);
+            task.setAssignedUnit(null);
+        }
+    }
+
     /**
      * Variable referencing a priority queue collecting all
      * the tasks of this scheduler.
@@ -226,10 +268,20 @@ public class Scheduler {
      * | ( (task != null) &&
      * | (! task.isTerminated()) )
      */
-    private final Queue<Task> tasks = new PriorityQueue<>(new Comparator<Task>() {
+    private final SortedSet<Task> tasks = new TreeSet<>(new Comparator<Task>() {
         @Override
         public int compare(Task t1, Task t2) {
             return t2.getPriority()-t1.getPriority();
         }
     });
+
+    /**
+     * Returns an iterator over elements of type {@code Task}.
+     *
+     * @return an Iterator.
+     */
+    @Override
+    public Iterator<Task> iterator() {
+        return tasks.iterator();
+    }
 }

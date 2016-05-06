@@ -1,5 +1,6 @@
 package hillbillies.part3.programs.expressions;
 
+import hillbillies.model.Cube;
 import hillbillies.part3.programs.SourceLocation;
 import hillbillies.utils.Vector;
 import hillbillies.model.Task.TaskRunner;
@@ -8,7 +9,7 @@ import hillbillies.model.Task.TaskRunner;
  * @author kenneth
  *
  */
-public class HerePosition implements Expression<Vector>{
+public class HerePosition implements Expression<Cube>{
 
     private final SourceLocation sourceLocation;
 
@@ -20,8 +21,8 @@ public class HerePosition implements Expression<Vector>{
     }
 
     @Override
-    public Vector evaluate(TaskRunner taskRunner) {
-        return taskRunner.getExecutingUnit().getPosition();
+    public Cube evaluate(TaskRunner taskRunner) {
+        return taskRunner.getExecutingWorld().getCube(taskRunner.getExecutingUnit().getPosition());
     }
 
 

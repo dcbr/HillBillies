@@ -3,6 +3,7 @@
  */
 package hillbillies.part3.programs.expressions;
 
+import hillbillies.model.Cube;
 import hillbillies.model.Task.TaskRunner;
 import hillbillies.part3.programs.SourceLocation;
 
@@ -10,7 +11,7 @@ import hillbillies.part3.programs.SourceLocation;
  * @author kenneth
  *
  */
-public class SelectedPosition implements Expression<T>{
+public class SelectedPosition implements Expression<Cube>{
 
 	private SourceLocation sourceLocation;
 
@@ -22,8 +23,8 @@ public class SelectedPosition implements Expression<T>{
 	}
 
 	@Override
-	public T evaluate(TaskRunner taskRunner) {
-		return null;//TODO
+	public Cube evaluate(TaskRunner taskRunner) {
+		return taskRunner.getSelectedCube();
 	}
 
 }

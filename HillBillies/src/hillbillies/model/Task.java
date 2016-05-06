@@ -196,7 +196,7 @@ public class Task implements Comparable<Task> {
      */
     @Raw
     public boolean canHaveAsActivity(Statement activity) {
-        return false;
+        return false;// TODO check well-formedness?
     }
 
     /**
@@ -214,10 +214,17 @@ public class Task implements Comparable<Task> {
      * @param assignedUnit
      * The assignedUnit to check.
      * @return
-     * | result == Unit.isValidTask(this)
+     * | if(!Unit.isValidTask(this))    result == false
+     * | if(assignedUnit==null)         result == !this.isRunning()
+     * | else                           result == this.hasAsScheduler(assignedUnit.getFaction().getScheduler())
      */
     public boolean isValidAssignedUnit(Unit assignedUnit) {
-        return Unit.isValidTask(this);
+        if(!Unit.isValidTask(this))
+            return false;
+        if(assignedUnit==null)
+            return !this.isRunning();
+        else
+            return this.hasAsScheduler(assignedUnit.getFaction().getScheduler());
     }
     /**
      * Set the assignedUnit of this Task to the given assignedUnit.
@@ -315,8 +322,9 @@ public class Task implements Comparable<Task> {
      * | (scheduler != null) && (scheduler.getTask() == this)
      * @post This task has the given scheduler as one of its schedulers.
      * | new.hasAsScheduler(scheduler)
+     * @note To add a scheduler, use the Scheduler's addTask method.
      */
-    public void addScheduler(@Raw Scheduler scheduler) {
+    protected void addScheduler(@Raw Scheduler scheduler) {
     	assert(scheduler != null) && (scheduler.hasAsTask(this));
     	schedulers.add(scheduler);
     }
@@ -335,9 +343,18 @@ public class Task implements Comparable<Task> {
      * | ! new.hasAsScheduler(scheduler)
      * @note To remove a scheduler, use the Scheduler's removeTask method.
      */
-    public void removeScheduler(@Raw Scheduler scheduler) {
+    protected void removeScheduler(@Raw Scheduler scheduler) {
     	assert this.hasAsScheduler(scheduler) && (!scheduler.hasAsTask(this));
     	schedulers.remove(scheduler);
+        if(this.isRunning() && assignedUnit.getFaction().getScheduler()==scheduler){
+            stopRunning();
+            this.getAssignedUnit().setTask(null);
+            this.setAssignedUnit(null);
+        }
+    }
+
+    public Set<Scheduler> getSchedulers(){
+        return new HashSet<>(schedulers);
     }
 
     /**
@@ -383,14 +400,46 @@ public class Task implements Comparable<Task> {
         return this.getPriority()-o.getPriority();
     }
 
+    public TaskRunner run(){
+        if(runner==null){
+            runner = new TaskRunner(this.getSelectedCube());
+        }
+        if(runner.isRunning())
+            throw new IllegalStateException("This task is already running.");
+        runner.start();
+        return runner;
+    }
+
+    public void stopRunning() throws IllegalStateException{// Note: call scheduler's deschedule method to properly interrupt the task's execution
+        if(runner==null || !runner.isRunning())
+            throw new IllegalStateException("This task is not running.");
+        runner.stop();
+        this.decreasePriority();
+    }
+
+    public boolean isRunning(){
+        return runner!=null && runner.isRunning();
+    }
+
+    public void finish() throws IllegalStateException{
+        // TODO: check if runner has reached the last statement (maybe introduce end statement?)
+        stopRunning();
+        for(Scheduler s : this.schedulers)
+            s.removeTask(this);
+    }
+
+    private TaskRunner runner;
+
     public class TaskRunner{
 
         private final Vector selectedCubeCoordinates;
         private final Map<String, Expression> assignedVariables;
+        private boolean isRunning;
 
         private TaskRunner(Vector selectedCubeCoordinates){
             this.selectedCubeCoordinates = selectedCubeCoordinates;
             this.assignedVariables = new HashMap<>();
+            this.isRunning = false;
         }
 
         public Unit getExecutingUnit(){
@@ -400,6 +449,8 @@ public class Task implements Comparable<Task> {
         public IWorld getExecutingWorld(){
             return getExecutingUnit().getWorld();
         }
+
+        public Cube getSelectedCube(){ return getExecutingWorld().getCube(Task.this.getSelectedCube()); }
 
         public void assignVariable(String variableName, Expression value){
             this.assignedVariables.put(variableName, value);
@@ -416,6 +467,27 @@ public class Task implements Comparable<Task> {
         }
 
         public boolean breakLoop = false;
+
+        public void start(){
+            this.isRunning = true;
+        }
+
+        public void interrupt(){
+            this.isRunning = false;
+        }
+
+        public void stop(){
+            this.isRunning = false;
+        }
+
+        public boolean isRunning(){
+            return this.isRunning;
+        }
+
+        public void advanceTask(double dt){
+            assert this.isRunning;
+            // TODO
+        }
 
     }
 }

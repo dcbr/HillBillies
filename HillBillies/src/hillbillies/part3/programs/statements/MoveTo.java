@@ -1,6 +1,5 @@
 package hillbillies.part3.programs.statements;
 
-import hillbillies.activities.TargetMove;
 import hillbillies.model.Cube;
 import hillbillies.part3.programs.SourceLocation;
 import hillbillies.model.Task.TaskRunner;

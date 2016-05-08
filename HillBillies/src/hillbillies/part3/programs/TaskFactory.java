@@ -3,22 +3,16 @@ package hillbillies.part3.programs;
 import hillbillies.model.Task;
 import hillbillies.part3.programs.expressions.*;
 import hillbillies.part3.programs.statements.*;
-import hillbillies.utils.Vector;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by Bram on 27-4-2016.
  */
 public class TaskFactory implements ITaskFactory<Expression, Statement, Task> {
 
-    private final Map<String, Expression<?>> assignedVariables;
-
     public TaskFactory(){
-        this.assignedVariables = new HashMap<>();
     }
 
     /**

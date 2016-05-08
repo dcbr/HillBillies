@@ -9,9 +9,9 @@ import hillbillies.part3.programs.expressions.Expression;
  *
  */
 public class Print extends Statement {
-	private final Expression value;
+	private final Expression<?> value;
 	private final SourceLocation sourceLocation;
-	public Print(Expression value, SourceLocation sourceLocation) {
+	public Print(Expression<?> value, SourceLocation sourceLocation) {
 		this.value = value;
 		this.sourceLocation = sourceLocation;
 	}

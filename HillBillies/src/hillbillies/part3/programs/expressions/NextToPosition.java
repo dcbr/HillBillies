@@ -1,7 +1,6 @@
 package hillbillies.part3.programs.expressions;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import hillbillies.model.Cube;
 import hillbillies.model.Task.TaskRunner;
@@ -32,7 +31,7 @@ public class NextToPosition implements Expression<Cube>{
 		Vector pos = position.evaluate(taskRunner).getPosition();
 		ArrayList<Cube> positions = new ArrayList<>();
 		taskRunner.getExecutingWorld().getNeighbouringCubesSatisfying(
-				new ArrayList<Cube>(),
+				positions,
 				pos,
 				cube->isValidNextPosition(pos, cube.getPosition())
 		);

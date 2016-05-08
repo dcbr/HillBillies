@@ -4,7 +4,6 @@ import hillbillies.model.Cube;
 import hillbillies.model.Log;
 import hillbillies.model.Task.TaskRunner;
 import hillbillies.part3.programs.SourceLocation;
-import hillbillies.utils.Vector;
 
 /**
  * @author kenneth

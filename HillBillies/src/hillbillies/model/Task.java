@@ -1,12 +1,14 @@
 package hillbillies.model;
 
 import be.kuleuven.cs.som.annotate.*;
+import hillbillies.part3.programs.VariableCollection;
 import hillbillies.part3.programs.expressions.Expression;
 
 import java.util.*;
 
 import hillbillies.part3.programs.statements.Statement;
 import hillbillies.utils.Vector;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Class representing a Task
@@ -433,12 +435,12 @@ public class Task implements Comparable<Task> {
     public class TaskRunner{
 
         private final Vector selectedCubeCoordinates;
-        private final Map<String, Expression> assignedVariables;
+        private final VariableCollection assignedVariables;
         private boolean isRunning;
 
         private TaskRunner(Vector selectedCubeCoordinates){
             this.selectedCubeCoordinates = selectedCubeCoordinates;
-            this.assignedVariables = new HashMap<>();
+            this.assignedVariables = new VariableCollection();
             this.isRunning = false;
         }
 
@@ -452,18 +454,22 @@ public class Task implements Comparable<Task> {
 
         public Cube getSelectedCube(){ return getExecutingWorld().getCube(Task.this.getSelectedCube()); }
 
-        public void assignVariable(String variableName, Expression value){
-            this.assignedVariables.put(variableName, value);
+        public <T> void assignVariable(String variableName, Expression<T> value) throws ClassCastException{
+            if(!this.assignedVariables.contains(variableName))
+                this.assignedVariables.add(variableName, value);
+            else {
+                this.assignedVariables.assign(variableName, value);
+            }
         }
 
         public boolean isVariableAssigned(String variableName){
-            return this.assignedVariables.containsKey(variableName);
+            return this.assignedVariables.contains(variableName);
         }
 
-        public Expression getVariableValue(String variableName){
+        public <T> Expression<T> getVariableValue(String variableName) throws IllegalArgumentException, ClassCastException{
             if(!this.isVariableAssigned(variableName))
                 throw new IllegalArgumentException("This variable isn't assigned.");
-            return this.assignedVariables.get(variableName);
+            return this.assignedVariables.getValue(variableName);
         }
 
         public boolean breakLoop = false;

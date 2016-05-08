@@ -14,7 +14,7 @@ public class IsFriend implements Expression<Boolean>{
 	/**
 	 * 
 	 */
-	public IsFriend(Expression unit, SourceLocation sourceLocation) {
+	public IsFriend(Expression<Unit> unit, SourceLocation sourceLocation) {
 		this.unit = unit;
 		this.sourceLocation = sourceLocation;
 	}

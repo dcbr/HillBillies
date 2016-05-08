@@ -14,7 +14,7 @@ public class IsEnemy implements Expression<Boolean>{
 	/**
 	 * 
 	 */
-	public IsEnemy(Expression unit, SourceLocation sourceLocation) {
+	public IsEnemy(Expression<Unit> unit, SourceLocation sourceLocation) {
 		this.unit = unit;
 		this.sourceLocation = sourceLocation;
 	}

@@ -2,7 +2,6 @@ package hillbillies.part3.programs.expressions;
 
 import hillbillies.model.Cube;
 import hillbillies.part3.programs.SourceLocation;
-import hillbillies.utils.Vector;
 import hillbillies.model.Task.TaskRunner;
 
 /**

@@ -10,7 +10,7 @@ import hillbillies.model.Task.TaskRunner;
  * @author kenneth
  *
  */
-public class Or implements Expression<Boolean>{
+public class Or extends Expression<Boolean> {
 
     private final Expression<Boolean> left, right;
     private final SourceLocation sourceLocation;
@@ -19,14 +19,15 @@ public class Or implements Expression<Boolean>{
      *
      */
     public Or(Expression<Boolean> left, Expression<Boolean> right, SourceLocation sourceLocation) {
+        super(left, right);
         this.left = left;
         this.right = right;
         this.sourceLocation = sourceLocation;
     }
 
     @Override
-    public Boolean evaluate(TaskRunner taskRunner) {
-        return left.evaluate(taskRunner) || right.evaluate(taskRunner);
+    public Boolean evaluate() {
+        return left.run() || right.run();
     }
 
 

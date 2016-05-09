@@ -17,13 +17,14 @@ public class MoveTo extends Statement{
 	 * 
 	 */
 	public MoveTo(Expression<Cube> cube, SourceLocation sourceLocation) {
+		super(cube);
 		this.cube = cube;
 		this.sourceLocation = sourceLocation;
 	}
 
 	@Override
-	public void execute(TaskRunner taskRunner) {
-		taskRunner.getExecutingUnit().moveToTarget(cube.evaluate(taskRunner).getPosition().getCubeCoordinates());
+	public void execute() {
+		this.getRunner().getExecutingUnit().moveToTarget(cube.run().getPosition().getCubeCoordinates());
 	}
 
 }

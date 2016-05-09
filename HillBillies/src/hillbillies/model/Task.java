@@ -412,6 +412,12 @@ public class Task implements Comparable<Task> {
         return runner;
     }
 
+    public TaskRunner getRunner(){
+        if(!isRunning())
+            throw new IllegalStateException("This task is not running.");
+        return runner;
+    }
+
     public void stopRunning() throws IllegalStateException{// Note: call scheduler's deschedule method to properly interrupt the task's execution
         if(runner==null || !runner.isRunning())
             throw new IllegalStateException("This task is not running.");

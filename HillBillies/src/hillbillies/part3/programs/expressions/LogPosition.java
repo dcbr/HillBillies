@@ -9,18 +9,19 @@ import hillbillies.part3.programs.SourceLocation;
  * @author kenneth
  *
  */
-public class LogPosition implements Expression<Cube> {
+public class LogPosition extends Expression<Cube> {
 	private SourceLocation sourceLocation;
 	/**
 	 * 
 	 */
 	public LogPosition(SourceLocation sourceLocation) {
+		super();
 		this.sourceLocation = sourceLocation;
 	}
 
 	@Override
-	public Cube evaluate(TaskRunner taskRunner) {
-		return taskRunner.getExecutingWorld().getCube(Log); //TODO
+	public Cube evaluate() {
+		return this.getRunner().getExecutingWorld().getCube(Log); //TODO
 	}
 
 }

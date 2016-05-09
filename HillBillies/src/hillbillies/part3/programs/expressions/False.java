@@ -10,7 +10,7 @@ import hillbillies.model.Task.TaskRunner;
  * @author kenneth
  *
  */
-public class False implements Expression<Boolean>{
+public class False extends Expression<Boolean> {
 
     private final SourceLocation sourceLocation;
 
@@ -18,11 +18,12 @@ public class False implements Expression<Boolean>{
      *
      */
     public False(SourceLocation sourceLocation) {
+        super();
         this.sourceLocation = sourceLocation;
     }
 
     @Override
-    public Boolean evaluate(TaskRunner taskRunner) {
+    public Boolean evaluate() {
         return false;
     }
 

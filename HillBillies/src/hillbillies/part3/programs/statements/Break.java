@@ -9,11 +9,11 @@ import hillbillies.model.Task.TaskRunner;
 public class Break extends Statement {
 
     public Break(SourceLocation sourceLocation){
-
+        super();
     }
 
     @Override
-    public void execute(TaskRunner taskRunner) {
-        taskRunner.breakLoop = true;
+    public void execute() {
+        this.getRunner().breakLoop = true;
     }
 }

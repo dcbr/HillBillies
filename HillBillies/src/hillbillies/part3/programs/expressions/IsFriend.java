@@ -8,19 +8,20 @@ import hillbillies.model.Task.TaskRunner;
  * @author kenneth
  *
  */
-public class IsFriend implements Expression<Boolean>{
+public class IsFriend extends Expression<Boolean> {
 	private final Expression<Unit> unit;
 	private final SourceLocation sourceLocation;
 	/**
 	 * 
 	 */
 	public IsFriend(Expression<Unit> unit, SourceLocation sourceLocation) {
+		super(unit);
 		this.unit = unit;
 		this.sourceLocation = sourceLocation;
 	}
 	@Override
-	public Boolean evaluate(TaskRunner taskRunner) {
-		return taskRunner.getExecutingUnit().getFaction().equals(unit.evaluate(taskRunner).getFaction());
+	public Boolean evaluate() {
+		return this.getRunner().getExecutingUnit().getFaction().equals(unit.run().getFaction());
 	}
 
 }

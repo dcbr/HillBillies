@@ -18,13 +18,14 @@ public class FollowUnit extends Statement{
 	 * 
 	 */
 	public FollowUnit(Expression<Unit> unit, SourceLocation sourceLocation) {
+		super(unit);
 		this.unit = unit;
 		this.sourceLocation = sourceLocation;
 	}
 
 	@Override
-	protected void execute(TaskRunner taskRunner) {
-		taskRunner.getExecutingUnit().follow(unit.evaluate(taskRunner));
+	protected void execute() {
+		this.getRunner().getExecutingUnit().follow(unit.run());// TODO: since we have access to the Task, getExecutingUnit is no longer needed
 	}
 
 }

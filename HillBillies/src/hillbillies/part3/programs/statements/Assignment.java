@@ -14,13 +14,18 @@ public class Assignment<T> extends Statement {
     private final SourceLocation sourceLocation;
 
     public Assignment(String variableName, Expression<T> value, SourceLocation sourceLocation){
+        super(value);
         this.variableName = variableName;
         this.value = value;
         this.sourceLocation = sourceLocation;
     }
 
+    public String getVariableName(){
+        return this.variableName;
+    }
+
     @Override
-    public void execute(TaskRunner taskRunner) {
-        taskRunner.assignVariable(variableName, value);
+    public void execute() {
+        this.getRunner().assignVariable(variableName, value);
     }
 }

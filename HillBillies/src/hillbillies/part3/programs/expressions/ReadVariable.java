@@ -7,7 +7,7 @@ import hillbillies.model.Task;
  * @author kenneth
  *
  */
-public class ReadVariable<T> implements Expression<T>{
+public class ReadVariable<T> extends Expression<T> {
 	private final String variableName;
 	private final SourceLocation sourceLocation;
 	/**
@@ -20,12 +20,16 @@ public class ReadVariable<T> implements Expression<T>{
 		this.sourceLocation = sourceLocation;
 	}
 
+	public String getVariableName(){
+		return this.variableName;
+	}
+
 	@Override
-	public T evaluate(Task.TaskRunner taskRunner) throws ClassCastException, IllegalArgumentException{
+	public T evaluate() throws ClassCastException, IllegalArgumentException{
 		try {
-			return (T) taskRunner.getVariableValue(variableName).evaluate(taskRunner);
+			return this.getRunner().<T>getVariableValue(variableName).run();
 		}catch(IllegalArgumentException e){
-			throw new IllegalStateException("The variable to evaluate isn't assigned.", e);
+			throw new IllegalStateException("The variable to evaluate isn't assigned. This may not happen?", e);
 		}
 	}
 

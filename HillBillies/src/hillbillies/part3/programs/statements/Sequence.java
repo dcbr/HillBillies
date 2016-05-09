@@ -14,13 +14,14 @@ public class Sequence extends Statement {
     private final SourceLocation sourceLocation;
 
     public Sequence(List<Statement> statements, SourceLocation sourceLocation){
+        super(statements.toArray(new Statement[]{}));
         this.statements = statements;
         this.sourceLocation = sourceLocation;
     }
 
     @Override
-    public void execute(TaskRunner taskRunner) {
+    public void execute() {
         for(Statement s : statements)
-            s.run(taskRunner);
+            s.run();
     }
 }

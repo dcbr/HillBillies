@@ -10,7 +10,7 @@ import hillbillies.model.Task.TaskRunner;
  * @author kenneth
  *
  */
-public class Not implements Expression<Boolean>{
+public class Not extends Expression<Boolean> {
 
 	private final Expression<Boolean> expression;
 	private final SourceLocation sourceLocation;
@@ -19,13 +19,14 @@ public class Not implements Expression<Boolean>{
 	 * 
 	 */
 	public Not(Expression<Boolean> expression, SourceLocation sourceLocation) {
+		super(expression);
 		this.expression = expression;
 		this.sourceLocation = sourceLocation;
 	}
 
 	@Override
-	public Boolean evaluate(TaskRunner taskRunner) {
-		return !expression.evaluate(taskRunner);
+	public Boolean evaluate() {
+		return !expression.run();
 	}
 	
 

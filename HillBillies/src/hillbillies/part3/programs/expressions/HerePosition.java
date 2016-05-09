@@ -8,7 +8,7 @@ import hillbillies.model.Task.TaskRunner;
  * @author kenneth
  *
  */
-public class HerePosition implements Expression<Cube>{
+public class HerePosition extends Expression<Cube> {
 
     private final SourceLocation sourceLocation;
 
@@ -16,12 +16,13 @@ public class HerePosition implements Expression<Cube>{
      *
      */
     public HerePosition(SourceLocation sourceLocation) {
+        super();
         this.sourceLocation = sourceLocation;
     }
 
     @Override
-    public Cube evaluate(TaskRunner taskRunner) {
-        return taskRunner.getExecutingWorld().getCube(taskRunner.getExecutingUnit().getPosition());
+    public Cube evaluate() {
+        return this.getRunner().getExecutingWorld().getCube(this.getRunner().getExecutingUnit().getPosition());
     }
 
 

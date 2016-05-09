@@ -15,12 +15,13 @@ public class WorkAt extends Statement{
 	 * 
 	 */
 	public WorkAt(Expression<Cube> position, SourceLocation sourceLocation) {
+		super(position);
 		this.position = position;
 		this.sourceLocation = sourceLocation;
 	}
 	@Override
-	public void execute(TaskRunner taskRunner) {
-		taskRunner.getExecutingUnit().work(position.evaluate(taskRunner).getPosition());
+	public void execute() {
+		this.getRunner().getExecutingUnit().work(position.run().getPosition());
 	}
 
 }

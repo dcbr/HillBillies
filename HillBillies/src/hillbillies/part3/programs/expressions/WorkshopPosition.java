@@ -9,18 +9,19 @@ import hillbillies.utils.Vector;
  * @author kenneth
  *
  */
-public class WorkshopPosition implements Expression<Vector> {
+public class WorkshopPosition extends Expression<Vector> {
 	private SourceLocation sourceLoation;
 	/**
 	 * 
 	 */
 	public WorkshopPosition(SourceLocation sourceLocation) {
+		super();
 		this.sourceLoation = sourceLocation;
 	}
 
 	@Override
-	public Vector evaluate(TaskRunner taskRunner) {
-		return taskRunner.getExecutingWorld().getCube(Terrain.WORKSHOP); //TODO -> aangezien workshops niet van cube kunnen veranderen miss een lijst bijhouden van waar ze staan?
+	public Vector evaluate() {
+		return this.getRunner().getExecutingWorld().getCube(Terrain.WORKSHOP); //TODO -> aangezien workshops niet van cube kunnen veranderen miss een lijst bijhouden van waar ze staan?
 	}
 
 }

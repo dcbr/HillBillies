@@ -11,7 +11,7 @@ import hillbillies.part3.programs.SourceLocation;
  * @author kenneth
  *
  */
-public class SelectedPosition implements Expression<Cube>{
+public class SelectedPosition extends Expression<Cube> {
 
 	private SourceLocation sourceLocation;
 
@@ -19,12 +19,13 @@ public class SelectedPosition implements Expression<Cube>{
 	 * 
 	 */
 	public SelectedPosition(SourceLocation sourceLocation) {
+		super();
 		this.sourceLocation = sourceLocation;
 	}
 
 	@Override
-	public Cube evaluate(TaskRunner taskRunner) {
-		return taskRunner.getSelectedCube();
+	public Cube evaluate() {
+		return this.getRunner().getSelectedCube();
 	}
 
 }

@@ -14,6 +14,7 @@ public class IfElse extends Statement {
     private final SourceLocation sourceLocation;
 
     public IfElse(Expression<Boolean> condition, Statement ifBody, Statement elseBody, SourceLocation sourceLocation){
+        super(condition, ifBody, elseBody);
         this.condition = condition;
         this.ifBody = ifBody;
         this.elseBody = elseBody;
@@ -21,10 +22,10 @@ public class IfElse extends Statement {
     }
 
     @Override
-    public void execute(TaskRunner taskRunner) {
-        if(condition.evaluate(taskRunner))
-            ifBody.run(taskRunner);
+    public void execute() {
+        if(condition.run())
+            ifBody.run();
         else
-            elseBody.run(taskRunner);
+            elseBody.run();
     }
 }

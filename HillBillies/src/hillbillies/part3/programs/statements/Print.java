@@ -12,13 +12,14 @@ public class Print extends Statement {
 	private final Expression<?> value;
 	private final SourceLocation sourceLocation;
 	public Print(Expression<?> value, SourceLocation sourceLocation) {
+		super(value);
 		this.value = value;
 		this.sourceLocation = sourceLocation;
 	}
 
 	@Override
-	public void execute(TaskRunner taskRunner) {
-		System.out.println(value.evaluate(taskRunner));
+	public void execute() {
+		System.out.println(value.run());
 	}
 
 }

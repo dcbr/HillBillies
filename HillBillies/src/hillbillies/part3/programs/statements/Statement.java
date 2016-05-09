@@ -1,17 +1,60 @@
 package hillbillies.part3.programs.statements;
 
 import hillbillies.model.Task.TaskRunner;
+import hillbillies.part3.programs.Command;
+import hillbillies.part3.programs.expressions.ReadVariable;
+
+import java.util.HashSet;
 
 /**
- * Created by Bram on 27-4-2016.
+ * Abstract class representing a single statement.
+ * @author Kenneth & Bram
+ * @version 1.0
  */
-public abstract class Statement {
+public abstract class Statement extends Command<Void> {
 
-    public void run(TaskRunner taskRunner){
-        if(!taskRunner.breakLoop)
-            execute(taskRunner);
+    /**
+     * The children must be specified in the order they will be executed.
+     * @param children
+     */
+    public Statement(Command<?>... children){
+        super(children);
     }
 
-    protected abstract void execute(TaskRunner taskRunner);
+    @Override
+    public Void process() {
+        if(!this.getRunner().breakLoop)
+            execute();
+        return null;
+    }
+
+    public abstract void execute();
+
+    public final boolean check(){
+        return checkVariableAccess() && checkBreak();
+    }
+
+    protected boolean checkVariableAccess(){
+        return checkVariableAccess(new HashSet<>());
+    }
+
+    protected boolean checkVariableAccess(HashSet<String> assignedVariables){
+        for(Command child : this.getChildren()){
+            if(child instanceof ReadVariable && !assignedVariables.contains(((ReadVariable)child).getVariableName()))
+                return false;
+            if(child instanceof Statement && !((Statement)child).checkVariableAccess(assignedVariables))
+                return false;
+            if(child instanceof Assignment)
+                assignedVariables.add(((Assignment)child).getVariableName());
+        }
+        return true;
+    }
+
+    protected boolean checkBreak(){
+        for(Command child : this.getChildren())
+            if(child instanceof Break || (child instanceof Statement && !((Statement)child).checkBreak()))
+                return false;
+        return true;
+    }
 
 }

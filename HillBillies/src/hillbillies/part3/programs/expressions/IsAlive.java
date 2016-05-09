@@ -11,7 +11,7 @@ import hillbillies.model.Task.TaskRunner;
  * @author kenneth
  *
  */
-public class IsAlive implements Expression<Boolean>{
+public class IsAlive extends Expression<Boolean> {
 
 	private final Expression <Unit> unit;
 	private final SourceLocation sourceLocation;
@@ -20,13 +20,14 @@ public class IsAlive implements Expression<Boolean>{
 	 * 
 	 */
 	public IsAlive(Expression<Unit> unit, SourceLocation sourceLocation) {
+		super(unit);
 		this.unit = unit;
 		this.sourceLocation = sourceLocation;
 	}
 
 	@Override
-	public Boolean evaluate(TaskRunner taskRunner) {
-		return unit.evaluate(taskRunner).isTerminated();
+	public Boolean evaluate() {
+		return !unit.run().isTerminated();
 	}
 
 }

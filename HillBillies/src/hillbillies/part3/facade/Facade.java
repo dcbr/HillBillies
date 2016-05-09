@@ -855,7 +855,9 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public boolean isWellFormed(Task task) throws ModelException {
-        return false;//TODO
+        // Tasks are guaranteed to be type safe since unsafe statements and expressions cannot be created.
+        // Variable type safety is not checked, but gives a runtime error
+        return task.getActivity().check();
     }
 
     /**
@@ -879,7 +881,7 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public void schedule(Scheduler scheduler, Task task) throws ModelException {
-        //TODO
+        scheduler.addTask(task);
     }
 
     /**

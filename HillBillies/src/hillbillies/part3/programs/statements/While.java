@@ -14,19 +14,25 @@ public class While extends Statement {
     private final SourceLocation sourceLocation;
 
     public While(Expression<Boolean> condition, Statement body, SourceLocation sourceLocation){
+        super(condition, body);
         this.condition = condition;
         this.body = body;
         this.sourceLocation = sourceLocation;
     }
 
     @Override
-    public void execute(TaskRunner taskRunner) {
-        while(condition.evaluate(taskRunner)){
-            body.run(taskRunner);
-            if(taskRunner.breakLoop){
-                taskRunner.breakLoop = false;
+    public void execute() {
+        while(condition.run()){
+            body.run();
+            if(this.getRunner().breakLoop){
+                this.getRunner().breakLoop = false;
                 break;
             }
         }
+    }
+
+    @Override
+    public boolean checkBreak(){
+        return true;
     }
 }

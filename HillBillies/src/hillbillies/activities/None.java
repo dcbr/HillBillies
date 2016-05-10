@@ -1,6 +1,7 @@
 package hillbillies.activities;
 
 import hillbillies.model.Cube;
+import hillbillies.model.Task;
 import hillbillies.model.Unit;
 import hillbillies.utils.Vector;
 
@@ -51,8 +52,19 @@ public class None extends Activity {
      */
     @Override
     protected void advanceActivity(double dt) {
-        if(this.isDefault())
-            setDefaultBehaviour();
+        if(this.isDefault()) {
+            if(this.unit.getTask()==null) {
+                Task availableTask = this.unit.getFaction().getScheduler().getHighestPriorityAssignableTask();
+                if (availableTask == null)
+                    setDefaultBehaviour();// No task available => do something random
+                else {
+                    this.unit.getFaction().getScheduler().schedule(availableTask, unit);
+                    availableTask.run();
+                }
+            }else{
+                this.unit.getTask().getRunner().advanceTask(dt);
+            }
+        }
     }
 
     /**

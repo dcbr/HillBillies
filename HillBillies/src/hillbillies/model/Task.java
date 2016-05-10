@@ -404,14 +404,13 @@ public class Task implements Comparable<Task> {
         return this.getPriority()-o.getPriority();
     }
 
-    public TaskRunner run(){
+    public void run(){
         if(runner==null){
             runner = new TaskRunner(this.getSelectedCube());
         }
         if(runner.isRunning())
             throw new IllegalStateException("This task is already running.");
         runner.start();
-        return runner;
     }
 
     public TaskRunner getRunner(){

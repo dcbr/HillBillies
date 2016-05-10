@@ -1,5 +1,6 @@
 package hillbillies.part3.programs.statements;
 
+import hillbillies.activities.None;
 import hillbillies.model.Unit;
 import hillbillies.part3.programs.SourceLocation;
 import hillbillies.model.Task.TaskRunner;
@@ -26,6 +27,7 @@ public class FollowUnit extends Statement{
 	@Override
 	protected void execute() {
 		this.getRunner().getExecutingUnit().follow(unit.run());// TODO: since we have access to the Task, getExecutingUnit is no longer needed
+		this.getRunner().waitFor(unit -> unit.isExecuting(None.class));
 	}
 
 }

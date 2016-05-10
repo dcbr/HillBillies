@@ -1,5 +1,6 @@
 package hillbillies.part3.programs.statements;
 
+import hillbillies.activities.None;
 import hillbillies.model.Cube;
 import hillbillies.part3.programs.SourceLocation;
 import hillbillies.model.Task.TaskRunner;
@@ -25,6 +26,7 @@ public class MoveTo extends Statement{
 	@Override
 	public void execute() {
 		this.getRunner().getExecutingUnit().moveToTarget(cube.run().getPosition().getCubeCoordinates());
+		this.getRunner().waitFor(unit -> unit.isExecuting(None.class));
 	}
 
 }

@@ -21,7 +21,7 @@ public class Sequence extends Statement {
 
     @Override
     public void execute() {
-        for(Statement s : statements)
-            s.run();
+        for(int i=this.getCurrentChild();i<statements.size();i++)
+            statements.get(i).run();
     }
 }

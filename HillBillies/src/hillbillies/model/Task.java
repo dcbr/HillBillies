@@ -5,6 +5,7 @@ import hillbillies.part3.programs.VariableCollection;
 import hillbillies.part3.programs.expressions.Expression;
 
 import java.util.*;
+import java.util.function.Predicate;
 
 import hillbillies.part3.programs.statements.Statement;
 import hillbillies.utils.Vector;
@@ -105,6 +106,7 @@ public class Task implements Comparable<Task> {
 
         if (! canHaveAsActivity(activity))
             throw new IllegalArgumentException();
+        activity.setTask(this);
         this.activity = activity;
 
         this.selectedCube = new Vector(selectedCube);
@@ -442,12 +444,15 @@ public class Task implements Comparable<Task> {
 
         private final Vector selectedCubeCoordinates;
         private final VariableCollection assignedVariables;
-        private boolean isRunning;
+        private final LinkedList<Integer> savedState;
+        private boolean isRunning, isPaused;
 
         private TaskRunner(Vector selectedCubeCoordinates){
             this.selectedCubeCoordinates = selectedCubeCoordinates;
             this.assignedVariables = new VariableCollection();
+            this.savedState = new LinkedList<>();
             this.isRunning = false;
+            this.isPaused = false;
         }
 
         public Unit getExecutingUnit(){
@@ -485,7 +490,12 @@ public class Task implements Comparable<Task> {
         }
 
         public void interrupt(){
-            this.isRunning = false;
+            this.isPaused = true;
+        }
+
+        public void resume(){
+            this.isPaused = false;
+            this.resumeCondition = unit -> true;
         }
 
         public void stop(){
@@ -496,10 +506,50 @@ public class Task implements Comparable<Task> {
             return this.isRunning;
         }
 
+        public boolean isPaused(){ return this.isPaused; }
+
         public void advanceTask(double dt){
             assert this.isRunning;
-            // TODO
+            if(this.isPaused() && this.resumeCondition.test(this.getExecutingUnit()))
+                this.resume();
+            this.dt = dt;
+            Task.this.getActivity().run();
+            if(!this.isPaused()){
+                // Program finished successfully
+                Task.this.finish();
+            }
         }
+
+        public double getDt(){
+            return dt;// tODO
+        }
+
+        public void consumeDt(){
+            this.dt -= 0.001;
+            if(this.dt<0d)
+                this.dt = 0d;
+        }
+
+        private double dt = 0d;
+
+        public void saveState(int index){
+            this.savedState.addFirst(index);
+        }
+
+        public int resumeState(){
+            return this.savedState.removeFirst();
+        }
+
+        public boolean isResuming(){
+            return !this.savedState.isEmpty();
+        }
+
+        public void waitFor(Predicate<Unit> resumeCondition){
+            this.interrupt();
+            this.resumeCondition = resumeCondition;
+        }
+
+        private Predicate<Unit> resumeCondition = unit -> true;
 
     }
 }

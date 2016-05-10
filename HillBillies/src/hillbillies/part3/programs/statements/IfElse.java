@@ -23,9 +23,9 @@ public class IfElse extends Statement {
 
     @Override
     public void execute() {
-        if(condition.run())
-            ifBody.run();
+        if(condition.run() && this.getCurrentChild()!=2)// 2 = elseBody (maybe replace by constant?) TODO
+            this.runChild(ifBody);
         else
-            elseBody.run();
+            this.runChild(elseBody);
     }
 }

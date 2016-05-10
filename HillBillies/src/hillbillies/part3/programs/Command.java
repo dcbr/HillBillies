@@ -118,7 +118,7 @@ public abstract class Command<T> {
         return process();
     }
 
-    public abstract T process();
+    protected abstract T process();
 
     protected Task.TaskRunner getRunner() throws IllegalStateException{
         if(!this.isTaskSet())

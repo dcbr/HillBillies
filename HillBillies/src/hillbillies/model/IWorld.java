@@ -76,4 +76,12 @@ public interface IWorld {// TODO: fix this ugly shizzle -> when everything is fi
     public void removeUnit(Unit unit);
 
     public boolean hasAsFaction(@Raw Faction faction);
+
+	public Set<Log> getLogs(boolean inCube);
+	
+	public Set<Boulder> getBoulders(boolean inCube);
+	
+	public Set<Unit> getUnits();
+	
+	public Set<Cube> getWorkshops();
 }

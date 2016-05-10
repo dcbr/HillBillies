@@ -136,4 +136,24 @@ public class LobbyWorld implements IWorld {
 		return this.factions.contains(faction);
 	}
 
+	@Override
+	public Set<Log> getLogs(boolean inCube) {
+		return null;
+	}
+
+	@Override
+	public Set<Boulder> getBoulders(boolean inCube) {
+		return null;
+	}
+
+	@Override
+	public Set<Unit> getUnits() {
+		return null;
+	}
+
+	@Override
+	public Set<Cube> getWorkshops() {
+		return null;
+	}
+
 }

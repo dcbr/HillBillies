@@ -145,7 +145,13 @@ public class World implements IWorld {
 						throw new IllegalArgumentException();
 					}
 					Vector position = new Vector(x,y,z);
-					CubeMap.put(position, new Cube(this, position, Terrain.fromId(terrainMatrix[x][y][z]), this::onTerrainChange));
+					Terrain terrain = Terrain.fromId(terrainMatrix[x][y][z]);
+					Cube cube = new Cube(this, position, terrain, this::onTerrainChange);
+					CubeMap.put(position, cube);
+					if(terrain == Terrain.WORKSHOP){
+						this.workshops.add(cube);
+					}
+						
 				}
 			}
 		}
@@ -485,13 +491,46 @@ public class World implements IWorld {
 	 * | (! unit.isTerminated()) )
 	 */
 	private final Set<Unit> units = new HashSet <>(MAX_UNITS);
-
+	
+	@Override
 	public Set<Unit> getUnits(){
 		return new HashSet<>(units);
 	}
 
 	public Set<Faction> getFactions(){
 		return new HashSet<>(factions);
+	}
+	/**
+	 * Variable referencing a set collecting all the workshops
+	 * of this world.
+	 * @invar Each workshop registered in the referenced list is
+	 * effective and not yet terminated.
+	 * | for each workshop in workshop:
+	 * | ( (workshop != null) &&
+	 * | (! workshop == Terrain.WORKSHOP) )
+	 */
+	private final Set<Cube> workshops = new HashSet<>();
+	
+	public Set<Cube> getWorkshops(){
+		return new HashSet<>(workshops);
+	}
+	/**
+	 * Remove the given workshop from the set of workshops of this world.
+	 *
+	 * @param workshop
+	 * The workshop to be removed.
+	 * @pre This world has the given workshop as one of
+	 * its workshops. And the given workshop is collapsed.
+	 * | workshops.contains(workshop) &&
+	 * | workshop.getTerrain() != Terrain.WORKSHOP
+	 * @post This world no longer has the given workshop as
+	 * one of its workshops.
+	 * | ! new.workshops
+	 */
+	@Raw
+	private void removeWorkshop(Cube workshop) {
+		assert workshops.contains(workshop) && workshop.getTerrain() != Terrain.WORKSHOP;
+		workshops.remove(workshop);
 	}
 	
 	private Map<Vector, Cube> CubeMap = new HashMap<Vector , Cube>();
@@ -687,6 +726,9 @@ public class World implements IWorld {
 				//cubeTerrain = Terrain.AIR;
 				new Log(this,cube);
 		}
+		else if (cubeTerrain == Terrain.WORKSHOP){
+			this.removeWorkshop(cube);			
+		}
 		cube.setTerrain(Terrain.AIR);
 
 
@@ -864,6 +906,7 @@ public class World implements IWorld {
 	 * 			present in the Set.
 	 * @effect getMaterials(Log.class, inCube)
      */
+	@Override
 	public Set<Log> getLogs(boolean inCube){
 		return getMaterials(Log.class, inCube);
 	}
@@ -878,6 +921,7 @@ public class World implements IWorld {
 	 * 			Cube will be present in the Set.
 	 * @effect getMaterials(Boulder.class, inCube)
 	 */
+	@Override
 	public Set<Boulder> getBoulders(boolean inCube){
 		return getMaterials(Boulder.class, inCube);
 	}

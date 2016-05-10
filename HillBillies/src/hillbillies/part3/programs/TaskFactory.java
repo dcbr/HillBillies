@@ -140,7 +140,7 @@ public class TaskFactory implements ITaskFactory<Expression, Statement, Task> {
      */
     @Override
     public Statement createFollow(Expression unit, SourceLocation sourceLocation) {
-        return new FollowUnit(unit, sourceLocation);
+        return new FollowUnit(unit, sourceLocation); //TODO
     }
 
     /**
@@ -336,7 +336,7 @@ public class TaskFactory implements ITaskFactory<Expression, Statement, Task> {
      */
     @Override
     public Expression createSelectedPosition(SourceLocation sourceLocation) {
-        return null;//TODO
+        return new SelectedPosition(sourceLocation);
     }
 
     /**
@@ -359,7 +359,7 @@ public class TaskFactory implements ITaskFactory<Expression, Statement, Task> {
      */
     @Override
     public Expression createPositionOf(Expression unit, SourceLocation sourceLocation) {
-        return null;
+        return new PositionOfUnit(unit, sourceLocation);
     }
 
     /**
@@ -373,7 +373,7 @@ public class TaskFactory implements ITaskFactory<Expression, Statement, Task> {
      */
     @Override
     public Expression createLiteralPosition(int x, int y, int z, SourceLocation sourceLocation) {
-        return null;
+        return new LiteralPosition(x, y, z, sourceLocation);
     }
 
     /**
@@ -384,7 +384,7 @@ public class TaskFactory implements ITaskFactory<Expression, Statement, Task> {
      */
     @Override
     public Expression createThis(SourceLocation sourceLocation) {
-        return null;
+        return new This(sourceLocation);
     }
 
     /**
@@ -395,7 +395,7 @@ public class TaskFactory implements ITaskFactory<Expression, Statement, Task> {
      */
     @Override
     public Expression createFriend(SourceLocation sourceLocation) {
-        return null;
+        return new Friend(sourceLocation); //TODO friend enemy and any
     }
 
     /**
@@ -406,7 +406,7 @@ public class TaskFactory implements ITaskFactory<Expression, Statement, Task> {
      */
     @Override
     public Expression createEnemy(SourceLocation sourceLocation) {
-        return null;
+        return new Enemy(sourceLocation);
     }
 
     /**
@@ -416,7 +416,7 @@ public class TaskFactory implements ITaskFactory<Expression, Statement, Task> {
      */
     @Override
     public Expression createAny(SourceLocation sourceLocation) {
-        return null;
+        return new Any(sourceLocation);
     }
 
     /**
@@ -426,7 +426,7 @@ public class TaskFactory implements ITaskFactory<Expression, Statement, Task> {
      */
     @Override
     public Expression createTrue(SourceLocation sourceLocation) {
-        return null;
+        return new True(sourceLocation);
     }
 
     /**
@@ -436,6 +436,6 @@ public class TaskFactory implements ITaskFactory<Expression, Statement, Task> {
      */
     @Override
     public Expression createFalse(SourceLocation sourceLocation) {
-        return null;
+        return new False(sourceLocation);
     }
 }

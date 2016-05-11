@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import hillbillies.model.Terrain;
+import hillbillies.activities.TargetMove;
 import hillbillies.model.Cube;
 import hillbillies.model.Task.TaskRunner;
 import hillbillies.part3.programs.SourceLocation;
@@ -30,7 +31,15 @@ public class WorkshopPosition extends Expression<Vector> {
 		for (Cube workshop : workshops){
 			positions.add(workshop.getPosition().getCubeCoordinates());
 		}
-		return this.getRunner().getExecutingWorld().getCube(Terrain.WORKSHOP); //TODO -> aangezien workshops niet van cube kunnen veranderen miss een lijst bijhouden van waar ze staan?
+		if (!positions.isEmpty()){
+			this.getTask().stopRunning();
+			return null;
+		}
+		TargetMove targetmove = new TargetMove(this.getRunner().getExecutingUnit(), positions);
+		Vector nearestPos = targetmove.getNearestPos();
+		if(nearestPos == null)
+			this.getTask().stopRunning();
+		return nearestPos;
 	}
 
 }

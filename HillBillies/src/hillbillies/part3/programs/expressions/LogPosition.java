@@ -15,7 +15,7 @@ import hillbillies.utils.Vector;
  * @author kenneth
  *
  */
-public class LogPosition extends Expression<Cube> {
+public class LogPosition extends Expression<Vector> {
 	private SourceLocation sourceLocation;
 	/**
 	 * 
@@ -26,14 +26,21 @@ public class LogPosition extends Expression<Cube> {
 	}
 
 	@Override
-	public Cube evaluate() {
+	public Vector evaluate() {
 		Set<Vector> positions = new HashSet<>();
 		Set<Log> logs = this.getRunner().getExecutingWorld().getLogs(true);
 		for (Log log : logs){
 			positions.add(log.getPosition().getCubeCoordinates());
 		}
-		//TODO: path vinden uit lijst?
-		return this.getRunner().getExecutingWorld().(Log.class); //TODO
+		if (!positions.isEmpty()){
+			this.getTask().stopRunning();
+			return null;
+		}
+		TargetMove targetmove = new TargetMove(this.getRunner().getExecutingUnit(), positions);
+		Vector nearestPos = targetmove.getNearestPos();
+		if(nearestPos == null)
+			this.getTask().stopRunning();
+		return nearestPos;
 	}
 
 }

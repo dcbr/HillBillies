@@ -300,7 +300,7 @@ public class TaskFactory implements ITaskFactory<Expression, Statement, Task> {
      */
     @Override
     public Expression createLogPosition(SourceLocation sourceLocation) {
-        return new LogPosition(sourceLocation); // TODO: create this in unit for log boulder and workshop, enemy, friend and any
+        return new LogPosition(sourceLocation);
     }
 
     /**
@@ -373,7 +373,7 @@ public class TaskFactory implements ITaskFactory<Expression, Statement, Task> {
      */
     @Override
     public Expression createLiteralPosition(int x, int y, int z, SourceLocation sourceLocation) {
-        return new LiteralPosition(x, y, z, sourceLocation);
+        return new LiteralPosition(x, y, z, sourceLocation); //TODO: super(x,y,z)?
     }
 
     /**
@@ -395,7 +395,7 @@ public class TaskFactory implements ITaskFactory<Expression, Statement, Task> {
      */
     @Override
     public Expression createFriend(SourceLocation sourceLocation) {
-        return new Friend(sourceLocation); //TODO friend enemy and any
+        return new Friend(sourceLocation);
     }
 
     /**

@@ -3,9 +3,11 @@ package hillbillies.part3.programs.expressions;
 import java.util.HashSet;
 import java.util.Set;
 
+import hillbillies.activities.TargetMove;
 import hillbillies.model.Boulder;
 import hillbillies.model.Cube;
 import hillbillies.model.Task.TaskRunner;
+import hillbillies.model.Unit;
 import hillbillies.part3.programs.SourceLocation;
 import hillbillies.utils.Vector;
 
@@ -13,7 +15,7 @@ import hillbillies.utils.Vector;
  * @author kenneth
  *
  */
-public class BoulderPosition extends Expression<Cube> {
+public class BoulderPosition extends Expression<Vector> {
 	private SourceLocation sourceLoation;
 	/**
 	 * 
@@ -24,13 +26,17 @@ public class BoulderPosition extends Expression<Cube> {
 	}
 
 	@Override
-	public Cube evaluate() {
+	public Vector evaluate() {
+		Unit unit = this.getRunner().getExecutingUnit();
 		Set<Vector> positions = new HashSet<>();
 		Set<Boulder> boulders = this.getRunner().getExecutingWorld().getBoulders(true);
 		for (Boulder boulder : boulders){
 			positions.add(boulder.getPosition().getCubeCoordinates());
 		}
-		return this.getRunner().getExecutingWorld().getCube(Boulder); //TODO
+		if (!positions.isEmpty())
+			return null;
+		TargetMove targetmove = new TargetMove(unit, positions);
+		return targetmove.getNearestPos();
 	}
 
 }

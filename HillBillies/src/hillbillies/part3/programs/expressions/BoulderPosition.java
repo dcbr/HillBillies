@@ -33,10 +33,15 @@ public class BoulderPosition extends Expression<Vector> {
 		for (Boulder boulder : boulders){
 			positions.add(boulder.getPosition().getCubeCoordinates());
 		}
-		if (!positions.isEmpty())
+		if (!positions.isEmpty()){
+			this.getTask().stopRunning();
 			return null;
+		}
 		TargetMove targetmove = new TargetMove(unit, positions);
-		return targetmove.getNearestPos();
+		Vector nearestPos = targetmove.getNearestPos();
+		if(nearestPos == null)
+			this.getTask().stopRunning();
+		return nearestPos;
 	}
 
 }

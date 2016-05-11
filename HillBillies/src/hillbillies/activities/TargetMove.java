@@ -28,7 +28,7 @@ public class TargetMove extends Move {
     	if(this.path==null)
             throw new IllegalArgumentException("The given target position is not reachable from the Unit's current position.");
     	else{
-    		this.nearestPos = pathCalculator.getNearestPos();
+    		this.nearestPos = pathCalculator.nearestPos;
     	}
     }
     
@@ -205,9 +205,7 @@ public class TargetMove extends Move {
         }
         
         private Vector nearestPos;
-        public Vector getNearestPos(){
-        	return nearestPos.clone();
-        }
+
         /**
          * 
          * @param fromPositions set of cubeCoordinates 

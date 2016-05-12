@@ -3,7 +3,7 @@
  */
 package hillbillies.part3.programs.expressions;
 
-import hillbillies.model.Cube;
+import hillbillies.utils.Vector;
 import hillbillies.model.Task.TaskRunner;
 import hillbillies.part3.programs.SourceLocation;
 
@@ -11,7 +11,7 @@ import hillbillies.part3.programs.SourceLocation;
  * @author kenneth
  *
  */
-public class SelectedPosition extends Expression<Cube> {
+public class SelectedPosition extends Expression<Vector> {
 
 	private SourceLocation sourceLocation;
 
@@ -24,8 +24,8 @@ public class SelectedPosition extends Expression<Cube> {
 	}
 
 	@Override
-	public Cube evaluate() {
-		return this.getRunner().getSelectedCube();
+	public Vector evaluate() {
+		return this.getRunner().getSelectedCube().getPosition();//TODO
 	}
 
 }

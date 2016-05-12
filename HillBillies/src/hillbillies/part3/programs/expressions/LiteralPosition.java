@@ -16,6 +16,7 @@ public class LiteralPosition extends Expression<Vector> {
 	 * 
 	 */
 	public LiteralPosition(int x, int y, int z, SourceLocation sourceLocation) {
+		super();
 		this.position = new Vector(x,y,z);
 		this.sourceLocation = sourceLocation;
 	}

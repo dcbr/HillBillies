@@ -1,7 +1,7 @@
 package hillbillies.part3.programs.expressions;
 
-import hillbillies.model.Cube;
 import hillbillies.part3.programs.SourceLocation;
+import hillbillies.utils.Vector;
 import hillbillies.model.Task.TaskRunner;
 
 /**
@@ -9,20 +9,20 @@ import hillbillies.model.Task.TaskRunner;
  *
  */
 public class IsSolid extends Expression<Boolean> {
-	private final Expression<Cube> cube;
+	private final Expression<Vector> position;
 	private final SourceLocation sourceLocation;
 	/**
 	 * 
 	 */
-	public IsSolid(Expression<Cube> cube, SourceLocation sourceLocation) {
-		super(cube);
-		this.cube = cube;
+	public IsSolid(Expression<Vector> position, SourceLocation sourceLocation) {
+		super(position);
+		this.position = position;
 		this.sourceLocation = sourceLocation;
 	}
 
 	@Override
 	public Boolean evaluate() {
-		return !cube.run().isPassable();
+		return !this.getRunner().getExecutingWorld().getCube(position.run()).isPassable();
 	}
 
 }

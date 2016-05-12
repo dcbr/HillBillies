@@ -16,6 +16,7 @@ public class ReadVariable<T> extends Expression<T> {
 	 * @param sourceLocation
 	 */
 	public ReadVariable(String variableName, SourceLocation sourceLocation) {
+		super();
 		this.variableName = variableName;
 		this.sourceLocation = sourceLocation;
 	}

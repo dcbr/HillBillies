@@ -373,7 +373,7 @@ public class TaskFactory implements ITaskFactory<Expression, Statement, Task> {
      */
     @Override
     public Expression createLiteralPosition(int x, int y, int z, SourceLocation sourceLocation) {
-        return new LiteralPosition(x, y, z, sourceLocation); //TODO: super(x,y,z)?
+        return new LiteralPosition(x, y, z, sourceLocation);
     }
 
     /**

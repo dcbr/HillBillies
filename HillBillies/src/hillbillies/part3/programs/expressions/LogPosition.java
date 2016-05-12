@@ -6,6 +6,7 @@ import java.util.Set;
 import hillbillies.activities.TargetMove;
 import hillbillies.activities.TargetMove.Path;
 import hillbillies.model.Cube;
+import hillbillies.model.IWorldObject;
 import hillbillies.model.Log;
 import hillbillies.model.Task.TaskRunner;
 import hillbillies.part3.programs.SourceLocation;
@@ -27,16 +28,12 @@ public class LogPosition extends Expression<Vector> {
 
 	@Override
 	public Vector evaluate() {
-		Set<Vector> positions = new HashSet<>();
-		Set<Log> logs = this.getRunner().getExecutingWorld().getLogs(true);
-		for (Log log : logs){
-			positions.add(log.getPosition().getCubeCoordinates());
-		}
-		if (!positions.isEmpty()){
+		Set<? extends IWorldObject> logs = this.getRunner().getExecutingWorld().getLogs(true);
+		if (!logs.isEmpty()){
 			this.getTask().stopRunning();
 			return null;
 		}
-		TargetMove targetmove = new TargetMove(this.getRunner().getExecutingUnit(), positions);
+		TargetMove targetmove = new TargetMove(this.getRunner().getExecutingUnit(), (Set<IWorldObject>) logs);
 		Vector nearestPos = targetmove.getNearestPos();
 		if(nearestPos == null)
 			this.getTask().stopRunning();

@@ -5,6 +5,7 @@ import java.util.Set;
 
 import hillbillies.activities.TargetMove;
 import hillbillies.model.Boulder;
+import hillbillies.model.IWorldObject;
 import hillbillies.model.Unit;
 import hillbillies.part3.programs.SourceLocation;
 import hillbillies.utils.Vector;
@@ -25,16 +26,12 @@ public class BoulderPosition extends Expression<Vector> {
 
 	@Override
 	public Vector evaluate() {
-		Set<Vector> positions = new HashSet<>();
-		Set<Boulder> boulders = this.getRunner().getExecutingWorld().getBoulders(true);
-		for (Boulder boulder : boulders){
-			positions.add(boulder.getPosition().getCubeCoordinates());
-		}
-		if (!positions.isEmpty()){
+		Set<? extends IWorldObject> boulders = this.getRunner().getExecutingWorld().getBoulders(true);
+		if (!boulders.isEmpty()){
 			this.getTask().stopRunning();
 			return null;
 		}
-		TargetMove targetmove = new TargetMove(this.getRunner().getExecutingUnit(), positions);
+		TargetMove targetmove = new TargetMove(this.getRunner().getExecutingUnit(), (Set<IWorldObject>) boulders);
 		Vector nearestPos = targetmove.getNearestPos();
 		if(nearestPos == null)
 			this.getTask().stopRunning();

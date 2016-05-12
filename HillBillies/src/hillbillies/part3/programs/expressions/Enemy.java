@@ -2,10 +2,13 @@ package hillbillies.part3.programs.expressions;
 
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 import hillbillies.activities.TargetMove;
+import hillbillies.model.Faction;
+import hillbillies.model.IWorldObject;
 import hillbillies.model.Unit;
 import hillbillies.part3.programs.SourceLocation;
 import hillbillies.utils.Vector;
@@ -26,21 +29,22 @@ public class Enemy extends Expression<Unit> {
 	}
 
 	@Override
-	public Unit evaluate() {
-		Map<Vector, Unit> positions = new HashMap<>();
+	public Unit evaluate() {		
+		Faction thisFaction = this.getRunner().getExecutingUnit().getFaction();
+		Set<IWorldObject> enemy = new HashSet<>();
 		Set<Unit> units = this.getRunner().getExecutingWorld().getUnits();
 		for (Unit unit : units){
-			if(unit.getFaction() != this.getRunner().getExecutingUnit().getFaction())
-				positions.put(unit.getPosition().getCubeCoordinates(),unit);
+			if(unit.getFaction() != thisFaction)
+				enemy.add(unit);
 		}
-		if (!positions.isEmpty()){
+		if (!enemy.isEmpty()){
 			this.getTask().stopRunning();
 			return null;
 		}
-		TargetMove targetmove = new TargetMove(this.getRunner().getExecutingUnit(), positions.keySet());
-		Vector nearestPos = targetmove.getNearestPos();
-		if(nearestPos == null)
+		TargetMove targetmove = new TargetMove(this.getRunner().getExecutingUnit(), enemy);
+		Unit NearestUnit = (Unit) targetmove.getNearestObject();
+		if(NearestUnit == null)
 			this.getTask().stopRunning();
-		return positions.get(nearestPos);
+		return NearestUnit;
 	}
 }

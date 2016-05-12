@@ -6,6 +6,7 @@ import java.util.Set;
 import hillbillies.model.Terrain;
 import hillbillies.activities.TargetMove;
 import hillbillies.model.Cube;
+import hillbillies.model.IWorldObject;
 import hillbillies.model.Task.TaskRunner;
 import hillbillies.part3.programs.SourceLocation;
 import hillbillies.utils.Vector;
@@ -26,16 +27,12 @@ public class WorkshopPosition extends Expression<Vector> {
 
 	@Override
 	public Vector evaluate() {
-		Set<Vector> positions = new HashSet<>();
-		Set<Cube> workshops = this.getRunner().getExecutingWorld().getWorkshops();
-		for (Cube workshop : workshops){
-			positions.add(workshop.getPosition().getCubeCoordinates());
-		}
-		if (!positions.isEmpty()){
+		Set<? extends IWorldObject> workshops = this.getRunner().getExecutingWorld().getWorkshops();
+		if (!workshops.isEmpty()){
 			this.getTask().stopRunning();
 			return null;
 		}
-		TargetMove targetmove = new TargetMove(this.getRunner().getExecutingUnit(), positions);
+		TargetMove targetmove = new TargetMove(this.getRunner().getExecutingUnit(), (Set<IWorldObject>) workshops);
 		Vector nearestPos = targetmove.getNearestPos();
 		if(nearestPos == null)
 			this.getTask().stopRunning();

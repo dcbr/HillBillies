@@ -25,7 +25,7 @@ public class IfElse extends Statement {
     public void execute() {
         if(condition.run() && this.getCurrentChild()!=2)// 2 = elseBody (maybe replace by constant?) TODO
             this.runChild(ifBody);
-        else
+        else if(elseBody!=null)
             this.runChild(elseBody);
     }
 }

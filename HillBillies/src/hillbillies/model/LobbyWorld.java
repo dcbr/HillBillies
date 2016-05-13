@@ -156,4 +156,9 @@ public class LobbyWorld implements IWorld {
 		return null;
 	}
 
+	@Override
+	public <T> void getNeighbouringCubesSatisfying(Collection<T> collection, Vector cubeCoordinates, Predicate<Cube> condition, Function<Cube, T> mapper) {
+		throw new NoSuchMethodError("This method is not supported by the lobby.");
+	}
+
 }

@@ -2,6 +2,7 @@ package hillbillies.tests.programs;
 
 import hillbillies.part3.programs.expressions.Expression;
 import hillbillies.part3.programs.TaskFactory;
+import hillbillies.part3.programs.expressions.HerePosition;
 import org.junit.Test;
 
 /**
@@ -11,7 +12,7 @@ public class TaskFactoryTest {
     @Test
     public void createWhile() throws Exception {
         TaskFactory f = new TaskFactory();
-        f.createWhile((Expression<String>) () -> "",null,null);
+        f.createWhile(new HerePosition(null),null,null);
     }
 
 }

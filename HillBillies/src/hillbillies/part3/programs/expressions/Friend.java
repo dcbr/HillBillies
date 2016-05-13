@@ -37,13 +37,13 @@ public class Friend extends Expression<Unit> {
 				any.add(unit);
 		}
 		if (!any.isEmpty()){
-			this.getTask().stopRunning();
+			this.getCurrentTask().stopRunning();
 			return null;
 		}
 		TargetMove targetmove = new TargetMove(this.getRunner().getExecutingUnit(), any);
 		Unit NearestUnit = (Unit) targetmove.getNearestObject();
 		if(NearestUnit == null)
-			this.getTask().stopRunning();
+			this.getCurrentTask().stopRunning();
 		return NearestUnit;
 	}
 }

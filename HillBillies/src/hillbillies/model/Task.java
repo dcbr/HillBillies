@@ -106,7 +106,6 @@ public class Task implements Comparable<Task> {
 
         if (! canHaveAsActivity(activity))
             throw new IllegalArgumentException();
-        activity.setTask(this);
         this.activity = activity;
 
         this.selectedCube = new Vector(selectedCube);
@@ -130,7 +129,7 @@ public class Task implements Comparable<Task> {
      */
     @Raw
     public boolean canHaveAsName(String name) {
-        return false;
+        return true;
     }
 
     /**
@@ -200,7 +199,7 @@ public class Task implements Comparable<Task> {
      */
     @Raw
     public boolean canHaveAsActivity(Statement activity) {
-        return false;// TODO check well-formedness?
+        return true;// TODO check well-formedness?
     }
 
     /**
@@ -512,7 +511,7 @@ public class Task implements Comparable<Task> {
             if(this.isPaused() && this.resumeCondition.test(this.getExecutingUnit()))
                 this.resume();
             this.dt = dt;
-            Task.this.getActivity().run();
+            Task.this.getActivity().start(Task.this);
             if(!this.isPaused()){
                 // Program finished successfully
                 Task.this.finish();

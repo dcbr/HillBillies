@@ -30,13 +30,13 @@ public class LogPosition extends Expression<Vector> {
 	public Vector evaluate() {
 		Set<? extends IWorldObject> logs = this.getRunner().getExecutingWorld().getLogs(true);
 		if (!logs.isEmpty()){
-			this.getTask().stopRunning();
+			this.getCurrentTask().stopRunning();
 			return null;
 		}
 		TargetMove targetmove = new TargetMove(this.getRunner().getExecutingUnit(), (Set<IWorldObject>) logs);
 		Vector nearestPos = targetmove.getNearestPos();
 		if(nearestPos == null)
-			this.getTask().stopRunning();
+			this.getCurrentTask().stopRunning();
 		return nearestPos;
 	}
 

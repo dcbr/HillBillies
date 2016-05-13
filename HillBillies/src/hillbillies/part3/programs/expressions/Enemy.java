@@ -38,13 +38,13 @@ public class Enemy extends Expression<Unit> {
 				enemy.add(unit);
 		}
 		if (!enemy.isEmpty()){
-			this.getTask().stopRunning();
+			this.getCurrentTask().stopRunning();
 			return null;
 		}
 		TargetMove targetmove = new TargetMove(this.getRunner().getExecutingUnit(), enemy);
 		Unit NearestUnit = (Unit) targetmove.getNearestObject();
 		if(NearestUnit == null)
-			this.getTask().stopRunning();
+			this.getCurrentTask().stopRunning();
 		return NearestUnit;
 	}
 }

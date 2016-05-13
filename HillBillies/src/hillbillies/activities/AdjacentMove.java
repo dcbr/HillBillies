@@ -9,21 +9,69 @@ import hillbillies.utils.Vector;
  */
 public class AdjacentMove extends Move {
 
+    /**
+     * Variable registering the unit's next position, this is the position the unit is moving to.
+     */
     private final Vector nextPosition;
+    /**
+     * Variable registering this AdjacentMove's parentActivity, if any.
+     */
     private TargetMove targetMove = null;
 
-    public AdjacentMove(Unit unit, int dx, int dy, int dz){
-        this(unit, new Vector(dx,dy,dz));
-    }
-
-    public AdjacentMove(Unit unit, Vector direction) throws IllegalArgumentException{
+    /**
+     * Initialize a new AdjacentMove for the given unit in the given direction.
+     * @param unit The unit to move
+     * @param direction The direction in which the unit should move. The magnitude
+     *                  of each coordinate of this direction must be 1. And the
+     *                  unit must be able to reach the destination.
+     * @effect Initialize a new AdjacentMove without a parentActivity and with
+     *          sprinting set to false.
+     *          | this(unit, direction, false, null)
+     * @throws NullPointerException
+     *          When the given direction is not effective.
+     *          | direction == null
+     * @throws IllegalArgumentException
+     *          When the destination (this is the vector sum of the unit's current
+     *          position and the given direction)
+     *          | destination = unit.getPosition().getCubeCenterCoordinates().add(direction)
+     *          is not reachable.
+     *          | !isValidNextPosition(unit.getPosition(), destination)
+     */
+    public AdjacentMove(Unit unit, Vector direction) throws NullPointerException, IllegalArgumentException{
         this(unit, direction, false, null);
     }
 
-    public AdjacentMove(Unit unit, Vector direction, boolean sprinting, TargetMove extendedMovement){
+    /**
+     * Initialize a new AdjacentMove for the given unit in the given direction.
+     * The unit will start sprinting if sprinting is set to true.
+     * If extendedMovement is not null, this AdjacentMove's parentActivity is set
+     * to the given extendedMovement and this AdjacentMove is a part of an
+     * extended movement.
+     * @param unit The unit to move
+     * @param direction The direction in which the unit should move. The magnitude
+     *                  of each coordinate of this direction must be 1. And the
+     *                  unit must be able to reach the destination.
+     * @param sprinting Boolean value indicating whether the unit should sprint
+     *                  while performing this AdjacentMove
+     * @param extendedMovement ParentActivity of this AdjacentMove. This is the
+     *                         TargetMove who invoked this AdjacentMove.
+     * @post A new Activity for the given unit is created. Once start() is called
+     *          the unit will start moving in the given direction.
+     * @throws NullPointerException
+     *          When the given direction is not effective.
+     *          | direction == null
+     * @throws IllegalArgumentException
+     *          When the destination (this is the vector sum of the unit's current
+     *          position and the given direction)
+     *          | destination = unit.getPosition().getCubeCenterCoordinates().add(direction)
+     *          is not reachable.
+     *          | !isValidNextPosition(unit.getPosition(), destination)
+     */
+    public AdjacentMove(Unit unit, Vector direction, boolean sprinting, TargetMove extendedMovement)
+            throws IllegalArgumentException, NullPointerException{
         super(extendedMovement, unit, sprinting);
         Vector nextPosition = unit.getPosition().getCubeCenterCoordinates().add(direction);
-        if (nextPosition==null || !isValidNextPosition(unit.getPosition(), nextPosition))
+        if (!isValidNextPosition(unit.getPosition(), nextPosition))
             throw new IllegalArgumentException("Invalid position to move to.");
         this.nextPosition = nextPosition;
         this.targetMove = extendedMovement;
@@ -39,6 +87,8 @@ public class AdjacentMove extends Move {
 
     /**
      * Activity specific code which is called when the Activity is stopped.
+     * @post The unit will stop sprinting if this AdjacentMove isn't a part
+     *          of an extended movement.
      */
     @Override
     protected void stopActivity() {
@@ -66,8 +116,7 @@ public class AdjacentMove extends Move {
     protected void advanceMove(double dt) {
         Vector cpos = unit.getPosition();
         if (nextPosition.equals(cpos)) {
-            this.setSuccess();
-            this.requestFinish();// TODO: maybe replace setSuccess by requestFinish(boolean success)
+            this.requestFinish(true);
         } else {
             Vector difference = nextPosition.difference(cpos);
             double d = difference.length();

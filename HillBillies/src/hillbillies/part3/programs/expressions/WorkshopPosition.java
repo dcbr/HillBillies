@@ -29,13 +29,13 @@ public class WorkshopPosition extends Expression<Vector> {
 	public Vector evaluate() {
 		Set<? extends IWorldObject> workshops = this.getRunner().getExecutingWorld().getWorkshops();
 		if (!workshops.isEmpty()){
-			this.getTask().stopRunning();
+			this.getCurrentTask().stopRunning();
 			return null;
 		}
 		TargetMove targetmove = new TargetMove(this.getRunner().getExecutingUnit(), (Set<IWorldObject>) workshops);
 		Vector nearestPos = targetmove.getNearestPos();
 		if(nearestPos == null)
-			this.getTask().stopRunning();
+			this.getCurrentTask().stopRunning();
 		return nearestPos;
 	}
 

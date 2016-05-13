@@ -83,8 +83,7 @@ public class Work extends Activity {
             }else if(workCube.getTerrain() == Terrain.ROCK){
                 unit.getWorld().collapse(workCube.getPosition());//TODO: change collapse to cube itself
             }
-            this.setSuccess();
-            this.requestFinish();
+            this.requestFinish(true);
         }
     }
 

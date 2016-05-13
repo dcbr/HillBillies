@@ -7,6 +7,7 @@ import hillbillies.part3.programs.expressions.ReadVariable;
 import hillbillies.part3.programs.statements.Assignment;
 import hillbillies.part3.programs.statements.Statement;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -30,19 +31,23 @@ import java.util.function.Predicate;
 public abstract class Command<T> {
     private final List<Command<?>> children;
     /**
-     * Variable registering the task of this Statement.
+     * Variable registering the current task. This is the task that
+     * is currently running this Command.
      */
-    private Task task;
+    private Task currentTask;
 
     public Command(Command<?>... children) {
-        this.children = Arrays.asList(children);
+        this.children = new ArrayList<>(Arrays.asList(children));
+        for(int i=0;i<this.children.size();i++)
+            if(this.children.get(i)==null)
+                this.children.remove(i);
     }
 
-    public <C extends Command<?>> HashSet<Integer> indicesOf(Class<C> type){
+    protected <C extends Command<?>> HashSet<Integer> indicesOf(Class<C> type){
         return indicesSatisfying(type::isInstance);
     }
 
-    public HashSet<Integer> indicesSatisfying(Predicate<Command<?>> condition){
+    protected HashSet<Integer> indicesSatisfying(Predicate<Command<?>> condition){
         HashSet<Integer> indices = new HashSet<>();
         for(int i=0;i<children.size();i++)
             if(condition.test(children.get(i)) || children.get(i).indicesSatisfying(condition).size()!=0)
@@ -50,21 +55,21 @@ public abstract class Command<T> {
         return indices;
     }
 
-    public Command<?> getChild(int index){
+    protected Command<?> getChild(int index){
         return this.children.get(index);
     }
 
-    public List<Command<?>> getChildren(){
+    protected List<Command<?>> getChildren(){
         return this.children;
     }
 
     /**
-     * Return the task of this Command.
+     * Return the current task of this Command.
      */
     @Basic
     @Raw
-    public Task getTask() {
-        return this.task;
+    protected Task getCurrentTask() {
+        return this.currentTask;
     }
 
     /**
@@ -77,54 +82,61 @@ public abstract class Command<T> {
      *          this Command doesn't have a task yet.
      * | result == (task.getActivity()==null) && (!this.isTaskSet())
      */
-    public boolean isValidTask(Task task) {
-        return task.getActivity()==null && !this.isTaskSet();
+    private boolean isValidTask(Task task) {
+        return task.getActivity()==this;
     }
 
     /**
-     * Set the task of this Command to the given task.
+     * Set the currentTask of this Command to the given task.
      *
      * @param task
-     * The new task for this Command.
-     * @post The task of this new Command is equal to
+     * The new currentTask for this Command.
+     * @pre The given task is a valid currentTask for this Command.
+     *      | isValidTask(task)
+     * @post The currentTask of this new Command is equal to
      * the given task.
-     * | new.getTask() == task
-     * @throws IllegalArgumentException
-     * The given task is not a valid task for this
-     * Command.
-     * | ! isValidTask(getTask())
+     * | new.getCurrentTask() == task
      */
     @Raw
-    public void setTask(Task task) throws IllegalArgumentException {
-        if (!isValidTask(task))
-            throw new IllegalArgumentException();
-        for(Command<?> child : this.children)
-            if(!child.isValidTask(task))
-                throw new IllegalArgumentException();
+    private void setCurrentTask(Task task) throws IllegalArgumentException {
         for (Command<?> child : this.children)
-            child.setTask(task);
-        this.task = task;
+            child.setCurrentTask(task);
+        this.currentTask = task;
     }
 
-    public boolean isTaskSet(){
-        return this.task!=null;
+    private void resetCurrentTask(){
+        for(Command<?> child : this.children)
+            child.resetCurrentTask();
+        this.currentTask = null;
+    }
+
+    private boolean isCurrentTaskSet(){
+        return this.currentTask!=null;
     }
 
     public final T run() throws IllegalStateException{
-        if(!this.isTaskSet())
-            throw new IllegalStateException("This statement is not linked to any task yet, so it can't be executed.");
-        if(!this.getTask().isRunning())
+        if(!this.isCurrentTaskSet())
+            throw new IllegalStateException("This command is not linked to any task yet, so it can't be executed.");
+        if(!this.getCurrentTask().isRunning())
             throw new IllegalStateException("The task linked to this command is not running.");
         return process();
     }
 
     protected abstract T process();
 
+    public final void start(Task task) throws IllegalArgumentException, IllegalStateException{
+        if(!isValidTask(task))
+            throw new IllegalArgumentException("The given task does not have this Command as its activity.");
+        this.setCurrentTask(task);
+        this.run();
+        this.resetCurrentTask();
+    }
+
     protected Task.TaskRunner getRunner() throws IllegalStateException{
-        if(!this.isTaskSet())
+        if(!this.isCurrentTaskSet())
             throw new IllegalStateException("This command is not linked to any task yet, so there's no runner available.");
-        if(!this.getTask().isRunning())
+        if(!this.getCurrentTask().isRunning())
             throw new IllegalStateException("The task linked to this command is not running yet, so there's no runner available.");
-        return this.getTask().getRunner();
+        return this.getCurrentTask().getRunner();
     }
 }

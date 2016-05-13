@@ -16,16 +16,13 @@ public abstract class Activity {
     /**
      * Variable registering whether the default behaviour of this unit is activated.
      * Variable registering whether the current activity is being executed or not.
+     * Variable registering whether the current activity was performed successfully or not.
      */
     private boolean isDefault, isActive, success;
     /**
      * Final variable referencing the Unit this Activity is bound to.
      */
     protected final Unit unit;
-    /**
-     * Final variable referencing the Unit's ActivityController.
-     */
-    //protected final Unit.ActivityController controller;
     /**
      * Final variable referencing this Activity's parentActivity
      */
@@ -34,7 +31,12 @@ public abstract class Activity {
     /**
      * Initialize a new Activity which is bound to the given Unit.
      * This means that this Activity can only be executed by the given Unit.
+     * The new Activity has no parentActivity.
      * @param unit The Unit this new Activity is bound to.
+     * @post This new Activity is bounded to the given unit.
+     *      | new.unit = unit
+     * @post This new Activity has no Activity set as its parent.
+     *      | new.parentActivity = null
      */
     public Activity(Unit unit){
         this(null, unit);
@@ -46,12 +48,15 @@ public abstract class Activity {
      * This means that this Activity can only be executed by the given Unit.
      * @param parentActivity The parent Activity of this Activity
      * @param unit The Unit this new Activity is bound to.
+     * @post This new Activity is bounded to the given unit.
+     *      | new.unit = unit
+     * @post This new Activity has the given parentActivity set as its parent.
+     *      | new.parentActivity = parentActivity
      */
     public Activity(Activity parentActivity, Unit unit){
         this.parentActivity = parentActivity;
         this.activityProgress = 0d;
         this.unit = unit;
-        //this.controller = unit.activityController;
         this.isDefault = false;
         this.isActive = false;
         this.success = false;
@@ -59,8 +64,14 @@ public abstract class Activity {
 
     /**
      * Start this Activity with default mode disabled.
+     * @effect Start this Activity with default mode disabled.
+     *          | this.start(false)
+     * @throws IllegalStateException
+     *          When this Unit is not able to execute this Activity at this moment.
+     *          Or when this Activity is not set as the Unit's current Activity.
+     *          | !isAbleTo() || !unit.isCurrentActivity(this)
      */
-    public final void start(){
+    public final void start() throws IllegalStateException{
         this.start(false);
     }
 
@@ -76,14 +87,12 @@ public abstract class Activity {
     public final void start(boolean isDefault) throws IllegalStateException{
         if(!isDefault && !isAbleTo())
             throw new IllegalStateException("This unit cannot " + this.toString() + " at this moment");
-        if(!/*controller*/unit.isCurrentActivity(this))// Sort of extra check to assure this is only called from within ActivityController
+        if(!unit.isCurrentActivity(this))// Sort of extra check to assure this is only called from within unit
             throw new IllegalStateException("This unit's current activity is not set to this activity!");
         this.isDefault = isDefault;
         this.activityProgress = 0d;
         this.isActive = true;
         this.startActivity();
-        System.out.println(this);
-        
     }
 
     /**
@@ -93,15 +102,14 @@ public abstract class Activity {
 
     /**
      * Stop this Activity
-     * @throws IllegalStateException
-     *          When this Activity should not stop for nextActivity and nextActivity is not this Activity (=> requestFinish is not called)
-     *          | nextActivity!=this && !shouldStopFor(nextActivity)
      */
-    public final void stop() throws IllegalStateException{
+    public final void stop(){
         this.interruptActivity();// First interrupt and then stop activity
         this.stopActivity();
         this.activityProgress = 0d;
         this.isActive = false;
+        if(this.wasSuccessful())
+            unit.addXP(this.getXp());
     }
 
     /**
@@ -202,11 +210,25 @@ public abstract class Activity {
 
     /**
      * Request this Activity's finish. This will stop the current Activity, if possible, and
-     * resume the previous Activity in stack.*/
-    // * @see hillbillies.model.Unit.ActivityController#requestActivityFinish(Activity)
-    // */
+     * resume the previous Activity in stack.
+     * @see hillbillies.model.Unit#requestActivityFinish(Activity)
+     * @effect Calling requestFinish without a success parameter will set success to false.
+     *          | requestFinish(false)
+     */
     protected void requestFinish(){
-        this.unit/*controller*/.requestActivityFinish(this);
+        requestFinish(false);
+    }
+
+    /**
+     * Request this Activity's finish. This will stop the current Activity, if possible, and
+     * resume the previous Activity in stack.
+     * @see hillbillies.model.Unit#requestActivityFinish(Activity)
+     * @post The activity's success flag will be set to the given value of success.
+     *          | this.wasSuccessful() == success
+     */
+    protected void requestFinish(boolean success){
+        this.success = success;
+        this.unit.requestActivityFinish(this);
     }
 
     /**
@@ -217,18 +239,16 @@ public abstract class Activity {
     }
 
     /**
-     * Set success to true. Inheriting Activities should call this method as soon as
-     * the Activity is executed successfully.
-     */
-    protected void setSuccess(){
-        this.success = true;
-    }
-
-    /**
      * Returns the amount of XP the Unit will get when this Activity stops successfully.
      */
     public abstract int getXp();
 
+    /**
+     * Method to check whether the given activity is this Activity's parentActivity.
+     * @param activity The activity to check
+     * @return True when the given activity is this Activity's parentActivity
+     *          | result == (this.parentActivity==activity)
+     */
     public boolean isParentActivity(Activity activity){
         return this.parentActivity==activity;
     }

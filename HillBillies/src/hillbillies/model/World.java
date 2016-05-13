@@ -594,7 +594,9 @@ public class World implements IWorld {
 	}
 
 	public Set<Cube> getNeighbouringCubes(Vector cubeCoordinates){
-		return getNeighbouringCubesSatisfying(cubeCoordinates, cube -> true, cube -> cube);
+		Set<Cube> result = new HashSet<>(NB_NEIGHBOURING_DIRECTIONS);
+		getNeighbouringCubesSatisfying(result, cubeCoordinates, cube -> true, cube -> cube);
+		return result;
 	}
 
 	public Set<Cube> getDirectlyAdjacentCubes(Cube cube){
@@ -650,14 +652,13 @@ public class World implements IWorld {
 	 * 			|		)
 	 * 			|	)
 	 */
-	public <T> Set<T> getNeighbouringCubesSatisfying(Vector cubeCoordinates, Predicate<Cube> condition, Function<Cube, T> mapper){
-		Set<T> neighbouringCubes = new HashSet<>(NB_NEIGHBOURING_DIRECTIONS);
+	@Override
+	public <T> void getNeighbouringCubesSatisfying(Collection<T> collection, Vector cubeCoordinates, Predicate<Cube> condition, Function<Cube, T> mapper){
 		for(Vector neighbouringDirection : NEIGHBOURING_DIRECTIONS) {
 			Vector neighbouringPos = cubeCoordinates.add(neighbouringDirection);
 			if (isValidPosition(neighbouringPos) && condition.test(this.getCube(neighbouringPos)))
-				neighbouringCubes.add(mapper.apply(this.getCube(neighbouringPos)));
+				collection.add(mapper.apply(this.getCube(neighbouringPos)));
 		}
-		return neighbouringCubes;
 	}
 
 	@Override

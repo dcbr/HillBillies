@@ -18,6 +18,7 @@ public interface IWorld {// TODO: fix this ugly shizzle -> when everything is fi
     /**
      * Check whether the given position is a valid position
      * for any IWorldObject in this world.
+     *
      * @param position The position to check
      * @return True when the given position is a valid position
      */
@@ -38,21 +39,19 @@ public interface IWorld {// TODO: fix this ugly shizzle -> when everything is fi
     /**
      * Add the given unit to the set of units of this world.
      *
-     * @param unit
-     * The unit to be added.
+     * @param unit The unit to be added.
      * @pre The given unit is effective and already references
      * this world.
      * | (unit != null) && (unit.getWorld() == this)
      */
     public void addUnit(Unit unit);
+
     /**
-     * 
-     * @param vector
-     *  	vector in cubeCoordinates
+     * @param vector vector in cubeCoordinates
      * @return
      */
     public boolean isCubePassable(Vector vector);
-    
+
     public Vector getSpawnPosition();
 
     public Set<Cube> getDirectlyAdjacentCubes(Vector position);
@@ -64,9 +63,9 @@ public interface IWorld {// TODO: fix this ugly shizzle -> when everything is fi
     public List<Vector> getDirectlyAdjacentCubesPositions(Vector cubeCoordinates);
 
     public List<Vector> getNeighbouringCubesPositions(Vector cubeCoordinates);
-    
+
     //final Set<Unit> units = new HashSet <>();// Voor wat dient dees?
-    
+
     public Set<Unit> getUnitsInCube(Cube cube);
 
     public Cube getCube(Vector position);
@@ -77,11 +76,14 @@ public interface IWorld {// TODO: fix this ugly shizzle -> when everything is fi
 
     public boolean hasAsFaction(@Raw Faction faction);
 
-	public Set<Log> getLogs(boolean inCube);
-	
-	public Set<Boulder> getBoulders(boolean inCube);
-	
-	public Set<Unit> getUnits();
-	
-	public Set<Cube> getWorkshops();
+    public Set<Log> getLogs(boolean inCube);
+
+    public Set<Boulder> getBoulders(boolean inCube);
+
+    public Set<Unit> getUnits();
+
+    public Set<Cube> getWorkshops();
+
+    public <T> void getNeighbouringCubesSatisfying(Collection<T> collection, Vector cubeCoordinates, Predicate<Cube> condition, Function<Cube, T> mapper);
+
 }

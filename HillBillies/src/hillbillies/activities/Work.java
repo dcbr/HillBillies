@@ -135,12 +135,11 @@ public class Work extends Activity {
      * The workCube to check.
      * @return
      * | result == this.getPosition().getCubeCoordinates().equals(workCube.getPosition()) ||
-     *				this.getWorld().getDirectlyAdjacentCubes(this.getPosition()).contains(workCube)
+     *				this.getWorld().getNeighbouringCubesPositions(this.getPosition().getCubeCoordinates()).contains(workCube.getPosition())
      */
     public boolean isValidWorkCube(Cube workCube) {
-        // TODO: verify if 'neighbouring' means directly adjacent or also the diagonal cubes
         return workCube.getWorld()==unit.getWorld() &&
                 (unit.getPosition().getCubeCoordinates().equals(workCube.getPosition()) ||
-                        unit.getWorld().getDirectlyAdjacentCubesPositions(unit.getPosition().getCubeCoordinates()).contains(workCube.getPosition()));
+                        unit.getWorld().getNeighbouringCubesPositions(unit.getPosition().getCubeCoordinates()).contains(workCube.getPosition()));
     }
 }

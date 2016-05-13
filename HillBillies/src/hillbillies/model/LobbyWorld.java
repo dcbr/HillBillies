@@ -14,6 +14,7 @@ public class LobbyWorld implements IWorld {
 
 	private LobbyWorld() {
 		// This class cannot be instantiated elsewhere (singleton).
+		this.addNewFaction();// Create first faction
 	}
 
 	/**
@@ -59,17 +60,20 @@ public class LobbyWorld implements IWorld {
 	public void addUnit(Unit unit) {
 		if(getCurrentFaction().canHaveNewUnit())
 			getCurrentFaction().addUnit(unit);
-		else
-			addNewFaction(unit);
+		else {
+			addNewFaction();
+			addUnit(unit);
+		}
 	}
 
 	private Faction getCurrentFaction(){
 		return this.factions.get(this.factions.size()-1);
 	}
 	
-	private void addNewFaction(Unit unit){
-		this.factions.add(new Faction(unit));
+	public void addNewFaction(){
+		this.factions.add(new Faction());
 	}
+
 	@Override
 	public boolean isCubePassable(Vector vector){
 		return true;

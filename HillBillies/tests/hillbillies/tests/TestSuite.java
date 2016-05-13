@@ -19,6 +19,7 @@ import org.junit.runners.Suite;
         UnitTest.class,
         UtilsTest.class,
         WorldTest.class,
+        SchedulerTest.class,
         TaskFactoryTest.class
 })
 public class TestSuite {

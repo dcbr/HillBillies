@@ -17,6 +17,29 @@ import java.util.function.Predicate;
 public class Scheduler implements Iterable<Task> {
 
     /**
+     * Variable registering the faction of this Scheduler.
+     */
+    private final Faction faction;
+    /**
+     * Variable referencing a sorted set collecting all
+     * the tasks of this scheduler.
+     *
+     * @invar The referenced set is effective.
+     * | tasks != null
+     * @invar Each task registered in the referenced list is
+     * effective and not yet terminated.
+     * | for each task in tasks:
+     * | ( (task != null) &&
+     * | (! task.isTerminated()) )
+     */
+    private final SortedSet<Task> tasks = new TreeSet<>(new Comparator<Task>() {
+        @Override
+        public int compare(Task t1, Task t2) {
+            return t2.getPriority()-t1.getPriority();
+        }
+    });
+
+    /**
      * Initialize this new Scheduler with given faction and no tasks yet.
      *
      * @param faction
@@ -27,12 +50,15 @@ public class Scheduler implements Iterable<Task> {
      * @post This new scheduler has no tasks yet.
      * | new.getNbTasks() == 0
      * @throws IllegalArgumentException
-     * This new Scheduler cannot have the given faction as its faction.
-     * | ! canHaveAsFaction(this.getFaction())
+     *          When the given faction is not effective
+     *          | faction == null
      */
     public Scheduler(@Raw Faction faction) throws IllegalArgumentException {
+        if(faction==null)
+            throw new IllegalArgumentException("The given faction is not effective.");
         this.faction = faction;
     }
+
     /**
      * Return the faction of this Scheduler.
      */
@@ -42,6 +68,7 @@ public class Scheduler implements Iterable<Task> {
     public Faction getFaction() {
         return this.faction;
     }
+
     /**
      * Check whether the Faction associated to this Scheduler is
      * a proper Faction for this Scheduler.
@@ -52,10 +79,6 @@ public class Scheduler implements Iterable<Task> {
     public boolean hasProperFaction() {
         return faction.getScheduler()==this;
     }
-    /**
-     * Variable registering the faction of this Scheduler.
-     */
-    private final Faction faction;
 
     /**
      * Check whether this scheduler has the given task as one of its
@@ -63,6 +86,8 @@ public class Scheduler implements Iterable<Task> {
      *
      * @param task
      * The task to check.
+     * @return True when the given task is part of this scheduler
+     *          | tasks.contains(task)
      */
     @Basic
     @Raw
@@ -94,12 +119,13 @@ public class Scheduler implements Iterable<Task> {
      * and that task is a valid task for a scheduler.
      * | result ==
      * | (task != null) &&
-     * | Task.isValidScheduler(this)
+     * | task.canHaveAsScheduler(this)
      */
     @Raw
     public boolean canHaveAsTask(Task task) {
     	return (task != null) && (task.canHaveAsScheduler(this));
     }
+
     /**
      * Check whether this scheduler has proper tasks attached to it.
      *
@@ -121,6 +147,7 @@ public class Scheduler implements Iterable<Task> {
     	}
     	return true;
     }
+
     /**
      * Return the number of tasks associated with this scheduler.
      *
@@ -131,6 +158,7 @@ public class Scheduler implements Iterable<Task> {
     public int getNbTasks() {
     	return tasks.size();
     }
+
     /**
      * Add the given task to the set of tasks of this scheduler.
      *
@@ -149,6 +177,7 @@ public class Scheduler implements Iterable<Task> {
     	tasks.add(task);
         task.addScheduler(this);
     }
+
     /**
      * Remove the given task from the set of tasks of this scheduler.
      *
@@ -233,47 +262,71 @@ public class Scheduler implements Iterable<Task> {
         return null;
     }
 
+    /**
+     * @return The task with highest priority in this scheduler which is
+     *          not currently assigned to a Unit.
+     * @effect Get the highest priority task which has no assigned Unit
+     *          | getTaskSatisfying(task -> task.getAssignedUnit()==null)
+     */
     public Task getHighestPriorityAssignableTask(){
+        return getTaskSatisfying(task -> task.getAssignedUnit()==null);
+    }
+
+    /**
+     * @return The task with highest priority in this scheduler which is
+     *          currently not being executed.
+     * @effect Get the highest priority task which is not running
+     *          | getTaskSatisfying(task -> !task.isRunning())
+     */
+    public Task getHighestPriorityNotRunningTask(){
         return getTaskSatisfying(task -> !task.isRunning());
     }
 
+    /**
+     * @return A collection containing all the tasks which are added to this scheduler.
+     */
     public Collection<Task> getAllTasks(){
         return getAllTasksSatisfying(task -> true);
     }
 
-    public void schedule(Task task, Unit unit){
-        if(task.hasAsScheduler(this) && !task.isRunning()){
+    /**
+     * Schedule the given task for the given unit.
+     * @param task The task to schedule
+     * @param unit The unit to assign the task to
+     * @post If the task has this scheduler as its Scheduler AND the task is not running
+     *       at this moment AND the given unit is effective, the unit's Task is set to
+     *       the given task and the task's assigned Unit is set to the given unit.
+     *       | unit.getTask() == task
+     *       | task.getAssignedUnit() == unit
+     * @throws NullPointerException
+     *          When the given task is not effective
+     *          | task == null
+     */
+    public void schedule(Task task, Unit unit) throws NullPointerException{
+        if(task.hasAsScheduler(this) && !task.isRunning() && unit!=null){
             unit.setTask(task);
             task.setAssignedUnit(unit);
         }
     }
 
-    public void deschedule(Task task){
+    /**
+     * Deschedule the given task
+     * @param task The task to deschedule
+     * @post If the task has this scheduler as its Scheduler AND the task is currently
+     *       running, the task will be stopped, the task's assignedUnit's Task will be
+     *       set to null and the task's assignedUnit will be set to null.
+     *       | new task.isRunning() == false
+     *       | new (task.getAssignedUnit()).getTask() == null
+     *       | new task.getAssignedUnit() == null
+     * @throws NullPointerException
+     */
+    public void deschedule(Task task) throws NullPointerException{
         if(task.hasAsScheduler(this) && task.isRunning()){
             task.stopRunning();
             task.getAssignedUnit().setTask(null);
             task.setAssignedUnit(null);
         }
     }
-
-    /**
-     * Variable referencing a priority queue collecting all
-     * the tasks of this scheduler.
-     *
-     * @invar The referenced set is effective.
-     * | tasks != null
-     * @invar Each task registered in the referenced list is
-     * effective and not yet terminated.
-     * | for each task in tasks:
-     * | ( (task != null) &&
-     * | (! task.isTerminated()) )
-     */
-    private final SortedSet<Task> tasks = new TreeSet<>(new Comparator<Task>() {
-        @Override
-        public int compare(Task t1, Task t2) {
-            return t2.getPriority()-t1.getPriority();
-        }
-    });
 
     /**
      * Returns an iterator over elements of type {@code Task}.

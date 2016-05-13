@@ -1,4 +1,4 @@
-package hillbillies.tests.unit;
+package hillbillies.tests.model;
 
 import hillbillies.model.Unit;
 import hillbillies.utils.Vector;

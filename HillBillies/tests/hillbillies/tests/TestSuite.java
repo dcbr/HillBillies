@@ -1,8 +1,8 @@
 package hillbillies.tests;
 
-import hillbillies.tests.facade.Part1TestPartial;
-import hillbillies.tests.unit.UnitTest;
-import hillbillies.tests.unit.UtilsTest;
+import hillbillies.tests.facade.*;
+import hillbillies.tests.model.*;
+import hillbillies.tests.programs.*;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 
@@ -14,8 +14,12 @@ import org.junit.runners.Suite;
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
         Part1TestPartial.class,
+        Part2TestPartial.class,
+        Part3TestPartial.class,
         UnitTest.class,
-        UtilsTest.class
+        UtilsTest.class,
+        WorldTest.class,
+        TaskFactoryTest.class
 })
 public class TestSuite {
 }

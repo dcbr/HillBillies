@@ -36,8 +36,8 @@ public class SchedulerTest {
         faction2 = unit21.getFaction();
         scheduler1 = faction1.getScheduler();
         scheduler2 = faction2.getScheduler();
-        task1 = new Task("task1",100,new Print(new LiteralPosition(0,0,0,null),null),new int[]{0,0,0});
-        task2 = new Task("task2",200,new Print(new LiteralPosition(0,0,0,null),null),new int[]{0,0,0});
+        task1 = new Task("task1",100,new Print(new LiteralPosition(0,0,0)),new int[]{0,0,0});
+        task2 = new Task("task2",200,new Print(new LiteralPosition(0,0,0)),new int[]{0,0,0});
     }
 
     @Before

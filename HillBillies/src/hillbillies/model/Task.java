@@ -462,7 +462,7 @@ public class Task implements Comparable<Task> {
 
         public Cube getSelectedCube(){ return getExecutingWorld().getCube(Task.this.getSelectedCube()); }
 
-        public <T> void assignVariable(String variableName, Expression<T> value) throws ClassCastException{
+        public <T> void assignVariable(String variableName, T value) throws ClassCastException{
             if(!this.assignedVariables.contains(variableName))
                 this.assignedVariables.add(variableName, value);
             else {
@@ -474,7 +474,7 @@ public class Task implements Comparable<Task> {
             return this.assignedVariables.contains(variableName);
         }
 
-        public <T> Expression<T> getVariableValue(String variableName) throws IllegalArgumentException, ClassCastException{
+        public <T> T getVariableValue(String variableName) throws IllegalArgumentException, ClassCastException{
             if(!this.isVariableAssigned(variableName))
                 throw new IllegalArgumentException("This variable isn't assigned.");
             return this.assignedVariables.getValue(variableName);

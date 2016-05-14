@@ -25,7 +25,7 @@ public class ReadVariable<T> extends Expression<T> {
 	@Override
 	public T evaluate() throws NullPointerException {
 		try {
-			return this.getRunner().<T>getVariableValue(variableName).run();// TODO: do NOT save expressions but the expression's value
+			return this.getRunner().getVariableValue(variableName);
 		}catch(IllegalArgumentException e){
 			throw new IllegalStateException("The variable to evaluate isn't assigned. This may not happen?", e);
 		}

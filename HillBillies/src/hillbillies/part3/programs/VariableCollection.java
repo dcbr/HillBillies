@@ -1,7 +1,5 @@
 package hillbillies.part3.programs;
 
-import hillbillies.part3.programs.expressions.Expression;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -16,13 +14,13 @@ public class VariableCollection {
         this.variables = new HashMap<>();
     }
 
-    public <T> void add(String variableName, Expression<T> variableValue) throws IllegalArgumentException{
+    public <T> void add(String variableName, T variableValue) throws IllegalArgumentException{
         if(this.contains(variableName))
             throw new IllegalArgumentException("There is already a variable assigned with this name. To assign a new value, use the assign method.");
         variables.put(variableName, new Variable<>(variableName, variableValue));
     }
 
-    public <T> void assign(String variableName, Expression<T> newValue) throws ClassCastException{
+    public <T> void assign(String variableName, T newValue) throws ClassCastException{
         this.<T>get(variableName).assign(newValue);
     }
 
@@ -35,7 +33,7 @@ public class VariableCollection {
         }
     }
 
-    public <T> Expression<T> getValue(String variableName) throws ClassCastException{
+    public <T> T getValue(String variableName) throws ClassCastException{
         return this.<T>get(variableName).getValue();
     }
 
@@ -46,14 +44,14 @@ public class VariableCollection {
     private static class Variable<T>{
 
         private String variableName;
-        private Expression<T> value;
+        private T value;
 
-        private Variable(String variableName, Expression<T> value){
+        private Variable(String variableName, T value){
             this.variableName = variableName;
             this.value = value;
         }
 
-        private void assign(Expression<T> newValue){
+        private void assign(T newValue){
             this.value = newValue;
         }
 
@@ -61,7 +59,7 @@ public class VariableCollection {
             return this.variableName;
         }
 
-        private Expression<T> getValue(){
+        private T getValue(){
             return this.value;
         }
 

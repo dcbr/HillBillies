@@ -24,6 +24,6 @@ public class Assignment<T> extends Statement {
 
     @Override
     protected void execute() {
-        this.getRunner().assignVariable(variableName, value);
+        this.getRunner().assignVariable(variableName, this.runChild(value));
     }
 }

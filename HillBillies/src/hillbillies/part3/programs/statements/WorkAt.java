@@ -11,18 +11,17 @@ import hillbillies.utils.Vector;
  */
 public class WorkAt extends Statement{
 	private final Expression<Vector> position;
-	private final SourceLocation sourceLocation;
 	/**
 	 * 
 	 */
-	public WorkAt(Expression<Vector> position, SourceLocation sourceLocation) {
+	public WorkAt(Expression<Vector> position) throws IllegalArgumentException {
 		super(position);
 		this.position = position;
-		this.sourceLocation = sourceLocation;
 	}
 	@Override
 	public void execute() {
-		this.getRunner().getExecutingUnit().work(position.run());
+		Vector workPosition = this.runChild(position);
+		this.getRunner().getExecutingUnit().work(workPosition);
 		this.getRunner().waitFor(unit -> unit.isExecuting(None.class));
 	}
 

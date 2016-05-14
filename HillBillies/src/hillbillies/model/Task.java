@@ -338,22 +338,22 @@ public class Task implements Comparable<Task> {
      * The scheduler to be removed.
      * @pre This task has the given scheduler as one of
      * its schedulers, and the given scheduler doesn't
-     * reference this task anymore.
+     * reference this task anymore. In addition this
+     * task must have been stopped using the assignedUnit's
+     * scheduler's deschedule method.
      * | this.hasAsScheduler(scheduler) &&
-     * | (scheduler.hasAsTask(this))
+     * | (scheduler.hasAsTask(this)) &&
+     * | !this.isRunning() && this.assignedUnit==null
      * @post This task no longer has the given scheduler as
      * one of its schedulers.
      * | ! new.hasAsScheduler(scheduler)
      * @note To remove a scheduler, use the Scheduler's removeTask method.
      */
     protected void removeScheduler(@Raw Scheduler scheduler) {
-    	assert this.hasAsScheduler(scheduler) && (!scheduler.hasAsTask(this));
+    	assert this.hasAsScheduler(scheduler) && (!scheduler.hasAsTask(this)) && !this.isRunning() && this.assignedUnit==null;
     	schedulers.remove(scheduler);
-        if(this.isRunning() && assignedUnit.getFaction().getScheduler()==scheduler){
-            stopRunning();
-            this.getAssignedUnit().setTask(null);
-            this.setAssignedUnit(null);
-        }
+        if(this.isRunning() && assignedUnit.getFaction().getScheduler()==scheduler)
+            scheduler.deschedule(this);
     }
 
     public Set<Scheduler> getSchedulers(){
@@ -430,10 +430,9 @@ public class Task implements Comparable<Task> {
     }
 
     public void finish() throws IllegalStateException{
-        // TODO: check if runner has reached the last statement (maybe introduce end statement?)
-        stopRunning();
+        this.getAssignedUnit().getFaction().getScheduler().deschedule(this);// Stop the task's execution
         for(Scheduler s : this.schedulers)
-            s.removeTask(this);
+            s.removeTask(this);// Remove the task from all schedulers
     }
 
     private TaskRunner runner;
@@ -510,11 +509,16 @@ public class Task implements Comparable<Task> {
             assert this.isRunning;
             if(this.isPaused() && this.resumeCondition.test(this.getExecutingUnit()))
                 this.resume();
-            this.dt = dt;
-            Task.this.getActivity().start(Task.this);
-            if(!this.isPaused()){
-                // Program finished successfully
-                Task.this.finish();
+            if(!this.isPaused()) {
+                this.dt = dt;
+                Task.this.getActivity().start(Task.this);
+                if (!this.isRunning()) {
+                    // Program called stop => deschedule this task
+                    Task.this.getAssignedUnit().getFaction().getScheduler().deschedule(Task.this);
+                } else if (!this.isPaused()) {
+                    // Program finished successfully
+                    Task.this.finish();
+                }
             }
         }
 

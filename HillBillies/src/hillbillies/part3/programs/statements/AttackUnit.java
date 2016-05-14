@@ -12,20 +12,20 @@ import hillbillies.part3.programs.expressions.Expression;
  */
 public class AttackUnit extends Statement{
 	private final Expression<Unit> unit;
-	private final SourceLocation sourceLocation;
 	/**
 	 * 
 	 */
-	public AttackUnit(Expression<Unit> unit, SourceLocation sourceLocation) {
+	public AttackUnit(Expression<Unit> unit) throws IllegalArgumentException {
 		super(unit);
 		this.unit = unit;
-		this.sourceLocation = sourceLocation;
 	}
 
 	@Override
 	protected void execute() {
 		Unit attacker = this.getRunner().getExecutingUnit();
-		attacker.attack(unit.run());
+		Unit defender = this.runChild(unit);
+
+		attacker.attack(defender);
 		this.getRunner().waitFor(unit -> unit.isExecuting(None.class));
 	}
 

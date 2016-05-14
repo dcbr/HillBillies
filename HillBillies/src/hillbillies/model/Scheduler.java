@@ -198,6 +198,8 @@ public class Scheduler implements Iterable<Task> {
     @Raw
     public void removeTask(Task task) {
     	assert this.hasAsTask(task) && (task.hasAsScheduler(this));
+        if(task.isRunning())
+            deschedule(task);// Stop the task's execution
         tasks.remove(task);
         task.removeScheduler(this);
     }

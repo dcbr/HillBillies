@@ -1,6 +1,5 @@
 package hillbillies.part3.programs.expressions;
 
-import hillbillies.part3.programs.SourceLocation;
 import hillbillies.utils.Vector;
 
 /**
@@ -9,18 +8,15 @@ import hillbillies.utils.Vector;
  */
 public class HerePosition extends Expression<Vector> {
 
-    private final SourceLocation sourceLocation;
-
     /**
      *
      */
-    public HerePosition(SourceLocation sourceLocation) {
+    public HerePosition() {
         super();
-        this.sourceLocation = sourceLocation;
     }
 
     @Override
-    public Vector evaluate() {
+    public Vector evaluate() throws NullPointerException {
         return (this.getRunner().getExecutingUnit().getPosition());
     }
 

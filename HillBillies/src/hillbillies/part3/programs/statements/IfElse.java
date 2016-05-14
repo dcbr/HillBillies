@@ -11,19 +11,17 @@ public class IfElse extends Statement {
 
     private final Expression<Boolean> condition;
     private final Statement ifBody, elseBody;
-    private final SourceLocation sourceLocation;
 
-    public IfElse(Expression<Boolean> condition, Statement ifBody, Statement elseBody, SourceLocation sourceLocation){
+    public IfElse(Expression<Boolean> condition, Statement ifBody, Statement elseBody) throws IllegalArgumentException{
         super(condition, ifBody, elseBody);
         this.condition = condition;
         this.ifBody = ifBody;
         this.elseBody = elseBody;
-        this.sourceLocation = sourceLocation;
     }
 
     @Override
     public void execute() {
-        if(condition.run() && this.getCurrentChild()!=2)// 2 = elseBody (maybe replace by constant?) TODO
+        if(this.getCurrentChild()!=2 && this.runChild(condition))// 2 = elseBody (maybe replace by constant?) TODO
             this.runChild(ifBody);
         else if(elseBody!=null)
             this.runChild(elseBody);

@@ -2,7 +2,6 @@ package hillbillies.part3.programs.expressions;
 
 
 import hillbillies.model.Unit;
-import hillbillies.part3.programs.SourceLocation;
 
 
 /**
@@ -10,17 +9,16 @@ import hillbillies.part3.programs.SourceLocation;
  *
  */
 public class This extends Expression<Unit> {
-	private SourceLocation sourceLocation;
+
 	/**
 	 * 
 	 */
-	public This(SourceLocation sourceLocation) {
+	public This() {
 		super();
-		this.sourceLocation = sourceLocation;
 	}
 
 	@Override
-	public Unit evaluate() {
+	public Unit evaluate() throws NullPointerException {
 		return this.getRunner().getExecutingUnit();
 	}
 

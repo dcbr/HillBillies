@@ -17,7 +17,7 @@ public abstract class Statement extends Command<Void> {
      * The children must be specified in the order they will be executed.
      * @param children
      */
-    public Statement(Command<?>... children){
+    public Statement(Command<?>... children) throws IllegalArgumentException{
         super(children);
     }
 
@@ -25,7 +25,7 @@ public abstract class Statement extends Command<Void> {
     protected final Void process() {
         TaskRunner runner = this.getRunner();
         if(runner.isResuming()){
-            currentChild = runner.resumeState();
+            this.setCurrentChild(runner.resumeState());
             execute();// Execute without consuming dt
         }
         else if(!runner.breakLoop && runner.getDt()>0 && !runner.isPaused()) {
@@ -33,7 +33,7 @@ public abstract class Statement extends Command<Void> {
             execute();// Otherwise execute and consume dt
         }
         else if(this.getRunner().isPaused()){
-            this.getRunner().saveState(currentChild);// If we are interrupting, save the current state
+            this.getRunner().saveState(this.getCurrentChild());// If we are interrupting, save the current state
         }
         else if(this.getRunner().getDt()==0d){
             this.getRunner().interrupt();// If all dt is consumed, start interrupting
@@ -42,20 +42,6 @@ public abstract class Statement extends Command<Void> {
     }
 
     protected abstract void execute();
-
-    protected void runChild(Statement child){
-        int childIndex = this.getChildren().indexOf(child);
-        if(childIndex<currentChild)
-            throw new IllegalArgumentException("The given child statement should be run before the currently running statement.");
-        currentChild = childIndex;
-        child.run();
-    }
-
-    public int getCurrentChild(){
-        return this.currentChild;
-    }
-
-    private int currentChild = 0;
 
     public final boolean check(){
         return checkVariableAccess() && checkBreak();

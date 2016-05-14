@@ -1,50 +1,50 @@
 package hillbillies.part3.programs.expressions;
 
-import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
-import hillbillies.activities.Move;
+import hillbillies.activities.TargetMove;
 import hillbillies.model.Cube;
-import hillbillies.model.Task.TaskRunner;
-import hillbillies.model.WorldObject;
-import hillbillies.part3.programs.SourceLocation;
 import hillbillies.utils.Vector;
 
-import static hillbillies.utils.Utils.randInt;
-
 /**
- * @author kenneth
- *
+ * Class representing the NextTo UnaryExpression
+ * @author Kenneth & Bram
+ * @version 1.0
  */
-public class NextToPosition extends Expression<Vector> {
-	private Expression<Vector> position;
-	private SourceLocation sourceLocation;
+public class NextToPosition extends UnaryExpression<Vector, Vector> {
+
 	/**
 	 * 
 	 */
-	public NextToPosition(Expression<Vector> position, SourceLocation sourceLocation) {
+	public NextToPosition(Expression<Vector> position) throws IllegalArgumentException {
 		super(position);
-		this.position = position;
-		this.sourceLocation = sourceLocation;
 	}
 
+	/**
+	 * Compute the value to be returned by this expression, given the value
+	 * of its child expression.
+	 *
+	 * @param position The value of the child expression. This value is guaranteed
+	 *              to be not null.
+	 * @return The value this expression should return based on the given value
+	 * of its child expression.
+	 */
 	@Override
-	public Vector evaluate() {
-		//TODO: fix unavailable methods
-		Vector pos = position.run();
-		ArrayList<Vector> positions = new ArrayList<>();
+	protected Vector compute(Vector position) {
+		Set<Cube> positions = new HashSet<>();
 		this.getRunner().getExecutingWorld().getNeighbouringCubesSatisfying(
 				positions,
-				pos,
-				cube -> Move.isValidNextPosition(this.getRunner().getExecutingUnit(), pos, cube.getPosition()),
-				WorldObject::getPosition
+				position,
+				cube -> this.getRunner().getExecutingUnit().isValidPosition(cube.getPosition()),
+				cube -> cube
 		);
-		if(positions.size()==0){
-			// No accessible positions available => interrupt activity
-			this.getRunner().stop();// TODO: call scheduler.deschedule(task, unit)
-			return null;// TODO: check if taskRunner is stopped before executing next statement
-		}else{
-			return positions.get(randInt(0, positions.size()-1));
+		Vector nextTo = new TargetMove(this.getRunner().getExecutingUnit(), positions).getNearestPos();
+		if(nextTo == null){
+			// No accessible positions available => stop activity
+			this.getRunner().stop();// TODO: check if taskRunner is stopped before executing next statement
 		}
+		return nextTo;
 	}
 
 }

@@ -4,30 +4,23 @@
 package hillbillies.part3.programs.expressions;
 
 import hillbillies.part3.programs.SourceLocation;
-import hillbillies.model.Task.TaskRunner;
 
 /**
  * @author kenneth
  *
  */
-public class Or extends Expression<Boolean> {
-
-    private final Expression<Boolean> left, right;
-    private final SourceLocation sourceLocation;
+public class Or extends BinaryExpression<Boolean, Boolean, Boolean> {
 
     /**
      *
      */
-    public Or(Expression<Boolean> left, Expression<Boolean> right, SourceLocation sourceLocation) {
+    public Or(Expression<Boolean> left, Expression<Boolean> right) throws IllegalArgumentException {
         super(left, right);
-        this.left = left;
-        this.right = right;
-        this.sourceLocation = sourceLocation;
     }
 
     @Override
-    public Boolean evaluate() {
-        return left.run() || right.run();
+    protected Boolean combine(Boolean leftValue, Boolean rightValue) {
+        return leftValue || rightValue;
     }
 
 

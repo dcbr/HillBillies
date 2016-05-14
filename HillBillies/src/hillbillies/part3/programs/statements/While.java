@@ -11,19 +11,17 @@ public class While extends Statement {
 
     private final Expression<Boolean> condition;
     private final Statement body;
-    private final SourceLocation sourceLocation;
 
-    public While(Expression<Boolean> condition, Statement body, SourceLocation sourceLocation){
+    public While(Expression<Boolean> condition, Statement body) throws IllegalArgumentException{
         super(condition, body);
         this.condition = condition;
         this.body = body;
-        this.sourceLocation = sourceLocation;
     }
 
     @Override
     public void execute() {
-        while(condition.run()){
-            body.run();
+        while(runChild(condition)){// TODO: this will throw exception after first iteration
+            runChild(body);
             if(this.getRunner().breakLoop){
                 this.getRunner().breakLoop = false;
                 break;

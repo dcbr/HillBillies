@@ -1,13 +1,9 @@
 package hillbillies.part3.programs.expressions;
 
-import java.util.HashSet;
 import java.util.Set;
 
 import hillbillies.activities.TargetMove;
 import hillbillies.model.Boulder;
-import hillbillies.model.IWorldObject;
-import hillbillies.model.Unit;
-import hillbillies.part3.programs.SourceLocation;
 import hillbillies.utils.Vector;
 
 /**
@@ -15,26 +11,25 @@ import hillbillies.utils.Vector;
  *
  */
 public class BoulderPosition extends Expression<Vector> {
-	private SourceLocation sourceLoation;
+
 	/**
 	 * 
 	 */
-	public BoulderPosition(SourceLocation sourceLocation) {
+	public BoulderPosition() {
 		super();
-		this.sourceLoation = sourceLocation;
 	}
 
 	@Override
-	public Vector evaluate() {
-		Set<? extends IWorldObject> boulders = this.getRunner().getExecutingWorld().getBoulders(true);
-		if (!boulders.isEmpty()){
-			this.getCurrentTask().stopRunning();
+	public Vector evaluate() throws NullPointerException {
+		Set<Boulder> boulders = this.getRunner().getExecutingWorld().getBoulders(true);
+		if (boulders.isEmpty()){
+			this.getRunner().interrupt();
 			return null;
 		}
-		TargetMove targetmove = new TargetMove(this.getRunner().getExecutingUnit(), (Set<IWorldObject>) boulders);
+		TargetMove targetmove = new TargetMove(this.getRunner().getExecutingUnit(), boulders);
 		Vector nearestPos = targetmove.getNearestPos();
 		if(nearestPos == null)
-			this.getCurrentTask().stopRunning();
+			this.getRunner().interrupt();
 		return nearestPos;
 	}
 

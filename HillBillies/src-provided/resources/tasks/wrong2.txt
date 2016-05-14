@@ -1,0 +1,6 @@
+name: "wrong2"
+priority : 30
+activities:
+	x := is_solid(next_to(w));
+	w := selected;
+	y := is_passable(w);

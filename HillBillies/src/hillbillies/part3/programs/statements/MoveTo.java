@@ -11,21 +11,21 @@ import hillbillies.utils.Vector;
  *
  */
 public class MoveTo extends Statement{
+
 	private final Expression<Vector> position;
-	private final SourceLocation sourceLocation;
-	
+
 	/**
 	 * 
 	 */
-	public MoveTo(Expression<Vector> position, SourceLocation sourceLocation) {
+	public MoveTo(Expression<Vector> position) throws IllegalArgumentException {
 		super(position);
 		this.position = position;
-		this.sourceLocation = sourceLocation;
 	}
 
 	@Override
 	public void execute() {
-		this.getRunner().getExecutingUnit().moveToTarget(position.run().getCubeCoordinates());
+		Vector target = this.runChild(position);
+		this.getRunner().getExecutingUnit().moveToTarget(target.getCubeCoordinates());
 		this.getRunner().waitFor(unit -> unit.isExecuting(None.class));
 	}
 

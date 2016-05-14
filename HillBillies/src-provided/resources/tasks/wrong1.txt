@@ -1,0 +1,9 @@
+name: "wrong1"
+priority : 25
+activities:
+	if is_solid(w) then
+		break;
+	else
+		w := selected;
+	fi
+	print w;

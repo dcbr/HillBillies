@@ -31,7 +31,7 @@ public class TargetMove extends Move {
 //            throw new IllegalArgumentException("The given target position is not reachable from the Unit's current position.");
 //    }
     
-    public TargetMove(Unit unit, Set<IWorldObject> worldObjects) {
+    public TargetMove(Unit unit, Set<? extends IWorldObject> worldObjects) {
     	super(unit);
     	if (worldObjects.isEmpty())
     		throw new NullPointerException("The given set of worldObjects is empty");

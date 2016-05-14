@@ -12,21 +12,21 @@ import hillbillies.part3.programs.expressions.Expression;
  *
  */
 public class FollowUnit extends Statement{
+
 	private final Expression<Unit> unit;
-	private final SourceLocation sourceLocation;
-	
+
 	/**
 	 * 
 	 */
-	public FollowUnit(Expression<Unit> unit, SourceLocation sourceLocation) {
+	public FollowUnit(Expression<Unit> unit) throws IllegalArgumentException {
 		super(unit);
 		this.unit = unit;
-		this.sourceLocation = sourceLocation;
 	}
 
 	@Override
 	protected void execute() {
-		this.getRunner().getExecutingUnit().follow(unit.run());// TODO: since we have access to the Task, getExecutingUnit is no longer needed
+		Unit leader = this.runChild(unit);
+		this.getRunner().getExecutingUnit().follow(leader);// TODO: since we have access to the Task, getExecutingUnit is no longer needed
 		this.getRunner().waitFor(unit -> unit.isExecuting(None.class));
 	}
 

@@ -1,15 +1,9 @@
 package hillbillies.part3.programs.expressions;
 
-import java.util.HashSet;
 import java.util.Set;
 
 import hillbillies.activities.TargetMove;
-import hillbillies.activities.TargetMove.Path;
-import hillbillies.model.Cube;
-import hillbillies.model.IWorldObject;
 import hillbillies.model.Log;
-import hillbillies.model.Task.TaskRunner;
-import hillbillies.part3.programs.SourceLocation;
 import hillbillies.utils.Vector;
 
 /**
@@ -17,26 +11,25 @@ import hillbillies.utils.Vector;
  *
  */
 public class LogPosition extends Expression<Vector> {
-	private SourceLocation sourceLocation;
+
 	/**
 	 * 
 	 */
-	public LogPosition(SourceLocation sourceLocation) {
+	public LogPosition() {
 		super();
-		this.sourceLocation = sourceLocation;
 	}
 
 	@Override
-	public Vector evaluate() {
-		Set<? extends IWorldObject> logs = this.getRunner().getExecutingWorld().getLogs(true);
-		if (!logs.isEmpty()){
-			this.getCurrentTask().stopRunning();
+	public Vector evaluate() throws NullPointerException {
+		Set<Log> logs = this.getRunner().getExecutingWorld().getLogs(true);
+		if (logs.isEmpty()){
+			this.getRunner().interrupt();
 			return null;
 		}
-		TargetMove targetmove = new TargetMove(this.getRunner().getExecutingUnit(), (Set<IWorldObject>) logs);
+		TargetMove targetmove = new TargetMove(this.getRunner().getExecutingUnit(), logs);
 		Vector nearestPos = targetmove.getNearestPos();
 		if(nearestPos == null)
-			this.getCurrentTask().stopRunning();
+			this.getRunner().interrupt();
 		return nearestPos;
 	}
 

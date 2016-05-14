@@ -10,16 +10,15 @@ import hillbillies.part3.programs.expressions.Expression;
  */
 public class Print extends Statement {
 	private final Expression<?> value;
-	private final SourceLocation sourceLocation;
-	public Print(Expression<?> value, SourceLocation sourceLocation) {
+
+	public Print(Expression<?> value) throws IllegalArgumentException {
 		super(value);
 		this.value = value;
-		this.sourceLocation = sourceLocation;
 	}
 
 	@Override
 	public void execute() {
-		System.out.println(value.run());
+		System.out.println(this.runChild(value));
 	}
 
 }

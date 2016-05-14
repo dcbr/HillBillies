@@ -8,7 +8,7 @@ import hillbillies.model.Task.TaskRunner;
  */
 public class Break extends Statement {
 
-    public Break(SourceLocation sourceLocation){
+    public Break(){
         super();
     }
 

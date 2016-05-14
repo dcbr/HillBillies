@@ -1,27 +1,32 @@
 package hillbillies.part3.programs.expressions;
 
 import hillbillies.model.Unit;
-import hillbillies.part3.programs.SourceLocation;
-import hillbillies.model.Task.TaskRunner;
 
 /**
  * @author kenneth
  *
  */
-public class IsFriend extends Expression<Boolean> {
-	private final Expression<Unit> unit;
-	private final SourceLocation sourceLocation;
+public class IsFriend extends UnaryExpression<Unit, Boolean> {
+
 	/**
 	 * 
 	 */
-	public IsFriend(Expression<Unit> unit, SourceLocation sourceLocation) {
+	public IsFriend(Expression<Unit> unit) throws IllegalArgumentException {
 		super(unit);
-		this.unit = unit;
-		this.sourceLocation = sourceLocation;
 	}
+
+	/**
+	 * Compute the value to be returned by this expression, given the value
+	 * of its child expression.
+	 *
+	 * @param unit The value of the child expression. This value is guaranteed
+	 *              to be not null.
+	 * @return The value this expression should return based on the given value
+	 * of its child expression.
+	 */
 	@Override
-	public Boolean evaluate() {
-		return this.getRunner().getExecutingUnit().getFaction().equals(unit.run().getFaction());
+	protected Boolean compute(Unit unit) {
+		return this.getRunner().getExecutingUnit().getFaction().equals(unit.getFaction());
 	}
 
 }

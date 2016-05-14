@@ -3,8 +3,6 @@ package hillbillies.part3.programs;
 import be.kuleuven.cs.som.annotate.Basic;
 import be.kuleuven.cs.som.annotate.Raw;
 import hillbillies.model.Task;
-import hillbillies.part3.programs.expressions.ReadVariable;
-import hillbillies.part3.programs.statements.Assignment;
 import hillbillies.part3.programs.statements.Statement;
 
 import java.util.ArrayList;
@@ -36,11 +34,12 @@ public abstract class Command<T> {
      */
     private Task currentTask;
 
-    public Command(Command<?>... children) {
+    public Command(Command<?>... children) throws IllegalArgumentException {
         this.children = new ArrayList<>(Arrays.asList(children));
         for(int i=0;i<this.children.size();i++)
-            if(this.children.get(i)==null)
-                this.children.remove(i);
+            if(this.children.get(i)==null || this.indicesSatisfying(command -> this==command).size()!=0)
+                // Child is null or it contains this Command in its subCommands
+                throw new IllegalArgumentException("The child at index " + i + " is an invalid child for this command.");
     }
 
     protected <C extends Command<?>> HashSet<Integer> indicesOf(Class<C> type){
@@ -114,15 +113,42 @@ public abstract class Command<T> {
         return this.currentTask!=null;
     }
 
-    public final T run() throws IllegalStateException{
+    /**
+     *
+     * @return
+     * @throws IllegalStateException
+     * @throws NullPointerException
+     *          Possibly by Expression -> use Liskov question mark?
+     */
+    private T run() throws IllegalStateException, NullPointerException{
         if(!this.isCurrentTaskSet())
             throw new IllegalStateException("This command is not linked to any task yet, so it can't be executed.");
         if(!this.getCurrentTask().isRunning())
-            throw new IllegalStateException("The task linked to this command is not running.");
+            //throw new IllegalStateException("The task linked to this command is not running.");
+            return null;
         return process();
     }
 
-    protected abstract T process();
+    protected <E> E runChild(Command<E> child){
+        int childIndex = this.getChildren().indexOf(child);
+        if(childIndex<currentChild)
+            throw new IllegalArgumentException("The given child command should be run before the currently running command.");
+        setCurrentChild(childIndex);
+        return child.run();
+    }
+
+    public int getCurrentChild(){
+        return this.currentChild;
+    }
+
+    protected void setCurrentChild(int childIndex){
+        if(childIndex>=currentChild)
+            this.currentChild = childIndex;
+    }
+
+    private int currentChild = 0;
+
+    protected abstract T process() throws NullPointerException;
 
     public final void start(Task task) throws IllegalArgumentException, IllegalStateException{
         if(!isValidTask(task))

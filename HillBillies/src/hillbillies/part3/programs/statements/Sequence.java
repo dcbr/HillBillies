@@ -11,17 +11,15 @@ import java.util.List;
 public class Sequence extends Statement {
 
     private final List<Statement> statements;
-    private final SourceLocation sourceLocation;
 
-    public Sequence(List<Statement> statements, SourceLocation sourceLocation){
+    public Sequence(List<Statement> statements) throws IllegalArgumentException{
         super(statements.toArray(new Statement[]{}));
         this.statements = statements;
-        this.sourceLocation = sourceLocation;
     }
 
     @Override
     public void execute() {
         for(int i=this.getCurrentChild();i<statements.size();i++)
-            statements.get(i).run();
+            this.runChild(this.statements.get(i));
     }
 }

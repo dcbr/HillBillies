@@ -1,13 +1,9 @@
 package hillbillies.part3.programs.expressions;
 
-import java.util.HashSet;
 import java.util.Set;
 
 import hillbillies.activities.TargetMove;
-import hillbillies.model.IWorldObject;
 import hillbillies.model.Unit;
-import hillbillies.part3.programs.SourceLocation;
-import hillbillies.utils.Vector;
 
 
 /**
@@ -15,32 +11,27 @@ import hillbillies.utils.Vector;
  *
  */
 public class Any extends Expression<Unit> {
-	private SourceLocation sourceLocation;
+
 	/**
 	 * 
 	 */
-	public Any(SourceLocation sourceLocation) {
+	public Any(){
 		super();
-		this.sourceLocation = sourceLocation;
 	}
 
 	@Override
-	public Unit evaluate() {
+	public Unit evaluate() throws NullPointerException {
 		Unit thisUnit = this.getRunner().getExecutingUnit();
-		Set<IWorldObject> any = new HashSet<>();
 		Set<Unit> units = this.getRunner().getExecutingWorld().getUnits();
-		for (Unit unit : units){
-			if(unit != thisUnit)
-				any.add(unit);
-		}
-		if (!any.isEmpty()){
-			this.getCurrentTask().stopRunning();
+		units.remove(thisUnit);
+		if (units.isEmpty()){
+			this.getRunner().interrupt();
 			return null;
 		}
-		TargetMove targetmove = new TargetMove(this.getRunner().getExecutingUnit(), any);
+		TargetMove targetmove = new TargetMove(this.getRunner().getExecutingUnit(), units);
 		Unit NearestUnit = (Unit) targetmove.getNearestObject();
 		if(NearestUnit == null)
-			this.getCurrentTask().stopRunning();
+			this.getRunner().interrupt();
 		return NearestUnit;
 	}
 }

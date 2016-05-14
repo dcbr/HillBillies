@@ -1,31 +1,32 @@
 package hillbillies.part3.programs.expressions;
 
-import hillbillies.model.Cube;
-import hillbillies.part3.programs.SourceLocation;
 import hillbillies.utils.Vector;
-import hillbillies.model.Task.TaskRunner;
 
 /**
  * @author kenneth
  *
  */
-public class IsPassable extends Expression<Boolean> {
-
-	private final Expression<Vector> position;
-	private final SourceLocation sourceLocation;
+public class IsPassable extends UnaryExpression<Vector, Boolean> {
 
 	/**
 	 * 
 	 */
-	public IsPassable(Expression<Vector> position, SourceLocation sourceLocation) {
+	public IsPassable(Expression<Vector> position) throws IllegalArgumentException {
 		super(position);
-		this.position = position;
-		this.sourceLocation = sourceLocation;
 	}
 
+	/**
+	 * Compute the value to be returned by this expression, given the value
+	 * of its child expression.
+	 *
+	 * @param position The value of the child expression. This value is guaranteed
+	 *              to be not null.
+	 * @return The value this expression should return based on the given value
+	 * of its child expression.
+	 */
 	@Override
-	public Boolean evaluate() {
-		return this.getRunner().getExecutingWorld().getCube(position.run()).isPassable();
+	protected Boolean compute(Vector position) {
+		return this.getRunner().getExecutingWorld().getCube(position).isPassable();
 	}
 
 }

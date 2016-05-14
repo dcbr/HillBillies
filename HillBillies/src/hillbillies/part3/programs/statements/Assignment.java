@@ -11,13 +11,11 @@ public class Assignment<T> extends Statement {
 
     private final String variableName;
     private final Expression<T> value;
-    private final SourceLocation sourceLocation;
 
-    public Assignment(String variableName, Expression<T> value, SourceLocation sourceLocation){
+    public Assignment(String variableName, Expression<T> value) throws IllegalArgumentException{
         super(value);
         this.variableName = variableName;
         this.value = value;
-        this.sourceLocation = sourceLocation;
     }
 
     public String getVariableName(){

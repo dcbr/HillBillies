@@ -111,9 +111,16 @@ public class TargetMove extends Move {
     @Override
     protected void advanceMove(double dt) {
         Vector cpos = unit.getPosition().getCubeCoordinates();
-        if(!path.hasNext()){
-            requestFinish();
+        if(!path.hasNext() || this.leader.isTerminated() || (leader instanceof Unit &&((Unit) leader).isFalling())){
+            requestFinish();	
         }else{
+        	if (nearestPos != leader.getPosition().getCubeCoordinates()){
+        		nearestPos = leader.getPosition().getCubeCoordinates();
+        		if(this.path.path.contains(nearestPos)){
+        			this.path.removeFromPath(nearestPos);
+        		}else
+        			this.path.add(nearestPos);
+        	}
             AdjacentMove nextMove = new AdjacentMove(unit, path.getNext().difference(cpos), this.isSprinting(), this);
             /*controller*/unit.requestNewActivity(nextMove);
         }
@@ -238,20 +245,21 @@ public class TargetMove extends Move {
                 searchPath(this, this.getNext());
                 this.retrain(this.targetPositions);
             }
-            if(retrainedSet.iterator().hasNext()){
+            if(retrainedSet.iterator().hasNext()){// Path found
             	TargetMove.this.nearestPos = retrainedSet.iterator().next();
-            //if (this.contains(nearestPos)) {// Path found
-                ArrayDeque<Vector> path = new ArrayDeque<>();
-                HashSet<Vector> pathPositions = new HashSet<>();
+                /*ArrayDeque<Vector> path = new ArrayDeque<>();
+                HashSet<Vector> pathPositions = new HashSet<>();*/
+                Path path = new Path(null,null);
                 while (!TargetMove.this.nearestPos.equals(fromPosition)) {//TODO: kan zijn dat frompos en nearestpos moet worden omgedraaid
                     fromPosition = this.getNextPositionWithLowestDistance(fromPosition);
                     path.add(fromPosition);
+                    /*path.add(fromPosition); //TODO: replace by Path.add(fromPosition)
                     pathPositions.add(fromPosition);
                     List<Vector> adjacentPositions = unit.getWorld().getDirectlyAdjacentCubesPositions(fromPosition);
                     adjacentPositions.removeIf(adjPos -> unit.getWorld().isCubePassable(adjPos));
-                    pathPositions.addAll(adjacentPositions);
+                    pathPositions.addAll(adjacentPositions);*/
                 }
-                return new Path(path, pathPositions);
+                return /*new Path(path, pathPositions)*/ path;
             } else
                 return null;// No path found
         }
@@ -278,7 +286,15 @@ public class TargetMove extends Move {
             this.pathPositions = pathPositions;
         }
 
-        public boolean hasNext(){
+        public void removeFromPath(Vector position) {
+        	assert path.contains(position);
+			while(path.getLast() != position){
+				pathPositions.remove(path.getLast());
+				path.removeLast();
+			}	
+		}
+
+		public boolean hasNext(){
             return !path.isEmpty();
         }
 
@@ -294,6 +310,13 @@ public class TargetMove extends Move {
 
         public Vector getTarget(){
             return this.path.getLast();
+        }
+        public void add(Vector position){
+        	path.add(position);
+        	pathPositions.add(position);
+            List<Vector> adjacentPositions = unit.getWorld().getDirectlyAdjacentCubesPositions(position);
+            adjacentPositions.removeIf(adjPos -> unit.getWorld().isCubePassable(adjPos));
+            pathPositions.addAll(adjacentPositions);
         }
     }
 }

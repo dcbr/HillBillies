@@ -24,8 +24,7 @@ public class Friend extends Expression<Unit> {
 	public Unit evaluate() throws NullPointerException {
 		Unit thisUnit = this.getRunner().getExecutingUnit();
 		Set<Unit> units = this.getRunner().getExecutingWorld().getUnits();
-		units.removeIf(unit -> unit.getFaction()!=thisUnit.getFaction());
-		units.remove(thisUnit);
+		units.removeIf(unit -> unit.getFaction()!=thisUnit.getFaction() || unit.isFalling() || unit == thisUnit);
 		if (units.isEmpty()){
 			this.getRunner().interrupt();
 			return null;

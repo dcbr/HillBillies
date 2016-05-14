@@ -23,7 +23,7 @@ public class Any extends Expression<Unit> {
 	public Unit evaluate() throws NullPointerException {
 		Unit thisUnit = this.getRunner().getExecutingUnit();
 		Set<Unit> units = this.getRunner().getExecutingWorld().getUnits();
-		units.remove(thisUnit);
+		units.removeIf(unit -> unit == thisUnit || unit.isFalling());
 		if (units.isEmpty()){
 			this.getRunner().interrupt();
 			return null;

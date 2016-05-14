@@ -25,7 +25,7 @@ public class Enemy extends Expression<Unit> {
 	public Unit evaluate() throws NullPointerException {
 		Faction thisFaction = this.getRunner().getExecutingUnit().getFaction();
 		Set<Unit> units = this.getRunner().getExecutingWorld().getUnits();
-		units.removeIf(unit -> unit.getFaction()==thisFaction);
+		units.removeIf(unit -> unit.getFaction()==thisFaction || unit.isFalling());
 		if (units.isEmpty()){
 			this.getRunner().interrupt();
 			return null;

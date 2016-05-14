@@ -1188,6 +1188,15 @@ public class Unit extends WorldObject {
 			throw new IllegalStateException("Unit is not moving at this moment.");
 		((Move)/*activityController.*/getCurrentActivity()).stopSprint();
 	}
+	
+	public void follow(Unit unit){
+		if(unit==null || unit == this)
+			throw new IllegalArgumentException("The unit is not a valid unit.");
+		Set<Unit> units = new HashSet<>();
+		units.add(unit);
+		/*activityController.*/requestNewActivity(new TargetMove(this, units));
+	}
+	
 	//endregion
 	/**
 	 * Method to let the Unit rest.
@@ -1291,10 +1300,6 @@ public class Unit extends WorldObject {
 		}
 	}
 	//endregion
-
-	public void follow(Unit unit){
-		requestNewActivity(new Follow(this, unit));
-	}
 
 	//TODO: work this out
 	/**

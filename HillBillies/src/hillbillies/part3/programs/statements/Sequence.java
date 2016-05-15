@@ -19,7 +19,8 @@ public class Sequence extends Statement {
 
     @Override
     public void execute() {
-        for(int i=this.getCurrentChild();i<statements.size();i++)
-            this.runChild(this.statements.get(i));
+        int i = this.getCurrentChild();
+        while(i < statements.size())
+            this.runChild(statements.get(i++));
     }
 }

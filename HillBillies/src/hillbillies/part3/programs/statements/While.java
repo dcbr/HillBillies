@@ -9,6 +9,7 @@ import hillbillies.part3.programs.expressions.Expression;
  */
 public class While extends Statement {
 
+    public static final int BODY_INDEX = 1;
     private final Expression<Boolean> condition;
     private final Statement body;
 
@@ -20,7 +21,7 @@ public class While extends Statement {
 
     @Override
     public void execute() {
-        while(runChild(condition)){// TODO: this will throw exception after first iteration
+        while(this.getCurrentChild()==BODY_INDEX || runChild(condition)){// TODO: this will throw exception after first iteration, since currentChild cannot decrease
             runChild(body);
             if(this.getRunner().breakLoop){
                 this.getRunner().breakLoop = false;

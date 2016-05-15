@@ -18,7 +18,7 @@ public class If extends Statement {
 
     @Override
     public void execute() {
-        if(this.runChild(condition))
+        if(this.getCurrentChild()==1 || this.runChild(condition))
             this.runChild(ifBody);
     }
 

@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * Created by Bram on 27-4-2016.
  */
-public class TaskFactory implements ITaskFactory<Expression, Statement, Task> {
+public class TaskFactory implements ITaskFactory<Expression<?>, Statement, Task> {
 
     public TaskFactory(){
     }
@@ -45,7 +45,7 @@ public class TaskFactory implements ITaskFactory<Expression, Statement, Task> {
      * @param sourceLocation
      */
     @Override
-    public Statement createAssignment(String variableName, Expression value, SourceLocation sourceLocation) {
+    public Statement createAssignment(String variableName, Expression<?> value, SourceLocation sourceLocation) {
         return new Assignment<>(variableName, value);
     }
 
@@ -57,8 +57,8 @@ public class TaskFactory implements ITaskFactory<Expression, Statement, Task> {
      * @param sourceLocation
      */
     @Override
-    public Statement createWhile(Expression condition, Statement body, SourceLocation sourceLocation) {
-        return new While(condition, body);
+    public Statement createWhile(Expression<?> condition, Statement body, SourceLocation sourceLocation) throws ClassCastException {
+        return new While((Expression<Boolean>)condition, body);
     }
 
     /**

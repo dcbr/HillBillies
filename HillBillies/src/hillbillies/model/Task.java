@@ -535,7 +535,12 @@ public class Task implements Comparable<Task> {
         private double dt = 0d;
 
         public void saveState(int index){
-            this.savedState.addFirst(index);
+            if(this.savedState.isEmpty())
+                // If it's the first item to add, it's the last statement in stack, so when resuming we should start
+                // at the statement's next child
+                this.savedState.addFirst(++index);
+            else
+                this.savedState.addFirst(index);
         }
 
         public int resumeState(){

@@ -9,6 +9,7 @@ import hillbillies.part3.programs.expressions.Expression;
  */
 public class IfElse extends Statement {
 
+    public static final int IF_INDEX = 1, ELSE_INDEX = 2;
     private final Expression<Boolean> condition;
     private final Statement ifBody, elseBody;
 
@@ -21,9 +22,9 @@ public class IfElse extends Statement {
 
     @Override
     public void execute() {
-        if(this.getCurrentChild()!=2 && this.runChild(condition))// 2 = elseBody (maybe replace by constant?) TODO
+        if(this.getCurrentChild()!=ELSE_INDEX && (this.getCurrentChild()==IF_INDEX || this.runChild(condition)))
             this.runChild(ifBody);
-        else if(elseBody!=null)
+        else
             this.runChild(elseBody);
     }
 }

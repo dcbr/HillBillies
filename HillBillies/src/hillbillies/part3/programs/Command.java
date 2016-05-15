@@ -62,6 +62,10 @@ public abstract class Command<T> {
         return this.children;
     }
 
+    protected int getNbChildren(){
+        return this.children.size();
+    }
+
     /**
      * Return the current task of this Command.
      */
@@ -123,13 +127,16 @@ public abstract class Command<T> {
     private T run() throws IllegalStateException, NullPointerException{
         if(!this.isCurrentTaskSet())
             throw new IllegalStateException("This command is not linked to any task yet, so it can't be executed.");
-        if(!this.getCurrentTask().isRunning())
-            //throw new IllegalStateException("The task linked to this command is not running.");
+        if(!this.getCurrentTask().isRunning() || this.getRunner().isPaused())
             return null;
-        return process();
+        return process();// TODO: change this by a directly call to process? since the preconditions are already checked
     }
 
-    protected <E> E runChild(Command<E> child){
+    protected <E> E runChild(Command<E> child) throws IllegalStateException, IllegalArgumentException{
+        if(!this.isCurrentTaskSet())
+            throw new IllegalStateException("This command is not linked to any task yet, so it can't be executed.");
+        if(!this.getRunner().isRunning() || this.getRunner().isPaused())
+            return null;// We are stopping / pausing
         int childIndex = this.getChildren().indexOf(child);
         if(childIndex<currentChild)
             throw new IllegalArgumentException("The given child command should be run before the currently running command.");
@@ -153,7 +160,12 @@ public abstract class Command<T> {
     public final void start(Task task) throws IllegalArgumentException, IllegalStateException{
         if(!isValidTask(task))
             throw new IllegalArgumentException("The given task does not have this Command as its activity.");
+
         this.setCurrentTask(task);
+
+        if(!this.getRunner().isRunning() || this.getRunner().isPaused())
+            throw new IllegalStateException("The task linked to this command is not running.");
+
         this.run();
         this.resetCurrentTask();
     }

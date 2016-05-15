@@ -198,8 +198,8 @@ public class Scheduler implements Iterable<Task> {
     @Raw
     public void removeTask(Task task) {
     	assert this.hasAsTask(task) && (task.hasAsScheduler(this));
-        if(task.isRunning())
-            deschedule(task);// Stop the task's execution
+        if(task.getAssignedUnit().getFaction().getScheduler()==this)
+            deschedule(task);// Deschedule the task
         tasks.remove(task);
         task.removeScheduler(this);
     }
@@ -217,7 +217,7 @@ public class Scheduler implements Iterable<Task> {
      *          | !this.hasAsTask(oldTask) || !oldTask.hasAsScheduler(this) ||
      *          | newTask == null || newTask.hasAsScheduler(this)
      */
-    public void replaceTask(Task oldTask, Task newTask){
+    public void replaceTask(Task oldTask, Task newTask) throws IllegalArgumentException{
         if(!this.hasAsTask(oldTask) || !(oldTask.hasAsScheduler(this)))
             throw new IllegalArgumentException("The given oldTask does not satisfy removeTask's preconditions.");
         if((newTask == null) || (newTask.hasAsScheduler(this)))
@@ -231,8 +231,11 @@ public class Scheduler implements Iterable<Task> {
      * @param condition The condition to select upon
      * @return A collection of all tasks in this scheduler satisfying the given condition.
      *          | foreach(Task task in result : condition.test(task) == true)
+     * @throws NullPointerException
+     *          When condition is not effective
+     *          | condition == null
      */
-    public Collection<Task> getAllTasksSatisfying(Predicate<Task> condition){
+    public Collection<Task> getAllTasksSatisfying(Predicate<Task> condition) throws NullPointerException{
         Set<Task> result = new HashSet<>();
         for(Task task : tasks){
             if(condition.test(task))
@@ -256,8 +259,11 @@ public class Scheduler implements Iterable<Task> {
      *          |                       other.priority > task.priority)
      *          | else
      *          |   result == null
+     * @throws NullPointerException
+     *          When condition is not effective
+     *          | condition == null
      */
-    public Task getTaskSatisfying(Predicate<Task> condition){
+    public Task getTaskSatisfying(Predicate<Task> condition) throws NullPointerException{
         for(Task task : tasks)
             if(condition.test(task))
                 return task;
@@ -296,16 +302,17 @@ public class Scheduler implements Iterable<Task> {
      * @param task The task to schedule
      * @param unit The unit to assign the task to
      * @post If the task has this scheduler as its Scheduler AND the task is not running
-     *       at this moment AND the given unit is effective, the unit's Task is set to
-     *       the given task and the task's assigned Unit is set to the given unit.
+     *       at this moment AND the unit's faction's Scheduler is this scheduler, the
+     *       unit's Task is set to the given task and the task's assigned Unit is set to
+     *       the given unit.
      *       | unit.getTask() == task
      *       | task.getAssignedUnit() == unit
      * @throws NullPointerException
-     *          When the given task is not effective
-     *          | task == null
+     *          When the given task or unit are not effective
+     *          | task == null || unit == null
      */
     public void schedule(Task task, Unit unit) throws NullPointerException{
-        if(task.hasAsScheduler(this) && !task.isRunning() && unit!=null){
+        if(task.hasAsScheduler(this) && !task.isRunning() && unit.getFaction().getScheduler()==this){
             unit.setTask(task);
             task.setAssignedUnit(unit);
         }
@@ -314,17 +321,21 @@ public class Scheduler implements Iterable<Task> {
     /**
      * Deschedule the given task
      * @param task The task to deschedule
-     * @post If the task has this scheduler as its Scheduler AND the task is currently
-     *       running, the task will be stopped, the task's assignedUnit's Task will be
-     *       set to null and the task's assignedUnit will be set to null.
+     * @post If the task has this scheduler as its Scheduler, the task's
+     *       assignedUnit's Task will be set to null and the task's assignedUnit will
+     *       be set to null. If the task was currently running, it will be stopped
+     *       before the assignedUnit is set to null.
      *       | new task.isRunning() == false
      *       | new (task.getAssignedUnit()).getTask() == null
      *       | new task.getAssignedUnit() == null
      * @throws NullPointerException
+     *          When the given task is not effective
+     *          | task == null
      */
     public void deschedule(Task task) throws NullPointerException{
-        if(task.hasAsScheduler(this) && task.isRunning()){
-            task.stopRunning();
+        if(task.hasAsScheduler(this)){
+            if(task.isRunning())
+                task.stopRunning();
             task.getAssignedUnit().setTask(null);
             task.setAssignedUnit(null);
         }

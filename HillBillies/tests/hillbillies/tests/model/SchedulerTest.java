@@ -12,6 +12,7 @@ import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Iterator;
 
 import static org.junit.Assert.*;
 
@@ -219,31 +220,86 @@ public class SchedulerTest {
         scheduler1.schedule(task1, unit12);
         assertEquals(null, scheduler1.getHighestPriorityAssignableTask());
         scheduler1.deschedule(task2);
+        assertEquals(task2, scheduler1.getHighestPriorityAssignableTask());
     }
 
     @Test
     public void getHighestPriorityNotRunningTask() throws Exception {
-
+        scheduler1.addTask(task2);
+        assertEquals(task2, scheduler1.getHighestPriorityNotRunningTask());
+        scheduler1.schedule(task2, unit11);
+        task2.run();
+        assertEquals(task1, scheduler1.getHighestPriorityNotRunningTask());
+        scheduler1.schedule(task1, unit12);
+        task1.run();
+        assertEquals(null, scheduler1.getHighestPriorityNotRunningTask());
+        scheduler1.deschedule(task2);
+        assertEquals(task2, scheduler1.getHighestPriorityNotRunningTask());
     }
 
     @Test
     public void getAllTasks() throws Exception {
-
+        scheduler1.addTask(task2);
+        assertTrue(scheduler1.getAllTasks().contains(task1));
+        assertTrue(scheduler1.getAllTasks().contains(task2));
     }
 
     @Test
-    public void schedule() throws Exception {
+    public void scheduleIllegal() throws Exception {
+        scheduler1.schedule(task1, unit11);
+        assertFalse(task1.getAssignedUnit()==unit11);
+        assertFalse(unit11.getTask()==task1);
 
+        scheduler1.addTask(task2);
+        scheduler1.schedule(task2, unit11);// Valid schedule
+        task2.run();
+        scheduler1.schedule(task2, unit12);// Invalid schedule
+        assertFalse(unit12.getTask()==task2);
+        assertFalse(task2.getAssignedUnit()==unit12);
+
+        scheduler1.schedule(task1, unit21);
+        assertFalse(task1.getAssignedUnit()==unit21);
+        assertFalse(unit21.getTask()==task1);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void scheduleIllegal2() throws NullPointerException{
+        scheduler1.schedule(null, unit11);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void scheduleIllegal3() throws NullPointerException{
+        scheduler1.schedule(task1, null);
     }
 
     @Test
     public void deschedule() throws Exception {
+        scheduler1.schedule(task1, unit11);
+        task1.run();
+        scheduler2.addTask(task2);
+        scheduler2.schedule(task2, unit21);
 
+        scheduler1.deschedule(task2);// No effect
+        assertEquals(unit21, task2.getAssignedUnit());
+        assertEquals(task2, unit21.getTask());
+
+        scheduler1.deschedule(task1);
+        assertFalse(task1.isRunning());
+        assertEquals(null, task1.getAssignedUnit());
+        assertEquals(null, unit11.getTask());
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void descheduleIllegal() throws NullPointerException{
+        scheduler1.deschedule(null);
     }
 
     @Test
     public void iterator() throws Exception {
-
+        scheduler1.addTask(task2);
+        Iterator<Task> iterator = scheduler1.iterator();
+        assertEquals(task1, iterator.next());
+        assertEquals(task2, iterator.next());
     }
 
 }

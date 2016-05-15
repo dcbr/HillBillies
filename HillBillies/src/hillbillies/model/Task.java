@@ -351,8 +351,6 @@ public class Task implements Comparable<Task> {
     protected void removeScheduler(@Raw Scheduler scheduler) {
     	assert this.hasAsScheduler(scheduler) && (!scheduler.hasAsTask(this)) && !this.isRunning() && this.assignedUnit==null;
     	schedulers.remove(scheduler);
-        if(this.isRunning() && assignedUnit.getFaction().getScheduler()==scheduler)
-            scheduler.deschedule(this);
     }
 
     public Set<Scheduler> getSchedulers(){

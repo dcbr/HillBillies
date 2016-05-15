@@ -195,8 +195,9 @@ public class TargetMove extends Move {
 //        }
 
         public Set<Vector> retrain(Set<Vector> positions){
-        	positions.retainAll(positionDistances.keySet());
-        	return positions;
+        	Set<Vector> retrainedSet = new HashSet<>(positions);
+        	retrainedSet.retainAll(positionDistances.keySet());
+        	return retrainedSet;
         }
         
         public void add(Vector position, int n) {
@@ -243,13 +244,14 @@ public class TargetMove extends Move {
             Set<Vector> retrainedSet = this.retrain(this.targetPositions);
             while (retrainedSet.isEmpty() && this.hasNext()) {
                 searchPath(this, this.getNext());
-                this.retrain(this.targetPositions);
+                retrainedSet = this.retrain(this.targetPositions);
             }
             if(retrainedSet.iterator().hasNext()){// Path found
             	TargetMove.this.nearestPos = retrainedSet.iterator().next();
-                /*ArrayDeque<Vector> path = new ArrayDeque<>();
+                Vector v = TargetMove.this.nearestPos;
+            	/*ArrayDeque<Vector> path = new ArrayDeque<>();
                 HashSet<Vector> pathPositions = new HashSet<>();*/
-                Path path = new Path(null,null);
+                Path path = new Path(new ArrayDeque<Vector>(),new HashSet<Vector>());
                 while (!TargetMove.this.nearestPos.equals(fromPosition)) {//TODO: kan zijn dat frompos en nearestpos moet worden omgedraaid
                     fromPosition = this.getNextPositionWithLowestDistance(fromPosition);
                     path.add(fromPosition);

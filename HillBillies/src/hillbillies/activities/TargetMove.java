@@ -110,8 +110,8 @@ public class TargetMove extends Move {
      */
     @Override
     protected void advanceMove(double dt) {
-        Vector cpos = unit.getPosition().getCubeCoordinates();
-        if(!path.hasNext() || this.leader.isTerminated() || (leader instanceof Unit &&((Unit) leader).isFalling())){
+        Vector cpos = unit.getPosition().getCubeCoordinates();// TODO: leader == null blabla
+        if(!path.hasNext() || (this.leader != null || this.leader.isTerminated() || (leader instanceof Unit &&((Unit) leader).isFalling()))){
             requestFinish();	
         }else{
         	if (nearestPos != leader.getPosition().getCubeCoordinates()){
@@ -248,13 +248,13 @@ public class TargetMove extends Move {
             }
             if(retrainedSet.iterator().hasNext()){// Path found
             	TargetMove.this.nearestPos = retrainedSet.iterator().next();
-                Vector v = TargetMove.this.nearestPos;
+                Vector targetPos = TargetMove.this.nearestPos;
             	/*ArrayDeque<Vector> path = new ArrayDeque<>();
                 HashSet<Vector> pathPositions = new HashSet<>();*/
                 Path path = new Path(new ArrayDeque<Vector>(),new HashSet<Vector>());
-                while (!TargetMove.this.nearestPos.equals(fromPosition)) {//TODO: kan zijn dat frompos en nearestpos moet worden omgedraaid
-                    fromPosition = this.getNextPositionWithLowestDistance(fromPosition);
-                    path.add(fromPosition);
+                while (!targetPos.equals(fromPosition)) {//TODO: kan zijn dat frompos en nearestpos moet worden omgedraaid
+                    targetPos = this.getNextPositionWithLowestDistance(targetPos);
+                    path.add(targetPos);
                     /*path.add(fromPosition); //TODO: replace by Path.add(fromPosition)
                     pathPositions.add(fromPosition);
                     List<Vector> adjacentPositions = unit.getWorld().getDirectlyAdjacentCubesPositions(fromPosition);

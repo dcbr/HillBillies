@@ -9,7 +9,6 @@ import java.util.function.Predicate;
 
 import hillbillies.part3.programs.statements.Statement;
 import hillbillies.utils.Vector;
-//import org.jetbrains.annotations.NotNull;
 
 /**
  * Class representing a Task

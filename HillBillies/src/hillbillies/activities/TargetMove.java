@@ -150,10 +150,8 @@ public class TargetMove extends Move {
     public void notifyTerrainChange(Terrain oldTerrain, Cube cube){
         if(this.path.dependsOn(cube.getPosition())){
             if(!calculatePath(unit.getPosition().getCubeCenterCoordinates(), this.path.getTarget()))
-                this.requestFinish();// TODO update this?
+                this.requestFinish();
         }
-        if(this.path==null)
-            this.requestFinish();
     }
     
 	public Vector getNearestPos(){
@@ -209,7 +207,6 @@ public class TargetMove extends Move {
         private PathCalculator(Set<Vector> targets) {
             this.targetPositions = targets;
             this.target = null;
-            //this.add(pos.getCubeCoordinates(), 0); Verplaatst naar computePath
         }
 
         private PathCalculator(Vector target){
@@ -217,20 +214,11 @@ public class TargetMove extends Move {
             this.targetPositions.add(target);
         }
 
-//        public boolean dependsOn(Vector position) {
-//            return positionDistances.containsKey(position);
-//        }
-
-        public Set<Vector> retain(Set<Vector> positions){
-        	positions.retainAll(positionDistances.keySet());
-        	return positions;
-        }
-
-        public boolean targetFound(){
+        private boolean targetFound(){
             return this.target!=null;
         }
         
-        public void add(Vector position, int n) {
+        private void add(Vector position, int n) {
             // n is hier n0+1 uit de opgave
             // => enkel toevoegen indien er een n' bestaat waarvoor geldt dat n'+1>n=n0+1
             // Dat is equivalent met NIET toevoegen als er een n' bestaat waarvoor geldt dat n'+1<=n=n0+1 of n'<=n0
@@ -240,15 +228,15 @@ public class TargetMove extends Move {
             }
         }
 
-        public boolean hasNext() {
+        private boolean hasNext() {
             return !remainingPositions.isEmpty();
         }
 
-        public Map.Entry<Vector, Integer> getNext() {
+        private Map.Entry<Vector, Integer> getNext() {
             return remainingPositions.remove();
         }
 
-        public Vector getNextPositionWithLowestDistance(Vector fromPosition) {
+        private Vector getNextPositionWithLowestDistance(Vector fromPosition) {
             List<Vector> nextPositions = TargetMove.this.unit.getWorld().getNeighbouringCubesPositions(fromPosition);
             Vector next = null;
             int lowestDistance = -1;
@@ -268,28 +256,20 @@ public class TargetMove extends Move {
          * @param fromPosition = zoeken vanaf hier 
          * @return
          */
-        public Path computePath(Vector fromPosition){
+        private Path computePath(Vector fromPosition){
         	this.add(fromPosition.getCubeCoordinates(), 0);
             controlledPos.clear();
             while (!this.targetFound() && this.hasNext()) {
                 searchNextPositions(this.getNext());
             }
             if(this.targetFound()){// Path found
-            	//TargetMove.this.nearestPos = retainedSet.iterator().next();
-                /*ArrayDeque<Vector> path = new ArrayDeque<>();
-                HashSet<Vector> pathPositions = new HashSet<>();*/
                 Path path = new Path();
                 Vector pos = this.target;
-                while (!fromPosition.equals(pos)) {//TODO: kan zijn dat frompos en nearestpos moet worden omgedraaid
+                while (!fromPosition.equals(pos)) {
                     path.add(pos);
                     pos = this.getNextPositionWithLowestDistance(pos);
-                    /*path.add(fromPosition); //TODO: replace by Path.add(fromPosition)
-                    pathPositions.add(fromPosition);
-                    List<Vector> adjacentPositions = unit.getWorld().getDirectlyAdjacentCubesPositions(fromPosition);
-                    adjacentPositions.removeIf(adjPos -> unit.getWorld().isCubePassable(adjPos));
-                    pathPositions.addAll(adjacentPositions);*/
                 }
-                return /*new Path(path, pathPositions)*/ path;
+                return path;
             } else
                 return null;// No path found
         }

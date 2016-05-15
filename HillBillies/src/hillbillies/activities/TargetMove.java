@@ -1,9 +1,6 @@
 package hillbillies.activities;
 
-import hillbillies.model.Cube;
-import hillbillies.model.IWorldObject;
-import hillbillies.model.Terrain;
-import hillbillies.model.Unit;
+import hillbillies.model.*;
 import hillbillies.utils.Vector;
 
 import java.util.*;
@@ -17,8 +14,8 @@ import static hillbillies.utils.Utils.randInt;
 public class TargetMove extends Move {
 
     private Path path;
-	private Vector nearestPos;
 	private IWorldObject leader;
+    private Set<? extends IWorldObject> targets = new HashSet<>();
 
 //    public TargetMove(Unit unit, Set<Vector> targets)throws IllegalArgumentException, NullPointerException{
 //    	super(unit);
@@ -35,22 +32,13 @@ public class TargetMove extends Move {
     	super(unit);
     	if (worldObjects.isEmpty())
     		throw new NullPointerException("The given set of worldObjects is empty");
-    	Map<Vector, IWorldObject> positions = new HashMap<>();
-    	for (IWorldObject worldObject : worldObjects ){
-    		positions.put(worldObject.getPosition().getCubeCoordinates(),worldObject);
-    	}
-    	this.path = new PathCalculator(positions.keySet()).computePath(unit.getPosition().getCubeCoordinates());
-        if(this.path==null || this.nearestPos == null)
-            throw new IllegalArgumentException("The given target position is not reachable from the Unit's current position.");
-        this.leader = positions.get(nearestPos);
+        if(!calculatePath(unit.getPosition().getCubeCoordinates(), worldObjects))
+            throw new IllegalArgumentException("The given target objects are not reachable from the Unit's current position.");
     }
     
     public TargetMove(Unit unit, Vector target) throws IllegalArgumentException{
         super(unit);
-        Set<Vector> pos = new HashSet<>();
-        pos.add(target.getCubeCoordinates());
-        this.path = new PathCalculator(pos).computePath(unit.getPosition().getCubeCoordinates());
-        if(this.path==null)
+        if(!calculatePath(unit.getPosition().getCubeCoordinates(), target.getCubeCoordinates()))
             throw new IllegalArgumentException("The given target position is not reachable from the Unit's current position.");
     }
 
@@ -59,22 +47,15 @@ public class TargetMove extends Move {
             Vector target = (new Vector(randDouble(unit.getWorld().getMinPosition().X(), unit.getWorld().getMaxPosition().X()),
                     randDouble(unit.getWorld().getMinPosition().Y(), unit.getWorld().getMaxPosition().Y()),
                     randDouble(unit.getWorld().getMinPosition().Z(), unit.getWorld().getMaxPosition().Z()))).getCubeCoordinates();
-            Set<Vector> pos = new HashSet<>();
-            pos.add(target);
-            PathCalculator pathCalculator = new PathCalculator(pos);
+            PathCalculator pathCalculator = new PathCalculator(target);
             Path path = pathCalculator.computePath(unit.getPosition());
 
             if(path!=null && path.hasNext())
                 this.path = path;
-            else if (pathCalculator.controlledPos.size() != 0){
-            	Set<Vector> pos2 = new HashSet<>();
-                pos2.add(pathCalculator.controlledPos.get(randInt(0, pathCalculator.controlledPos.size() - 1)).getCubeCoordinates());
-                this.path = new PathCalculator(pos2).computePath(unit.getPosition().getCubeCoordinates());
-            }
+            else if (pathCalculator.controlledPos.size() != 0)
+                calculatePath(unit.getPosition().getCubeCoordinates(), pathCalculator.controlledPos.get(randInt(0, pathCalculator.controlledPos.size() - 1)).getCubeCoordinates());
             else
-            	throw new IllegalStateException();
-            
-        
+            	throw new IllegalStateException("The given unit cannot reach any other position.");
     }
     
     /**
@@ -111,19 +92,31 @@ public class TargetMove extends Move {
     @Override
     protected void advanceMove(double dt) {
         Vector cpos = unit.getPosition().getCubeCoordinates();
-        if(!path.hasNext() || this.leader.isTerminated() || (leader instanceof Unit &&((Unit) leader).isFalling())){
-            requestFinish();	
-        }else{
-        	if (nearestPos != leader.getPosition().getCubeCoordinates()){
-        		nearestPos = leader.getPosition().getCubeCoordinates();
-        		if(this.path.path.contains(nearestPos)){
-        			this.path.removeFromPath(nearestPos);
-        		}else
-        			this.path.add(nearestPos);
-        	}
-            AdjacentMove nextMove = new AdjacentMove(unit, path.getNext().difference(cpos), this.isSprinting(), this);
-            /*controller*/unit.requestNewActivity(nextMove);
+        if(this.leader!=null) {
+            this.targets.removeIf(obj -> !isValidLeader(obj));// Remove invalid leaders
+
+            if(!isValidLeader(this.leader)) {
+                if (this.hasNextLeader())
+                    calculatePath(cpos, this.targets);// Calculate path to new leader
+                else {
+                    requestFinish();// No valid targets over
+                    return;
+                }
+            }else{
+                if (this.path.getTarget() != this.leader.getPosition().getCubeCoordinates()){// Leader's position has changed
+                    Vector newTarget = leader.getPosition().getCubeCoordinates();
+                    if(this.path.contains(newTarget)){
+                        this.path.removeFromPath(newTarget);
+                    }else
+                        this.calculatePath(cpos, newTarget);// If no path is available, this.path will be null and requestFinish will be called
+                }
+            }
         }
+        if(this.path!=null && this.path.hasNext()){
+            AdjacentMove nextMove = new AdjacentMove(unit, path.getNext().difference(cpos), this.isSprinting(), this);
+            unit.requestNewActivity(nextMove);
+        }else
+            requestFinish();
     }
 
     /**
@@ -155,22 +148,49 @@ public class TargetMove extends Move {
     }
 
     public void notifyTerrainChange(Terrain oldTerrain, Cube cube){
-        if(this.path.contains(cube.getPosition())){
-        	Set<Vector> pos = new HashSet<>();
-        	pos.add(this.path.getTarget());
-            this.path = new PathCalculator(pos).computePath(unit.getPosition().getCubeCoordinates());
+        if(this.path.dependsOn(cube.getPosition())){
+            if(!calculatePath(unit.getPosition().getCubeCenterCoordinates(), this.path.getTarget()))
+                this.requestFinish();// TODO update this?
         }
         if(this.path==null)
             this.requestFinish();
     }
     
 	public Vector getNearestPos(){
-		return nearestPos;
+		return this.path.getTarget();
 	}
 
 	public IWorldObject getNearestObject(){
 		return leader;
 	}
+
+    private boolean hasNextLeader(){
+        return !this.targets.isEmpty();
+    }
+
+    private static boolean isValidLeader(IWorldObject leader){
+        if(leader==null || leader.isTerminated()) return false;
+        if(leader instanceof Unit && ((Unit)leader).isFalling()) return false;
+        return true;
+    }
+
+    private boolean calculatePath(Vector fromPosition, Vector targetPosition){
+        this.path = new PathCalculator(targetPosition).computePath(fromPosition);
+        return this.path!=null;
+    }
+
+    private boolean calculatePath(Vector fromPosition, Set<? extends IWorldObject> targets){
+        this.targets = targets;
+        Map<Vector, IWorldObject> positions = new HashMap<>();
+        for (IWorldObject worldObject : targets){
+            positions.put(worldObject.getPosition().getCubeCoordinates(),worldObject);
+        }
+        this.path = new PathCalculator(positions.keySet()).computePath(fromPosition);
+        if(this.path==null) return false;
+        this.leader = positions.get(this.path.getTarget());
+        return true;
+    }
+
     private final class PathCalculator {
 
         /**
@@ -181,22 +201,33 @@ public class TargetMove extends Move {
         private final ArrayDeque<Map.Entry<Vector, Integer>> remainingPositions = new ArrayDeque<>();
         private final HashMap<Vector, Integer> positionDistances = new HashMap<>();
         private final Set<Vector> targetPositions;
+        private Vector target;
         
         /**
          * targetPosition
          */
-        private PathCalculator(Set<Vector> pos) {
-            this.targetPositions = pos;
+        private PathCalculator(Set<Vector> targets) {
+            this.targetPositions = targets;
+            this.target = null;
             //this.add(pos.getCubeCoordinates(), 0); Verplaatst naar computePath
         }
 
-//        public boolean contains(Vector position) {
+        private PathCalculator(Vector target){
+            this.targetPositions = new HashSet<>(1);
+            this.targetPositions.add(target);
+        }
+
+//        public boolean dependsOn(Vector position) {
 //            return positionDistances.containsKey(position);
 //        }
 
-        public Set<Vector> retrain(Set<Vector> positions){
+        public Set<Vector> retain(Set<Vector> positions){
         	positions.retainAll(positionDistances.keySet());
         	return positions;
+        }
+
+        public boolean targetFound(){
+            return this.target!=null;
         }
         
         public void add(Vector position, int n) {
@@ -240,19 +271,18 @@ public class TargetMove extends Move {
         public Path computePath(Vector fromPosition){
         	this.add(fromPosition.getCubeCoordinates(), 0);
             controlledPos.clear();
-            Set<Vector> retrainedSet = this.retrain(this.targetPositions);
-            while (retrainedSet.isEmpty() && this.hasNext()) {
-                searchPath(this, this.getNext());
-                this.retrain(this.targetPositions);
+            while (!this.targetFound() && this.hasNext()) {
+                searchNextPositions(this.getNext());
             }
-            if(retrainedSet.iterator().hasNext()){// Path found
-            	TargetMove.this.nearestPos = retrainedSet.iterator().next();
+            if(this.targetFound()){// Path found
+            	//TargetMove.this.nearestPos = retainedSet.iterator().next();
                 /*ArrayDeque<Vector> path = new ArrayDeque<>();
                 HashSet<Vector> pathPositions = new HashSet<>();*/
-                Path path = new Path(null,null);
-                while (!TargetMove.this.nearestPos.equals(fromPosition)) {//TODO: kan zijn dat frompos en nearestpos moet worden omgedraaid
-                    fromPosition = this.getNextPositionWithLowestDistance(fromPosition);
-                    path.add(fromPosition);
+                Path path = new Path();
+                Vector pos = this.target;
+                while (!fromPosition.equals(pos)) {//TODO: kan zijn dat frompos en nearestpos moet worden omgedraaid
+                    path.add(pos);
+                    pos = this.getNextPositionWithLowestDistance(pos);
                     /*path.add(fromPosition); //TODO: replace by Path.add(fromPosition)
                     pathPositions.add(fromPosition);
                     List<Vector> adjacentPositions = unit.getWorld().getDirectlyAdjacentCubesPositions(fromPosition);
@@ -264,13 +294,17 @@ public class TargetMove extends Move {
                 return null;// No path found
         }
 
-        private void searchPath(PathCalculator path, Map.Entry<Vector, Integer> start) {
-            Set<Cube> nextCubes = TargetMove.this.unit.getWorld().getNeighbouringCubes(start.getKey());
-            for (Cube nextCube : nextCubes) {
-                Vector position = nextCube.getPosition();
+        private void searchNextPositions(Map.Entry<Vector, Integer> start) {
+            List<Vector> nextPositions = TargetMove.this.unit.getWorld().getNeighbouringCubesPositions(start.getKey());
+            Iterator<Vector> it = nextPositions.iterator();
+            while(it.hasNext() && !this.targetFound()){
+                Vector position = it.next();
                 if (TargetMove.this.isValidNextPosition(start.getKey(), position) && !controlledPos.contains(position)) {
-                    path.add(position, start.getValue() + 1);
+                    this.add(position, start.getValue() + 1);
                     controlledPos.add(position);
+
+                    if(this.targetPositions.contains(position))
+                        this.target = position;
                 }
             }
         }
@@ -286,11 +320,19 @@ public class TargetMove extends Move {
             this.pathPositions = pathPositions;
         }
 
+        private Path(){
+            this.path = new ArrayDeque<>();
+            this.pathPositions = new HashSet<>();
+        }
+
         public void removeFromPath(Vector position) {
         	assert path.contains(position);
-			while(path.getLast() != position){
-				pathPositions.remove(path.getLast());
-				path.removeLast();
+			while(path.size()>0 && path.getLast() != position){
+				Vector oldTarget = path.removeLast();
+                Vector newTarget = null;
+                if(path.size()>0)
+                    newTarget = path.getLast();
+                this.removeRedundantPathPositions(oldTarget, newTarget);
 			}	
 		}
 
@@ -299,24 +341,54 @@ public class TargetMove extends Move {
         }
 
         public Vector getNext(){
-            Vector next = path.remove();
-            pathPositions.remove(next);
+            Vector next = path.removeFirst();
+            Vector newNext = null;
+            if(path.size()>0)
+                newNext = path.getFirst();
+            this.removeRedundantPathPositions(next, newNext);
             return next;
         }
-        
+
         public boolean contains(Vector pathPosition){
-           return pathPositions.contains(pathPosition);
+            return path.contains(pathPosition);
+        }
+
+        public boolean dependsOn(Vector position){
+           return pathPositions.contains(position);
         }
 
         public Vector getTarget(){
             return this.path.getLast();
         }
+
         public void add(Vector position){
-        	path.add(position);
+        	path.addFirst(position);
         	pathPositions.add(position);
             List<Vector> adjacentPositions = unit.getWorld().getDirectlyAdjacentCubesPositions(position);
             adjacentPositions.removeIf(adjPos -> unit.getWorld().isCubePassable(adjPos));
             pathPositions.addAll(adjacentPositions);
+        }
+
+        /**
+         * Remove the pathPositions that became redundant by removing oldEndPosition.
+         * @param oldEndPosition The position that is removed from the path. This
+         *                       position must be an 'end' position -> be the first
+         *                       or the last in the path.
+         * @param newEndPosition The position that became the new 'end' position by
+         *                       removing oldEndPosition. This position is now the
+         *                       first or the last in the path.
+         */
+        private void removeRedundantPathPositions(Vector oldEndPosition, Vector newEndPosition){
+            Collection<Vector> redundantPathPositions = new HashSet<>();
+            Collection<Vector> newNextAdjacentPositions = (newEndPosition==null) ? new HashSet<>() : unit.getWorld().getDirectlyAdjacentCubesPositions(newEndPosition);
+            unit.getWorld().getDirectlyAdjacentCubesSatisfying(
+                    redundantPathPositions,
+                    oldEndPosition,
+                    cube -> !newNextAdjacentPositions.contains(cube.getPosition()),
+                    WorldObject::getPosition
+            );
+            pathPositions.remove(oldEndPosition);
+            pathPositions.removeAll(redundantPathPositions);
         }
     }
 }

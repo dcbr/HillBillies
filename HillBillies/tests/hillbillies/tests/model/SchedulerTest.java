@@ -2,6 +2,8 @@ package hillbillies.tests.model;
 
 import hillbillies.model.*;
 import hillbillies.part3.programs.expressions.LiteralPosition;
+import hillbillies.part3.programs.expressions.SelectedPosition;
+import hillbillies.part3.programs.statements.Assignment;
 import hillbillies.part3.programs.statements.Print;
 import org.junit.After;
 import org.junit.Before;
@@ -37,7 +39,7 @@ public class SchedulerTest {
         scheduler1 = faction1.getScheduler();
         scheduler2 = faction2.getScheduler();
         task1 = new Task("task1",100,new Print(new LiteralPosition(0,0,0)),new int[]{0,0,0});
-        task2 = new Task("task2",200,new Print(new LiteralPosition(0,0,0)),new int[]{0,0,0});
+        task2 = new Task("task2",200,new Assignment<>("blub", new SelectedPosition()),new int[]{0,0,0});
     }
 
     @Before
@@ -178,17 +180,45 @@ public class SchedulerTest {
 
     @Test
     public void getAllTasksSatisfying() throws Exception {
+        scheduler1.addTask(task2);
+        Collection<Task> assignmentTasks = scheduler1.getAllTasksSatisfying(task -> task.getActivity() instanceof Assignment);// task2
+        Collection<Task> sameNamedTasks = scheduler1.getAllTasksSatisfying(task -> task.getName().startsWith("task"));// both task1 and task2
+        Collection<Task> lowPriorityTasks = scheduler1.getAllTasksSatisfying(task -> task.getPriority()<20);// empty
 
+        assertTrue(assignmentTasks.contains(task2));
+        assertFalse(assignmentTasks.contains(task1));
+        assertEquals(1, assignmentTasks.size());
+
+        assertTrue(sameNamedTasks.contains(task1));
+        assertTrue(sameNamedTasks.contains(task2));
+        assertEquals(2, sameNamedTasks.size());
+
+        assertFalse(lowPriorityTasks.contains(task1));
+        assertFalse(lowPriorityTasks.contains(task2));
+        assertEquals(0, lowPriorityTasks.size());
     }
 
     @Test
     public void getTaskSatisfying() throws Exception {
+        scheduler1.addTask(task2);
+        Task assignmentTask = scheduler1.getTaskSatisfying(task -> task.getActivity() instanceof Assignment);// task2
+        Task sameNamedTask = scheduler1.getTaskSatisfying(task -> task.getName().startsWith("task"));// task2 because it has higher priority than task1
+        Task lowPriorityTask = scheduler1.getTaskSatisfying(task -> task.getPriority() < 20);// null
 
+        assertEquals(task2, assignmentTask);
+        assertEquals(task2, sameNamedTask);
+        assertEquals(null, lowPriorityTask);
     }
 
     @Test
     public void getHighestPriorityAssignableTask() throws Exception {
-
+        scheduler1.addTask(task2);
+        assertEquals(task2, scheduler1.getHighestPriorityAssignableTask());
+        scheduler1.schedule(task2, unit11);
+        assertEquals(task1, scheduler1.getHighestPriorityAssignableTask());
+        scheduler1.schedule(task1, unit12);
+        assertEquals(null, scheduler1.getHighestPriorityAssignableTask());
+        scheduler1.deschedule(task2);
     }
 
     @Test

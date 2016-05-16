@@ -131,7 +131,7 @@ public abstract class Command<T> {
     private T run() throws IllegalStateException, NullPointerException{
         if(!this.isCurrentTaskSet())
             throw new IllegalStateException("This command is not linked to any task yet, so it can't be executed.");
-        if(!this.getCurrentTask().isRunning() || this.getRunner().isPaused())
+        if(!this.getCurrentTask().isRunning() || this.getRunner().isPausing())
             return null;
         T result = process();// TODO: change this by a directly call to process? since the preconditions are already checked
         this.currentChild = 0;
@@ -142,7 +142,7 @@ public abstract class Command<T> {
     protected <E> E runChild(Command<E> child) throws IllegalStateException, IllegalArgumentException{
         if(!this.isCurrentTaskSet())
             throw new IllegalStateException("This command is not linked to any task yet, so it can't be executed.");
-        if(!this.getRunner().isRunning() || this.getRunner().isPaused())
+        if(this.getRunner().isStopping() || this.getRunner().isPausing())
             return null;// We are stopping / pausing
         int childIndex = this.getChildren().indexOf(child);
         if(childIndex<currentChild && !executedChildren.contains(childIndex))
@@ -171,8 +171,8 @@ public abstract class Command<T> {
 
         this.setCurrentTask(task);
 
-        if(!this.getRunner().isRunning() || this.getRunner().isPaused())
-            throw new IllegalStateException("The task linked to this command is not running.");
+        if(this.getRunner().isStopping() || this.getRunner().isPausing())
+            throw new IllegalStateException("The taskRunner linked to this command is stopping or pausing.");
 
         this.run();
         this.resetCurrentTask();

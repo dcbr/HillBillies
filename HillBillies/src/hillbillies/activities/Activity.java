@@ -172,8 +172,11 @@ public abstract class Activity {
      */
     public void setDefault(boolean enable){
         this.isDefault = enable;
-        if(!enable)
+        if(!enable) {
+            if(unit.getTask()!=null)
+                unit.getFaction().getScheduler().deschedule(unit.getTask());
             this.requestFinish();
+        }
     }
 
     /**

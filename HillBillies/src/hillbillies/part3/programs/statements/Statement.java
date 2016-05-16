@@ -11,7 +11,7 @@ import java.util.HashSet;
  * @author Kenneth & Bram
  * @version 1.0
  */
-public abstract class Statement extends Command<Statement.Result> {
+public abstract class Statement extends Command<Void> {
 
     /**
      * The children must be specified in the order they will be executed.
@@ -22,31 +22,37 @@ public abstract class Statement extends Command<Statement.Result> {
     }
 
     @Override
-    protected final Result process() {
+    protected final Void process() {
         TaskRunner runner = this.getRunner();
         if(runner.isResuming()){
             this.setCurrentChild(runner.resumeState());
             if(this.getCurrentChild()>=this.getNbChildren())
                 return null;// This Statement is finished
-            execute();// Execute without consuming dt
+            safeExecute();// Execute without consuming dt
         }
         else if(!runner.breakLoop && runner.getDt()>0) {
             this.getRunner().consumeDt();
-            execute();// Otherwise execute and consume dt
+            safeExecute();// Otherwise execute and consume dt
         }
         else if(this.getRunner().getDt()==0d){
-            this.getRunner().interrupt();// If all dt is consumed, start interrupting
-            //return new Result(false, true);
+            this.getRunner().pause();// If all dt is consumed, start pausing
         }
-        if(this.getRunner().isPaused()) {
+        if(this.getRunner().isPausing()) {
             this.getRunner().saveState(this.getCurrentChild());// If we are interrupting, save the current state
-            //return new Result(false, true);
         }
-        //return new Result(true, false);
         return null;
     }
 
-    protected abstract void execute();
+    private void safeExecute(){
+        try{
+            execute();
+        }catch(NullPointerException e){
+            if(this.getRunner().isPausing() || this.getRunner().isStopping()) return;// Nothing wrong, runner is pausing or stopping
+            throw new NullPointerException("Strange NullPointerException occurred.");
+        }
+    }
+
+    protected abstract void execute() throws NullPointerException;
 
     public final boolean check(){
         return checkVariableAccess() && checkBreak();

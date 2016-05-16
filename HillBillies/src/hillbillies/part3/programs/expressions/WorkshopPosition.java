@@ -23,13 +23,13 @@ public class WorkshopPosition extends Expression<Vector> {
 	public Vector evaluate() throws NullPointerException {
 		Set<Cube> workshops = this.getRunner().getExecutingWorld().getWorkshops();
 		if (workshops.isEmpty()){
-			this.getRunner().interrupt();
+			this.getRunner().stop();
 			return null;
 		}
 		TargetMove targetmove = new TargetMove(this.getRunner().getExecutingUnit(), workshops);
 		Vector nearestPos = targetmove.getNearestPos();
 		if(nearestPos == null)
-			this.getRunner().interrupt();
+			this.getRunner().stop();
 		return nearestPos;
 	}
 

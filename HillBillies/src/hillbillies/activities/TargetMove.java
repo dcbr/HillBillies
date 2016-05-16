@@ -259,6 +259,13 @@ public class TargetMove extends Move {
         private Path computePath(Vector fromPosition){
         	this.add(fromPosition.getCubeCoordinates(), 0);
             controlledPos.clear();
+            if(this.targetPositions.contains(fromPosition)) {// Unit already stands on the target
+                ArrayDeque<Vector> path = new ArrayDeque<>();
+                HashSet<Vector> pathPositions = new HashSet<>();
+                path.add(fromPosition);
+                pathPositions.add(fromPosition);
+                return new Path(path, pathPositions);
+            }
             while (!this.targetFound() && this.hasNext()) {
                 searchNextPositions(this.getNext());
             }

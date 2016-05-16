@@ -26,13 +26,13 @@ public class Friend extends Expression<Unit> {
 		Set<Unit> units = this.getRunner().getExecutingWorld().getUnits();
 		units.removeIf(unit -> unit.getFaction()!=thisUnit.getFaction() || unit.isFalling() || unit == thisUnit);
 		if (units.isEmpty()){
-			this.getRunner().interrupt();
+			this.getRunner().stop();
 			return null;
 		}
 		TargetMove targetmove = new TargetMove(this.getRunner().getExecutingUnit(), units);
 		Unit NearestUnit = (Unit) targetmove.getNearestObject();
 		if(NearestUnit == null)
-			this.getRunner().interrupt();
+			this.getRunner().stop();
 		return NearestUnit;
 	}
 }

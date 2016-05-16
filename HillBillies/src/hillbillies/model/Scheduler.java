@@ -362,9 +362,8 @@ public class Scheduler implements Iterable<Task> {
      *          | task == null
      */
     public void deschedule(Task task) throws NullPointerException{
-        if(task.hasAsScheduler(this)){
-            if(task.isRunning())
-                task.stopRunning();
+        if(task.hasAsScheduler(this) && task.isRunning()){
+            task.stopRunning();
             task.getAssignedUnit().setTask(null);
             task.setAssignedUnit(null);
         }

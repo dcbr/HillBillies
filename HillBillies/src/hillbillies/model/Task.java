@@ -409,12 +409,9 @@ public class Task implements Comparable<Task> {
     public void run(){
         if(!this.getActivity().check())
             throw new IllegalStateException("This task's activity is not well-formed.");
-        if(runner==null){
-            runner = new TaskRunner();
-        }
-        if(runner.isRunning())
+        if(runner!=null)
             throw new IllegalStateException("This task is already running.");
-        runner.start();
+        runner = new TaskRunner();
     }
 
     public TaskRunner getRunner(){
@@ -424,14 +421,15 @@ public class Task implements Comparable<Task> {
     }
 
     public void stopRunning() throws IllegalStateException{// Note: call scheduler's deschedule method to properly interrupt the task's execution
-        if(runner==null || !runner.isRunning())
+        if(runner==null)
             throw new IllegalStateException("This task is not running.");
         runner.stop();
+        runner=null;
         this.decreasePriority();
     }
 
     public boolean isRunning(){
-        return runner!=null && runner.isRunning();
+        return runner!=null;
     }
 
     public void finish() throws IllegalStateException{
@@ -446,12 +444,13 @@ public class Task implements Comparable<Task> {
 
         private final VariableCollection assignedVariables;
         private final LinkedList<Integer> savedState;
-        private boolean isRunning, isPaused;
+        private boolean isStopping, isPausing, isPaused;
 
         private TaskRunner(){
             this.assignedVariables = new VariableCollection();
             this.savedState = new LinkedList<>();
-            this.isRunning = false;
+            this.isStopping = false;
+            this.isPausing = false;
             this.isPaused = false;
         }
 
@@ -485,12 +484,8 @@ public class Task implements Comparable<Task> {
 
         public boolean breakLoop = false;
 
-        public void start(){
-            this.isRunning = true;
-        }
-
-        public void interrupt(){
-            this.isPaused = true;
+        public void pause(){
+            this.isPausing = true;
         }
 
         public void resume(){
@@ -499,26 +494,30 @@ public class Task implements Comparable<Task> {
         }
 
         public void stop(){
-            this.isRunning = false;
+            this.isStopping = true;
         }
 
-        public boolean isRunning(){
-            return this.isRunning;
-        }
+        private boolean isPaused(){ return this.isPaused; }
 
-        public boolean isPaused(){ return this.isPaused; }
+        public boolean isPausing(){ return this.isPausing; }
+
+        public boolean isStopping(){ return this.isStopping; }
+
 
         public void advanceTask(double dt){
-            assert this.isRunning;
             if(this.isPaused() && this.resumeCondition.test(this.getExecutingUnit()))
                 this.resume();
             if(!this.isPaused()) {
                 this.dt = dt;
                 Task.this.getActivity().start(Task.this);
-                if (!this.isRunning()) {
+                if (this.isStopping()) {
                     // Program called stop => deschedule this task
                     Task.this.getAssignedUnit().getFaction().getScheduler().deschedule(Task.this);
-                } else if (!this.isPaused()) {
+                } else if (this.isPausing()) {
+                    // Program called pause => pause this task
+                    this.isPausing = false;
+                    this.isPaused = true;
+                } else {
                     // Program finished successfully
                     Task.this.finish();
                 }
@@ -555,7 +554,7 @@ public class Task implements Comparable<Task> {
         }
 
         public void waitFor(Predicate<Unit> resumeCondition){
-            this.interrupt();
+            this.pause();
             this.resumeCondition = resumeCondition;
         }
 

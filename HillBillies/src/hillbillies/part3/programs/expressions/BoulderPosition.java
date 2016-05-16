@@ -23,13 +23,13 @@ public class BoulderPosition extends Expression<Vector> {
 	public Vector evaluate() throws NullPointerException {
 		Set<Boulder> boulders = this.getRunner().getExecutingWorld().getBoulders(true);
 		if (boulders.isEmpty()){
-			this.getRunner().interrupt();
+			this.getRunner().stop();
 			return null;
 		}
 		TargetMove targetmove = new TargetMove(this.getRunner().getExecutingUnit(), boulders);
 		Vector nearestPos = targetmove.getNearestPos();
 		if(nearestPos == null)
-			this.getRunner().interrupt();
+			this.getRunner().stop();
 		return nearestPos;
 	}
 

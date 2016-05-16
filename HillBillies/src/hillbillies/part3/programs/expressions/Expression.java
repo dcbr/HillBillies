@@ -16,7 +16,7 @@ public abstract class Expression<T> extends Command<T>{
         try {
             return evaluate();
         }catch(NullPointerException e){
-            if(this.getRunner().isPaused() || !this.getRunner().isRunning()) return null;// Nothing wrong, runner is pausing or stopping
+            if(this.getRunner().isPausing() || this.getRunner().isStopping()) return null;// Nothing wrong, runner is pausing or stopping
             throw new NullPointerException("Strange NullPointerException occurred.");
         }
     }

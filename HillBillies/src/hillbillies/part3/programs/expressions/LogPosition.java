@@ -23,13 +23,13 @@ public class LogPosition extends Expression<Vector> {
 	public Vector evaluate() throws NullPointerException {
 		Set<Log> logs = this.getRunner().getExecutingWorld().getLogs(true);
 		if (logs.isEmpty()){
-			this.getRunner().interrupt();
+			this.getRunner().stop();
 			return null;
 		}
 		TargetMove targetmove = new TargetMove(this.getRunner().getExecutingUnit(), logs);
 		Vector nearestPos = targetmove.getNearestPos();
 		if(nearestPos == null)
-			this.getRunner().interrupt();
+			this.getRunner().stop();
 		return nearestPos;
 	}
 

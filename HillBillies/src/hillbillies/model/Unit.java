@@ -240,7 +240,7 @@ public class Unit extends WorldObject {
 	 * @return 	The highest possible value for the parameter
 	 */
 	@Basic
-	public static int getMaxValueAgainstWeight(int weight, int param) {
+	private static int getMaxValueAgainstWeight(int weight, int param) {
 		return (2*weight-param);
 	}
 	
@@ -1033,7 +1033,7 @@ public class Unit extends WorldObject {
 		if(world.isCubePassable(position.getCubeCoordinates())){
 			if(isAdjacentSolid(position))
 				return true;
-			if(isFalling())
+			if(this.getCurrentActivity() != null && isFalling())
 				return true;
 		}
 		return false;
@@ -1566,6 +1566,8 @@ public class Unit extends WorldObject {
 	}
 
 	private Activity getCurrentActivity(){
+		if(this.activityStack == null)
+			return null;
 		return this.activityStack.peek();
 	}
 

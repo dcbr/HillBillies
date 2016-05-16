@@ -171,34 +171,9 @@ public class Unit extends WorldObject {
 	private String name;
 
 	/**
-	 * Variable registering the strength of this unit.
+	 * Variables registering the strength, agility, toughness, weight, stamina and hitpoints of this unit.
 	 */
-	private int strength;
-
-	/**
-	 * Variable registering the agility of this unit.
-	 */
-	private int agility;
-
-	/**
-	 * Variable registering the toughness of this unit.
-	 */
-	private int toughness;
-
-	/**
-	 * Variable registering the weight of this unit.
-	 */
-	private int weight;
-
-	/**
-	 * Variable registering the stamina of this unit.
-	 */
-	private int stamina;
-
-	/**
-	 * Variable registering the hitpoints of this unit.
-	 */
-	private int hitpoints;
+	private int strength, agility, toughness, weight, stamina, hitpoints;
 
 	/**
 	 * Variable registering the orientation of this Unit.
@@ -265,7 +240,7 @@ public class Unit extends WorldObject {
 	 * @return 	The highest possible value for the parameter
 	 */
 	@Basic
-	public static int getMaxValueAgainstWeight(int weight, int param) {
+	private static int getMaxValueAgainstWeight(int weight, int param) {
 		return (2*weight-param);
 	}
 	
@@ -869,7 +844,7 @@ public class Unit extends WorldObject {
 	 * @effect This Unit is initialized in the given world with random initial values for its other properties
 	 * 			| this(world, random toughness, random weight)
 	 */
-	public Unit(IWorld world) throws IllegalArgumentException{	//TODO: Random value for hitpoints and stamina
+	public Unit(IWorld world) throws IllegalArgumentException{
 		this(world,randInt(INITIAL_MIN_TOUGHNESS, INITIAL_MAX_TOUGHNESS),
 				randInt(getInitialMinWeight(INITIAL_MIN_STRENGTH,INITIAL_MIN_AGILITY), INITIAL_MAX_WEIGHT) );
 	}
@@ -1036,8 +1011,8 @@ public class Unit extends WorldObject {
 		if(dt<0 || dt>0.2)
 			throw new IllegalArgumentException("The parameter dt must be in the range [0;0.2]");
 		// Defensively without documentation
-		if (!isFalling() && !validatePosition(getPosition())){// TODO: kheb hier && !isMoving() weggedaan, kdenk da daarmee den TODO hieronder inorde is
-			this./*activityController.*/requestNewActivity(new Fall(this)); //TODO: bij move telkens controleren of hij opeens moet vallen als er een blok veranderd naar passable
+		if (!isFalling() && !validatePosition(getPosition())){
+			this./*activityController.*/requestNewActivity(new Fall(this));
 		}
 
 		this./*activityController.*/advanceTime2(dt);
@@ -1050,7 +1025,8 @@ public class Unit extends WorldObject {
 		if(world.isCubePassable(position.getCubeCoordinates())){
 			if(isAdjacentSolid(position))
 				return true;
-			if(isFalling())
+			System.out.println(this.getCurrentActivity());
+			if(this.getCurrentActivity() != null && isFalling())
 				return true;
 		}
 		return false;
@@ -1616,6 +1592,8 @@ public class Unit extends WorldObject {
 		}
 
 		private Activity getCurrentActivity(){
+			if(this.activityStack == null)
+				return null;
 			return this.activityStack.peek();
 		}
 

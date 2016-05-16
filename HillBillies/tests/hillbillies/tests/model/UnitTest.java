@@ -1,12 +1,20 @@
 package hillbillies.tests.model;
 
+import hillbillies.model.Faction;
 import hillbillies.model.Unit;
+import hillbillies.model.World;
+import hillbillies.part2.listener.TerrainChangeListener;
 import hillbillies.utils.Vector;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
+
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Unit Test Class
@@ -15,25 +23,46 @@ import static org.junit.Assert.*;
  */
 public class UnitTest {
 
-	private static Unit unit, customUnit, unitx, unity, unitz;
-/*
+	private static Unit unit, customUnit, testUnit, unitx, unity, unitz;
+	private static World AirWorld;
+	private final static Set<TerrainChangeListener> listeners = new HashSet<>();
+	private static TerrainChangeListener modelListener = new TerrainChangeListener() {
+
+		@Override
+		public void notifyTerrainChanged(int x, int y, int z) {
+			for (TerrainChangeListener listener : new HashSet<>(listeners)) {
+				listener.notifyTerrainChanged(x, y, z);
+			}
+		}
+	};
+
     @BeforeClass
     public static void setUpClass() {
-        unit = new Unit("Unit", new Vector(25,25,25));
-        customUnit = new Unit("Custom", new Vector(20,20,20), 50, 50, 50, 100, 100, 100);
+    	int[][][] types = new int[50][50][2];
+    	for (int x = 0; x < types.length; x++) {
+			for (int y = 0; y < types[x].length; y++) {
+				for (int z = 0; z < types[x][y].length; z++) {
+					types[x][y][z] = 0;// A test world that only have air as type
+				}
+			}
+    	}
+    	AirWorld = new World(types, modelListener); 
+        unit = new Unit(AirWorld, "Unit", new Vector(25,25,0));
+        customUnit = new Unit(AirWorld, "Custom", new Vector(20,20,0), 50, 50, 50, 100, 100, 100);
     }
 
     @Before
     public void setUp() throws Exception {
-    	unitx = new Unit("Unitx", new Vector(23,23,0));
-    	unity = new Unit("Unity", new Vector(21,23,0));
-    	unitz = new Unit("Unitz", new Vector(22,22,0));
+    	unitx = new Unit(AirWorld,"Unitx", new Vector(23,23,0));
+    	unity = new Unit(AirWorld,"Unity", new Vector(21,23,0));
+    	unitz = new Unit(AirWorld,"Unitz", new Vector(22,22,0));
+        testUnit = new Unit(AirWorld,"TestUnit", new Vector(0,0,0));
     }
-
+    //TESTING CONSTRUCTORS
     @Test
     public void testConstructor1(){
         assertEquals(unit.getName(),"Unit");
-        assertTrue(unit.getPosition().equals(new Vector(25.5,25.5,25.5)));
+        assertTrue(unit.getPosition().equals(new Vector(25.5,25.5,0.5)));
         assertEquals(unit.getAgility(), Unit.INITIAL_MIN_AGILITY);
         assertEquals(unit.getStrength(), Unit.INITIAL_MIN_STRENGTH);
         assertEquals(unit.getToughness(), Unit.INITIAL_MIN_TOUGHNESS);
@@ -44,7 +73,7 @@ public class UnitTest {
     @Test
     public void testConstructor2(){
         assertEquals(customUnit.getName(),"Custom");
-        assertTrue(customUnit.getPosition().equals(new Vector(20.5,20.5,20.5)));
+        assertTrue(customUnit.getPosition().equals(new Vector(20.5,20.5,0.5)));
         assertEquals(customUnit.getAgility(), 50);
         assertEquals(customUnit.getStrength(), 50);
         assertEquals(customUnit.getToughness(), 50);
@@ -52,51 +81,121 @@ public class UnitTest {
         assertEquals(customUnit.getStamina(), 100);
         assertEquals(customUnit.getHitpoints(), 100);
         assertEquals(customUnit.getOrientation(), Unit.INITIAL_ORIENTATION, Vector.EQUALS_PRECISION);
-        assertTrue(customUnit.getCurrentActivity()==Activity.NONE);
     }
-    @Test(expected = IllegalArgumentException.class)
-    public void testConstructorInvalidName() throws IllegalArgumentException {
-        Unit n = new Unit("no caps", new Vector(20,20,20));
+    @Test
+    public void testConstructorRandom1(){
+    	Unit Random;
+    	for (int i=0; i<50; i++){
+    		Random = new Unit(AirWorld);
+    		assertTrue(Unit.isValidName(Random.getName()) && 
+    				Unit.isValidAgility(Random.getAgility())&&
+    		Unit.isValidInitialAgility(Random.getAgility())&&
+    		Unit.isValidHitpoints(Random.getHitpoints(), Random.getWeight(), Random.getToughness())&&
+    		Unit.isValidInitialHitpoints(Random.getHitpoints(), Random.getWeight(), Random.getToughness())&&
+    		Unit.isValidInitialStamina(Random.getStamina(), Random.getWeight(), Random.getToughness())&&
+    		Unit.isValidStamina(Random.getStamina(), Random.getWeight(), Random.getToughness())&&
+    		Unit.isValidInitialStrength(Random.getStrength())&&
+    		Unit.isValidStrength(Random.getStrength())&&
+    		Unit.isValidInitialToughness(Random.getToughness())&&
+    		Unit.isValidToughness(Random.getToughness())&&
+    		Unit.isValidInitialWeight(Random.getWeight(), Random.getStrength(), Random.getAgility())&&
+    		Unit.isValidWeight(Random.getWeight(), Random.getStrength(), Random.getAgility())&&
+    		Unit.isValidOrientation(Random.getOrientation()));
+    	}
     }
+    @Test
+    public void testConstructorRandom2(){
+    	Unit Random;
+    	Set<Long> ids = new HashSet<>();
+    	for (int i=0; i<50; i++){
+    		Random = new Unit(AirWorld);
+    		assertTrue(Unit.isValidName(Random.getName()) && 
+    				Unit.isValidAgility(Random.getAgility())&&
+    		Unit.isValidInitialAgility(Random.getAgility())&&
+    		Unit.isValidHitpoints(Random.getHitpoints(), Random.getWeight(), Random.getToughness())&&
+    		Unit.isValidInitialHitpoints(Random.getHitpoints(), Random.getWeight(), Random.getToughness())&&
+    		Unit.isValidInitialStamina(Random.getStamina(), Random.getWeight(), Random.getToughness())&&
+    		Unit.isValidStamina(Random.getStamina(), Random.getWeight(), Random.getToughness())&&
+    		Unit.isValidInitialStrength(Random.getStrength())&&
+    		Unit.isValidStrength(Random.getStrength())&&
+    		Unit.isValidInitialToughness(Random.getToughness())&&
+    		Unit.isValidToughness(Random.getToughness())&&
+    		Unit.isValidInitialWeight(Random.getWeight(), Random.getStrength(), Random.getAgility())&&
+    		Unit.isValidWeight(Random.getWeight(), Random.getStrength(), Random.getAgility())&&
+    		Unit.isValidOrientation(Random.getOrientation())&&
+    		Random.isValidFaction(Random.getFaction()));
+    		assertFalse(ids.contains(Random.getId()));
+    		ids.add(Random.getId());
+    	}
+    }
+    @Test
+    public void testConstructor3(){
+    	Unit testUnit3 = new Unit(AirWorld, "TestUnit II", new Vector(0,0,0),50, 50, 50, 100 );
+        assertEquals(testUnit3.getName(),"TestUnit II");
+        assertTrue(testUnit3.getPosition().equals(new Vector(0.5,0.5,0.5)));
+        assertEquals(testUnit3.getAgility(), 50);
+        assertEquals(testUnit3.getStrength(), 50);
+        assertEquals(testUnit3.getToughness(), 50);
+        assertEquals(testUnit3.getWeight(), 100);
+        assertEquals(testUnit3.getStamina(), Unit.getMaxStamina(testUnit3.getWeight(), testUnit3.getToughness()));
+        assertEquals(testUnit3.getHitpoints(), Unit.getMaxHitpoints(testUnit3.getWeight(), testUnit3.getToughness()));
+        assertEquals(testUnit3.getOrientation(), Unit.INITIAL_ORIENTATION, Vector.EQUALS_PRECISION);
+    }
+    
+    //TESTING NAMES
+    @Test
+    public void TestSetValidNames(){
+    	String validNames[] = new String[] { "O'Hara", "A '\"", "BLuB", "B ", "J Trump", "K III"};
+    	for (String name : validNames){
+    		testUnit.setName(name);
+    		assertEquals(name, testUnit.getName());
+    	}
+    }
+    @Test/*(expected = IllegalArgumentException.class)*/
+    public void testSetInvalidNames() throws IllegalArgumentException {
+    	String invalidNames[] = new String[] {"no caps", "B", " Blub", "'ABC", "K3"};
+    	for(String name:invalidNames){
+    		try{
+    			testUnit.setName(name);
+    		}catch (IllegalArgumentException e){
+    			//OK
+    		}
+    		assertEquals("TestUnit", testUnit.getName());
+    	}
+    }
+    
+    //TESTING POSITION
     @Test(expected = IllegalArgumentException.class)
     public void testConstructorInvalidPosition() throws IllegalArgumentException {
-        Unit n = new Unit("Name", new Vector(-10,20,30));
+        Unit n = new Unit(AirWorld, "Name", new Vector(-10,20,30));
     }
+    
+//    @Test
+//    public void testIsValidPosition(){
+//        assertFalse(Unit.validatePosition(new Vector(-1,0,0)));
+//        assertFalse(Unit.isValidPosition(new Vector(0,-0.0001,0)));
+//        assertFalse(Unit.isValidPosition(new Vector(0,0,-1)));
+//        assertFalse(Unit.isValidPosition(new Vector(51,0,0)));
+//        assertFalse(Unit.isValidPosition(new Vector(0,50.0001,0)));
+//        assertFalse(Unit.isValidPosition(new Vector(0,0,51)));
+//        assertTrue(Unit.isValidPosition(new Vector(1,1,1)));
+//        assertTrue(Unit.isValidPosition(new Vector(0,0,0)));
+//    }
+// TODO: dit is voor WorldObject   
+     
     @Test
-    public void testConstructorInvalidPoperties() {
-        Unit n = new Unit("New", new Vector(20,20,20), 500, 50, 50, 100, 50, 50);// Invalid strength
+    public void testConstructorInvalidProperties() {
+        Unit n = new Unit(AirWorld, "New", new Vector(20,20,0), 500, 50, 50, 100, 50, 50);// Invalid strength
         assertEquals(n.getStrength(), Unit.INITIAL_MIN_STRENGTH);
-        n = new Unit("New", new Vector(20,20,20), 50, 500, 50, 100, 50, 50);// Invalid agility
+        n = new Unit(AirWorld, "New", new Vector(20,20,0), 50, 500, 50, 100, 50, 50);// Invalid agility
         assertEquals(n.getAgility(), Unit.INITIAL_MIN_AGILITY);
-        n = new Unit("New", new Vector(20,20,20), 50, 50, 500, 100, 50, 50);// Invalid toughness
+        n = new Unit(AirWorld, "New", new Vector(20,20,0), 50, 50, 500, 100, 50, 50);// Invalid toughness
         assertEquals(n.getToughness(), Unit.INITIAL_MIN_TOUGHNESS);
-        n = new Unit("New", new Vector(20,20,20), 50, 50, 50, -100, 50, 50);// Invalid weight
+        n = new Unit(AirWorld, "New", new Vector(20,20,0), 50, 50, 50, -100, 50, 50);// Invalid weight
         assertEquals(n.getWeight(), Unit.getInitialMinWeight(50,50));
     }
-
-    @Test
-    public void testIsValidName() {
-        assertTrue(Unit.isValidName("Blub"));
-        assertFalse(Unit.isValidName("blub"));
-        assertFalse(Unit.isValidName("B"));
-        assertTrue(Unit.isValidName("A '\""));
-        assertFalse(Unit.isValidName("B.' 5"));
-        assertFalse(Unit.isValidName(" blub"));
-        assertFalse(Unit.isValidName("'ABC"));
-    }
-
-    @Test
-    public void testIsValidPosition(){
-        assertFalse(Unit.isValidPosition(new Vector(-1,0,0)));
-        assertFalse(Unit.isValidPosition(new Vector(0,-0.0001,0)));
-        assertFalse(Unit.isValidPosition(new Vector(0,0,-1)));
-        assertFalse(Unit.isValidPosition(new Vector(51,0,0)));
-        assertFalse(Unit.isValidPosition(new Vector(0,50.0001,0)));
-        assertFalse(Unit.isValidPosition(new Vector(0,0,51)));
-        assertTrue(Unit.isValidPosition(new Vector(1,1,1)));
-        assertTrue(Unit.isValidPosition(new Vector(0,0,0)));
-    }
-
+    
+    //TESTING PROPERTIES
     @Test
     public void testIsValidStrength(){
         assertFalse(Unit.isValidStrength(-1));// strength < MIN_STRENGTH
@@ -104,23 +203,30 @@ public class UnitTest {
         assertTrue(Unit.isValidStrength(1));
         assertFalse(Unit.isValidStrength(201));// strength > MAX_STRENGTH
         assertTrue(Unit.isValidStrength(150));
+        assertTrue(Unit.isValidStrength(Unit.MAX_STRENGTH));
+        assertTrue(Unit.isValidStrength(Unit.MIN_STRENGTH)); 
+        assertFalse(Unit.isValidStrength(Unit.MAX_STRENGTH+1));
+        assertFalse(Unit.isValidStrength(Unit.MIN_STRENGTH-1));
     }
     @Test
     public void testIsValidInitialStrength(){
         assertFalse(Unit.isValidInitialStrength(-1));// strength < MIN_STRENGTH
-        assertFalse(Unit.isValidInitialStrength(0));// strength < MIN_STRENGTH
+        assertFalse(Unit.isValidInitialStrength(Unit.INITIAL_MIN_STRENGTH-1));// strength < MIN_STRENGTH
         assertFalse(Unit.isValidInitialStrength(1));// strength < INITIAL_MIN_STRENGTH
         assertTrue(Unit.isValidInitialStrength(25));
-        assertFalse(Unit.isValidInitialStrength(101));// strength > INITIAL_MAX_STRENGTH
-        assertTrue(Unit.isValidInitialStrength(50));
+        assertFalse(Unit.isValidInitialStrength(Unit.INITIAL_MAX_STRENGTH+1));// strength > INITIAL_MAX_STRENGTH
+        assertTrue(Unit.isValidInitialStrength(Unit.INITIAL_MAX_STRENGTH));
+        assertTrue(Unit.isValidInitialStrength(Unit.INITIAL_MIN_STRENGTH));
     }
 
     @Test
     public void testIsValidAgility(){
         assertFalse(Unit.isValidAgility(-1));
-        assertFalse(Unit.isValidAgility(0));// Unit.MIN_AGILITY - 1
-        assertFalse(Unit.isValidAgility(201));// Unit.MAX_AGILITY - 1
+        assertFalse(Unit.isValidAgility(Unit.MIN_AGILITY - 1));// Unit.MIN_AGILITY - 1
+        assertFalse(Unit.isValidAgility(Unit.MAX_AGILITY + 1));// Unit.MAX_AGILITY + 1
         assertTrue(Unit.isValidAgility(150));
+        assertTrue(Unit.isValidAgility(Unit.MAX_AGILITY));
+        assertTrue(Unit.isValidAgility(Unit.MIN_AGILITY));
     }
     @Test
     public void testIsValidInitialAgility(){
@@ -133,39 +239,50 @@ public class UnitTest {
     @Test
     public void testIsValidToughness(){
         assertFalse(Unit.isValidToughness(-1));// toughness < MIN_TOUGHNESS
-        assertFalse(Unit.isValidToughness(0));// toughness < MIN_TOUGHNESS
+        assertFalse(Unit.isValidToughness(Unit.MAX_TOUGHNESS+1));// toughness > MAX_TOUGHNESS
         assertTrue(Unit.isValidToughness(1));
-        assertFalse(Unit.isValidToughness(201));// toughness > MAX_TOUGHNESS
+        assertFalse(Unit.isValidToughness(Unit.MIN_TOUGHNESS-1));// toughness < MIN_TOUGHNESS
         assertTrue(Unit.isValidToughness(150));
+        assertTrue(Unit.isValidToughness(Unit.MAX_TOUGHNESS));
+        assertTrue(Unit.isValidToughness(Unit.MIN_TOUGHNESS));
     }
     @Test
     public void testIsValidInitialToughness(){
         assertFalse(Unit.isValidInitialToughness(-1));// toughness < MIN_TOUGHNESS
-        assertFalse(Unit.isValidInitialToughness(0));// toughness < MIN_TOUGHNESS
+        assertFalse(Unit.isValidInitialToughness(Unit.INITIAL_MIN_TOUGHNESS-1));// toughness < MIN_TOUGHNESS
         assertFalse(Unit.isValidInitialToughness(1));// toughness < INITIAL_MIN_TOUGHNESS
         assertTrue(Unit.isValidInitialToughness(25));
-        assertFalse(Unit.isValidInitialToughness(101));// toughness > INITIAL_MAX_TOUGHNESS
-        assertTrue(Unit.isValidInitialToughness(50));
+        assertFalse(Unit.isValidInitialToughness(Unit.INITIAL_MAX_TOUGHNESS+1));// toughness > INITIAL_MAX_TOUGHNESS
+        assertTrue(Unit.isValidInitialToughness(Unit.INITIAL_MAX_TOUGHNESS));
+        assertTrue(Unit.isValidInitialToughness(Unit.INITIAL_MIN_TOUGHNESS));
     }
 
     @Test
     public void testIsValidWeight(){
         assertFalse(Unit.isValidWeight(-1,1,1));// weight < getMinWeight(1,1)
-        assertFalse(Unit.isValidWeight(0,1,1));// weight < getMinWeight(1,1)
+        assertFalse(Unit.isValidWeight(Unit.MIN_WEIGHT-1,1,1));// weight < getMinWeight(1,1)
         assertTrue(Unit.isValidWeight(1,1,1));
-        assertFalse(Unit.isValidWeight(201,1,1));// weight > MAX_WEIGHT
+        assertFalse(Unit.isValidWeight(Unit.MAX_WEIGHT+1,1,1));// weight > MAX_WEIGHT
         assertTrue(Unit.isValidWeight(150,1,1));
         assertFalse(Unit.isValidWeight(50,100,100));// weight < getMinWeight(100,100)
+        assertTrue(Unit.isValidWeight(Unit.MIN_WEIGHT, 1,1));
+        assertTrue(Unit.isValidWeight(Unit.MAX_WEIGHT,1,1));
+        assertTrue(Unit.isValidWeight(Unit.getMinWeight(1, 1),1,1));
+        assertFalse(Unit.isValidWeight(Unit.getMinWeight(1, 1)-1,1,1));
     }
     @Test
     public void testIsValidInitialWeight(){
         assertFalse(Unit.isValidInitialWeight(-1,1,1));// weight < getMinWeight(1,1)
-        assertFalse(Unit.isValidInitialWeight(0,1,1));// weight < getMinWeight(1,1)
+        assertFalse(Unit.isValidInitialWeight(Unit.INITIAL_MIN_WEIGHT-1,1,1));// weight < getMinWeight(1,1)
         assertFalse(Unit.isValidInitialWeight(1,1,1));// weight < getInitialMinWeight(1,1)
         assertTrue(Unit.isValidInitialWeight(25,1,1));
-        assertFalse(Unit.isValidInitialWeight(101,1,1));// weight > INITIAL_MAX_WEIGHT
+        assertFalse(Unit.isValidInitialWeight(Unit.INITIAL_MAX_WEIGHT+1,1,1));// weight > INITIAL_MAX_WEIGHT
         assertTrue(Unit.isValidInitialWeight(50,1,1));
         assertFalse(Unit.isValidInitialWeight(50,100,100));// weight < getMinWeight(100,100)
+        assertTrue(Unit.isValidInitialWeight(Unit.INITIAL_MIN_WEIGHT, 1,1));
+        assertTrue(Unit.isValidInitialWeight(Unit.INITIAL_MAX_WEIGHT,1,1));
+        assertTrue(Unit.isValidInitialWeight(Unit.getInitialMinWeight(1, 1),1,1));
+        assertFalse(Unit.isValidInitialWeight(Unit.getInitialMinWeight(1, 1)-1,1,1));
     }
 
     @Test
@@ -175,15 +292,19 @@ public class UnitTest {
         assertFalse(Unit.isValidStamina(801,200,200));// stamina > getMaxStamina(200,200)
         assertTrue(Unit.isValidStamina(560,200,200));
         assertFalse(Unit.isValidStamina(100,25,25));
+        assertTrue(Unit.isValidStamina(Unit.getMaxStamina(200, 200),200,200));
+        assertTrue(Unit.isValidStamina(Unit.MIN_STAMINA,200,200));
+        assertFalse(Unit.isValidStamina(Unit.getMaxStamina(200, 200)+1,200,200));
+        assertFalse(Unit.isValidStamina(Unit.MIN_STAMINA-1,200,200));
     }
     @Test
     public void testIsValidInitialStamina(){
         assertFalse(Unit.isValidInitialStamina(-1,1,1));// stamina < MIN_STAMINA
-        assertFalse(Unit.isValidInitialStamina(0,100,100));// stamina < INITIAL_MIN_STAMINA
+        assertFalse(Unit.isValidInitialStamina(Unit.INITIAL_MIN_STAMINA-1,100,100));// stamina < INITIAL_MIN_STAMINA
         assertTrue(Unit.isValidInitialStamina(1,100,100));
-        assertFalse(Unit.isValidInitialStamina(801,200,200));// stamina > getMaxStamina(200,200)
-        assertTrue(Unit.isValidInitialStamina(560,200,200));
-        assertFalse(Unit.isValidInitialStamina(100,25,25));
+        assertFalse(Unit.isValidInitialStamina(Unit.getMaxStamina(200,200)+1,200,200));// stamina > getMaxStamina(200,200)
+        assertTrue(Unit.isValidInitialStamina(Unit.INITIAL_MIN_STAMINA,100,100));
+        assertTrue(Unit.isValidInitialStamina(Unit.getMaxStamina(200,200),200,200));
     }
 
     @Test
@@ -193,15 +314,19 @@ public class UnitTest {
         assertFalse(Unit.isValidHitpoints(801,200,200));// hitpoints > getMaxHitpoints(200,200)
         assertTrue(Unit.isValidHitpoints(560,200,200));
         assertFalse(Unit.isValidHitpoints(100,25,25));
+        assertTrue(Unit.isValidHitpoints(Unit.getMaxHitpoints(200, 200),200,200));
+        assertTrue(Unit.isValidHitpoints(Unit.MIN_HITPOINTS,200,200));
+        assertFalse(Unit.isValidHitpoints(Unit.getMaxHitpoints(200, 200)+1,200,200));
+        assertFalse(Unit.isValidHitpoints(Unit.MIN_HITPOINTS-1,200,200));
     }
     @Test
     public void testIsValidInitialHitpoints(){
-        assertFalse(Unit.isValidInitialHitpoints(-1,1,1));// hitpoints < MIN_HITPOINTS
-        assertFalse(Unit.isValidInitialHitpoints(0,1,1));// hitpoints < INITIAL_MIN_HITPOINTS
-        assertTrue(Unit.isValidInitialHitpoints(1,1,1));
-        assertFalse(Unit.isValidInitialHitpoints(801,200,200));// hitpoints > getMaxHitpoints(200,200)
-        assertTrue(Unit.isValidInitialHitpoints(560,200,200));
-        assertFalse(Unit.isValidInitialHitpoints(100,25,25));
+        assertFalse(Unit.isValidInitialHitpoints(-1,1,1));// stamina < MIN_STAMINA
+        assertFalse(Unit.isValidInitialHitpoints(Unit.INITIAL_MIN_HITPOINTS-1,100,100));// stamina < INITIAL_MIN_STAMINA
+        assertTrue(Unit.isValidInitialHitpoints(1,100,100));
+        assertFalse(Unit.isValidInitialHitpoints(Unit.getMaxHitpoints(200,200)+1,200,200));// stamina > getMaxStamina(200,200)
+        assertTrue(Unit.isValidInitialHitpoints(Unit.INITIAL_MIN_HITPOINTS,100,100));
+        assertTrue(Unit.isValidInitialHitpoints(Unit.getMaxHitpoints(200,200),200,200));
     }
     
     @Test
@@ -210,9 +335,101 @@ public class UnitTest {
     	assertFalse(Unit.isValidOrientation((float)(5*Math.PI)));
     	assertTrue(Unit.isValidOrientation((float)(0)));
     	assertTrue(Unit.isValidOrientation(Unit.MAX_ORIENTATION));
+    	assertTrue(Unit.isValidOrientation(Unit.MIN_ORIENTATION));
+    	assertFalse(Unit.isValidOrientation(Unit.MAX_ORIENTATION+1));
+    	assertFalse(Unit.isValidOrientation(Unit.MIN_ORIENTATION-1));
+    	assertTrue(Unit.isValidOrientation(Unit.INITIAL_ORIENTATION));
     }
-
+    
     @Test
+    public void testSetFaction(){
+    	Set<Faction> factions = AirWorld.getFactions();
+    	Iterator<Faction> iterator = factions.iterator();
+    	while(iterator.hasNext()){
+    		Faction f = iterator.next();
+    		testUnit.setFaction(f);
+    		assertTrue(testUnit.isValidFaction(testUnit.getFaction()));
+    		assertEquals(f, testUnit.getFaction());
+    	}
+    	assertFalse(testUnit.isValidFaction(new Faction()));
+    	
+    }
+    
+    @Test
+    public void testSetAgility(){
+    	testUnit.setAgility(Unit.MIN_AGILITY-1);
+    	assertFalse(Unit.MIN_AGILITY-1 == testUnit.getAgility());
+    	int weight = testUnit.getWeight();
+    	testUnit.setStrength(Unit.MAX_STRENGTH);
+    	testUnit.setAgility(Unit.MAX_AGILITY);
+    	assertTrue(testUnit.getAgility() == Unit.MAX_AGILITY);
+    	assertFalse(testUnit.getWeight() == weight);
+    }
+    
+    @Test
+    public void testSetHitpoints(){
+    	testUnit.setHitpoints(Unit.MIN_HITPOINTS);
+    	assertTrue(Unit.MIN_HITPOINTS == testUnit.getHitpoints());
+    	assertFalse(Unit.MIN_HITPOINTS+1 == testUnit.getHitpoints());
+    }
+    @Test
+    public void testSetInitialHitpoints(){
+    	testUnit.setInitialHitpoints(Unit.INITIAL_MIN_HITPOINTS);
+    	assertEquals(Unit.INITIAL_MIN_HITPOINTS,testUnit.getHitpoints());
+    	assertFalse(Unit.INITIAL_MIN_HITPOINTS+1 == testUnit.getHitpoints());
+    }
+    
+    @Test
+    public void testSetOrientation(){
+    	testUnit.setOrientation(Unit.MAX_ORIENTATION);
+    	assertTrue(testUnit.getOrientation() == Unit.MIN_ORIENTATION);
+    	testUnit.setOrientation(3*(float)Math.PI);
+    	assertTrue(testUnit.getOrientation() == (3*(float)Math.PI)%Unit.MAX_ORIENTATION);	
+    }
+    @Test
+    public void testSetStamina(){
+    	testUnit.setStamina(Unit.MIN_STAMINA);
+    	assertTrue(Unit.MIN_STAMINA == testUnit.getStamina());
+    	assertFalse(Unit.MIN_STAMINA+1 == testUnit.getStamina());
+    }
+    @Test
+    public void testSetInitialStamina(){
+    	testUnit.setInitialStamina(Unit.INITIAL_MIN_STAMINA);
+    	assertTrue(Unit.INITIAL_MIN_STAMINA == testUnit.getStamina());
+    	assertFalse(Unit.INITIAL_MIN_STAMINA+1 == testUnit.getStamina());
+    }
+    @Test
+    public void testSetStrength(){
+    	testUnit.setStrength(Unit.MIN_STRENGTH-1);
+    	assertFalse(Unit.MIN_STRENGTH-1 == testUnit.getStrength());
+    	int weight = testUnit.getWeight();
+    	testUnit.setAgility(Unit.MAX_AGILITY);
+    	testUnit.setStrength(Unit.MAX_STRENGTH);
+    	assertTrue(testUnit.getStrength() == Unit.MAX_STRENGTH);
+    	assertFalse(testUnit.getWeight() == weight);    	
+    }
+    @Test
+    public void testSetToughness(){
+    	testUnit.setToughness(Unit.MIN_TOUGHNESS-1);
+    	assertFalse(Unit.MIN_TOUGHNESS-1 == testUnit.getToughness());
+    	testUnit.setToughness(Unit.MAX_TOUGHNESS);
+    	assertTrue(Unit.MAX_TOUGHNESS == testUnit.getToughness());
+    	testUnit.setToughness(Unit.MAX_TOUGHNESS+1);
+    	assertTrue(Unit.MAX_TOUGHNESS == testUnit.getToughness());    	
+    }
+    @Test
+    public void testSetWeight(){
+    	testUnit.setWeight(Unit.getMinWeight(testUnit.getStrength()-1, testUnit.getAgility()));
+    	assertFalse(Unit.getMinWeight(testUnit.getStrength()-1, testUnit.getAgility()) == testUnit.getWeight());
+    	testUnit.setWeight(Unit.MAX_WEIGHT+1);
+    	assertTrue(testUnit.getWeight()== Unit.INITIAL_MIN_WEIGHT);
+    	testUnit.setWeight(Unit.MAX_WEIGHT);
+    	assertTrue(testUnit.getWeight()== Unit.MAX_WEIGHT);
+    }
+    
+    
+    
+/*    @Test
     public void testIsAbleToMove(){
         assertTrue(unity.isAbleToMove());
         unity.work();

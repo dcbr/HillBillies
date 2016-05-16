@@ -171,9 +171,34 @@ public class Unit extends WorldObject {
 	private String name;
 
 	/**
-	 * Variables registering the strength, agility, toughness, weight, stamina and hitpoints of this unit.
+	 * Variable registering the strength of this unit.
 	 */
-	private int strength, agility, toughness, weight, stamina, hitpoints;
+	private int strength;
+
+	/**
+	 * Variable registering the agility of this unit.
+	 */
+	private int agility;
+
+	/**
+	 * Variable registering the toughness of this unit.
+	 */
+	private int toughness;
+
+	/**
+	 * Variable registering the weight of this unit.
+	 */
+	private int weight;
+
+	/**
+	 * Variable registering the stamina of this unit.
+	 */
+	private int stamina;
+
+	/**
+	 * Variable registering the hitpoints of this unit.
+	 */
+	private int hitpoints;
 
 	/**
 	 * Variable registering the orientation of this Unit.
@@ -240,7 +265,7 @@ public class Unit extends WorldObject {
 	 * @return 	The highest possible value for the parameter
 	 */
 	@Basic
-	private static int getMaxValueAgainstWeight(int weight, int param) {
+	public static int getMaxValueAgainstWeight(int weight, int param) {
 		return (2*weight-param);
 	}
 	
@@ -1012,21 +1037,28 @@ public class Unit extends WorldObject {
 			throw new IllegalArgumentException("The parameter dt must be in the range [0;0.2]");
 		// Defensively without documentation
 		if (!isFalling() && !validatePosition(getPosition())){
-			this./*activityController.*/requestNewActivity(new Fall(this));
+			this.requestNewActivity(new Fall(this));
 		}
 
-		this./*activityController.*/advanceTime2(dt);
+		if(!this.isResting()) {
+			restTimer += dt;
+			if (restTimer >= Rest.REST_INTERVAL && REST.isAbleTo()) {
+				rest();
+			}
+		}
+
+		this.getCurrentActivity().advanceTime(dt);
 	}
 
 	@Override
 	protected boolean validatePosition(Vector position) {
 		IWorld world = this.getWorld();
+		if(world instanceof LobbyWorld) return true;
 		// world.isValidPosition(position) wordt al gecontroleerd in isValidPosition
 		if(world.isCubePassable(position.getCubeCoordinates())){
 			if(isAdjacentSolid(position))
 				return true;
-			System.out.println(this.getCurrentActivity());
-			if(this.getCurrentActivity() != null && isFalling())
+			if(isFalling())
 				return true;
 		}
 		return false;
@@ -1476,180 +1508,122 @@ public class Unit extends WorldObject {
 		}
 	}
 
-	//region falling
+	/**
+	 * Variable registering the time passed since the unit's last rest.
+	 */
+	private double restTimer = 0d;
 
-	/*public boolean isFalling(){
-		return this.activityController.isFalling();
-	}*/
+	public final None NONE = new None(Unit.this);
+	public final Rest REST = new Rest(Unit.this);
 
+	private Stack<Activity> activityStack;
 
-	//endregion
+	public void requestNewActivity(Activity activity) throws IllegalArgumentException,IllegalStateException{
+		if(activity.getUnitId()!=Unit.this.getId())
+			throw new IllegalArgumentException("This activity is not bound to this unit.");
+		if(activity.isActive())
+			throw new IllegalArgumentException("This activity is already active.");
+		if(!this.getCurrentActivity().isDefault() && !activity.isAbleTo())
+			throw new IllegalStateException("This unit cannot " + activity.toString() + " at this moment");
 
-	/*public final ActivityController activityController;
-
-	public final class ActivityController{*/
-
-		/**
-		 * Variable registering the time passed since the unit's last rest.
-		 */
-		private double restTimer = 0d;
-		/**
-		 * Boolean determining whether this ActivityController is running.
-		 */
-		private boolean started = false;
-
-		public final None NONE = new None(Unit.this);
-		public final Rest REST = new Rest(Unit.this);
-
-		private Stack<Activity> activityStack;
-
-		/*private ActivityController(){
-			this.activityStack = new Stack<>();
-			this.activityStack.push(NONE);
-		}
-
-		private void start(){
-			if(started)
-				throw new IllegalStateException("An activityController can only be started once!");
-			this.getCurrentActivity().start();
-			started = true;
-			// Start should only be called after initialization. Since this call would give
-			// an error if it were placed inside the constructor.
-		}*/
-
-		public void requestNewActivity(Activity activity) throws IllegalArgumentException,IllegalStateException{
-			if(activity.getUnitId()!=Unit.this.getId())
-				throw new IllegalArgumentException("This activity is not bound to this unit.");
-			if(activity.isActive())
-				throw new IllegalArgumentException("This activity is already active.");
-			if(!this.getCurrentActivity().isDefault() && !activity.isAbleTo())
-				throw new IllegalStateException("This unit cannot " + activity.toString() + " at this moment");
-
-			boolean isDefault = this.getCurrentActivity().isDefault();
+		boolean isDefault = this.getCurrentActivity().isDefault();
+		try{
+			this.getCurrentActivity().interrupt(activity);
+		}catch(IllegalStateException interruptException){
 			try{
-				this.getCurrentActivity().interrupt(activity);
-			}catch(IllegalStateException interruptException){
-				try{
-					stopCurrentActivity(true);
-				}catch(IllegalStateException stopException){
-					throw new IllegalStateException("The current activity cannot be interrupted nor stopped by the given Activity.");
-				}
-			}
-			this.activityStack.push(activity);
-			this.getCurrentActivity().start(isDefault);
-			if(this.getCurrentActivity() instanceof Rest)
-				restTimer = 0d;// Reset rest timer
-		}
-
-		public void requestActivityFinish(Activity activity){
-			requestActivityFinish(activity, false);
-		}
-
-		public void requestActivityFinish(Activity activity, boolean finishParent) throws IllegalArgumentException{
-			// TODO: maybe change this to reportActivityFinish and check for inactiviy of current activity and then resume previous in stack
-			if(activity == null)
-				throw new IllegalArgumentException("Invalid activity.");
-			if(activity.getUnitId()!=Unit.this.getId())
-				throw new IllegalArgumentException("This activity is not bound to this unit.");
-			if(activity!=this.getCurrentActivity() || !activity.isActive())
-				throw new IllegalArgumentException("This activity is not currently active.");
-			//if(this.activityStack.size()==1)
-			//	throw new IllegalStateException("Since this is the last activity in stack, it can not be finished.");
-			boolean isDefault = this.getCurrentActivity().isDefault();
-			stopCurrentActivity(finishParent);
-			if(this.activityStack.size()==0)
-				this.activityStack.push(NONE);
-			this.getCurrentActivity().start(isDefault);// Resume previous activity in stack
-		}
-
-		public void restartActivity(){
-			restartActivity(false);
-		}
-
-		public void restartActivity(boolean restartParent){
-			Activity activity = this.getCurrentActivity();
-			boolean isDefault = activity.isDefault();
-			if(restartParent && !activity.isParentActivity(null)){
-				stopCurrentActivity(false);
-				this.getCurrentActivity().setDefault(isDefault);
-				restartActivity(true);
-			}else {
-				activity.stop();
-				activity.start(isDefault);
-			}
-		}
-
-		private void stopCurrentActivity(boolean finishParent) throws IllegalStateException{
-			Activity oldActivity = this.getCurrentActivity();
-			oldActivity.stop();
-			this.activityStack.pop();
-			if(oldActivity.wasSuccessful())
-				Unit.this.addXP(oldActivity.getXp());
-			if(oldActivity instanceof Rest)
-				restTimer = 0d;// Reset rest timer
-			if(finishParent && oldActivity.isParentActivity(this.getCurrentActivity()))
 				stopCurrentActivity(true);
-		}
-
-		private Activity getCurrentActivity(){
-			if(this.activityStack == null)
-				return null;
-			return this.activityStack.peek();
-		}
-
-		public boolean isCurrentActivity(Activity activity){
-			return this.getCurrentActivity()==activity;
-		}
-
-		public void advanceTime2(double dt){
-			if(!this.isResting()) {
-				restTimer += dt;
-				if (restTimer >= Rest.REST_INTERVAL && REST.isAbleTo()) {
-					rest();
-				}
+			}catch(IllegalStateException stopException){
+				throw new IllegalStateException("The current activity cannot be interrupted nor stopped by the given Activity.");
 			}
+		}
+		this.activityStack.push(activity);
+		this.getCurrentActivity().start(isDefault);
+		if(this.getCurrentActivity() instanceof Rest)
+			restTimer = 0d;// Reset rest timer
+	}
 
-			this.getCurrentActivity().advanceTime(dt);
-		}
+	public void requestActivityFinish(Activity activity){
+		requestActivityFinish(activity, false);
+	}
 
-		/**
-		 * General method to check whether this Unit is executing an activity of given kind.
-		 * @param activity The kind of activity to check for
-         * @return True if this Unit's current Activity is of the same kind as activity AND this Activity is active.
-         */
-		public boolean isExecuting(Class<? extends Activity> activity){
-			return this.getCurrentActivity().isActive() && activity.isInstance(this.getCurrentActivity());
-		}
+	public void requestActivityFinish(Activity activity, boolean finishParent) throws IllegalArgumentException{
+		// TODO: maybe change this to reportActivityFinish and check for inactiviy of current activity and then resume previous in stack
+		if(activity == null)
+			throw new IllegalArgumentException("Invalid activity.");
+		if(activity.getUnitId()!=Unit.this.getId())
+			throw new IllegalArgumentException("This activity is not bound to this unit.");
+		if(activity!=this.getCurrentActivity() || !activity.isActive())
+			throw new IllegalArgumentException("This activity is not currently active.");
+		boolean isDefault = this.getCurrentActivity().isDefault();
+		stopCurrentActivity(finishParent);
+		if(this.activityStack.size()==0)
+			this.activityStack.push(NONE);
+		this.getCurrentActivity().start(isDefault);// Resume previous activity in stack
+	}
 
-		public boolean isAttacking(){
-			return this.isExecuting(Attack.class);
-		}
+	public void restartActivity(){
+		restartActivity(false);
+	}
 
-		public boolean isMoving(){
-			return this.isExecuting(Move.class);
+	public void restartActivity(boolean restartParent){
+		Activity activity = this.getCurrentActivity();
+		boolean isDefault = activity.isDefault();
+		if(restartParent && !activity.isParentActivity(null)){
+			stopCurrentActivity(false);
+			this.getCurrentActivity().setDefault(isDefault);
+			restartActivity(true);
+		}else {
+			activity.stop();
+			activity.start(isDefault);
 		}
+	}
 
-		public boolean isResting(){
-			return this.isExecuting(Rest.class);
-		}
+	private void stopCurrentActivity(boolean finishParent) throws IllegalStateException{
+		Activity oldActivity = this.getCurrentActivity();
+		oldActivity.stop();
+		this.activityStack.pop();
+		if(oldActivity.wasSuccessful())
+			Unit.this.addXP(oldActivity.getXp());
+		if(oldActivity instanceof Rest)
+			restTimer = 0d;// Reset rest timer
+		if(finishParent && oldActivity.isParentActivity(this.getCurrentActivity()))
+			stopCurrentActivity(true);
+	}
 
-		public boolean isWorking(){
-			return this.isExecuting(Work.class);
-		}
+	private Activity getCurrentActivity(){
+		return this.activityStack.peek();
+	}
 
-		public boolean isFalling(){
-			return this.isExecuting(Fall.class);
-		}
-	//}
-		public Vector getPosition(Object object){
-			
-			return null; //TODO
-		}
+	public boolean isCurrentActivity(Activity activity){
+		return this.getCurrentActivity()==activity;
+	}
+
+	/**
+	 * General method to check whether this Unit is executing an activity of given kind.
+	 * @param activity The kind of activity to check for
+	 * @return True if this Unit's current Activity is of the same kind as activity AND this Activity is active.
+	 */
+	public boolean isExecuting(Class<? extends Activity> activity){
+		return this.getCurrentActivity().isActive() && activity.isInstance(this.getCurrentActivity());
+	}
+
+	public boolean isAttacking(){
+		return this.isExecuting(Attack.class);
+	}
+
+	public boolean isMoving(){
+		return this.isExecuting(Move.class);
+	}
+
+	public boolean isResting(){
+		return this.isExecuting(Rest.class);
+	}
+
+	public boolean isWorking(){
+		return this.isExecuting(Work.class);
+	}
+
+	public boolean isFalling(){
+		return this.isExecuting(Fall.class);
+	}
 }
-
-	
-
-	
-
-	
-

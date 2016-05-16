@@ -83,8 +83,7 @@ public class Material implements IWorldObject {
             WorldObject owner = this.getOwner();
             this.setOwner(null);
             owner.removeOwnedMaterial(this);
-        }// TODO: fix this (separate method isValidPosition which checks position and not owner Unit?)
-        //TODO: (for next part) move falling code to separate place
+        }
         if(this.getOwner() == null) {
             Vector cPos = this.getPosition();
             Vector cPosCube = cPos.getCubeCenterCoordinates();

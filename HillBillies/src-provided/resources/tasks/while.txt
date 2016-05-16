@@ -1,0 +1,11 @@
+name: "while"
+priority : 35
+activities:
+	w := true;
+	v := false;
+	while (w || v) do
+		w := ! v;
+		v := ! v;
+		print w;
+		print v;
+	done

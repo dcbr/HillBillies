@@ -13,7 +13,7 @@ import hillbillies.utils.Vector;
 /**
  * Created by Bram on 2-4-2016.
  */
-public interface IWorld {// TODO: fix this ugly shizzle -> when everything is finished, delete this class and let LobbyWorld extend World
+public interface IWorld {
 
     /**
      * Check whether the given position is a valid position
@@ -70,7 +70,7 @@ public interface IWorld {// TODO: fix this ugly shizzle -> when everything is fi
 
     public Cube getCube(Vector position);
 
-    public void collapse(Vector coordinate);// TODO: change collapse to Cube
+    public void collapse(Vector coordinate);
 
     public void removeUnit(Unit unit);
 

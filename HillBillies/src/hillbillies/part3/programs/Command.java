@@ -33,6 +33,7 @@ public abstract class Command<T> {
      * is currently running this Command.
      */
     private Task currentTask;
+    private HashSet<Integer> executedChildren;
 
     public Command(Command<?>... children) throws IllegalArgumentException {
         this.children = new ArrayList<>(Arrays.asList(children));
@@ -40,6 +41,7 @@ public abstract class Command<T> {
             if(this.children.get(i)==null || this.indicesSatisfying(command -> this==command).size()!=0)
                 // Child is null or it contains this Command in its subCommands
                 throw new IllegalArgumentException("The child at index " + i + " is an invalid child for this command.");
+        this.executedChildren = new HashSet<>();
     }
 
     protected <C extends Command<?>> HashSet<Integer> indicesOf(Class<C> type){
@@ -105,6 +107,8 @@ public abstract class Command<T> {
         for (Command<?> child : this.children)
             child.setCurrentTask(task);
         this.currentTask = task;
+        this.executedChildren.clear();
+        this.currentChild = 0;
     }
 
     private void resetCurrentTask(){
@@ -129,7 +133,10 @@ public abstract class Command<T> {
             throw new IllegalStateException("This command is not linked to any task yet, so it can't be executed.");
         if(!this.getCurrentTask().isRunning() || this.getRunner().isPaused())
             return null;
-        return process();// TODO: change this by a directly call to process? since the preconditions are already checked
+        T result = process();// TODO: change this by a directly call to process? since the preconditions are already checked
+        this.currentChild = 0;
+        this.executedChildren.clear();
+        return result;
     }
 
     protected <E> E runChild(Command<E> child) throws IllegalStateException, IllegalArgumentException{
@@ -138,9 +145,10 @@ public abstract class Command<T> {
         if(!this.getRunner().isRunning() || this.getRunner().isPaused())
             return null;// We are stopping / pausing
         int childIndex = this.getChildren().indexOf(child);
-        if(childIndex<currentChild)
+        if(childIndex<currentChild && !executedChildren.contains(childIndex))
             throw new IllegalArgumentException("The given child command should be run before the currently running command.");
         setCurrentChild(childIndex);
+        executedChildren.add(childIndex);
         return child.run();
     }
 

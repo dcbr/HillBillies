@@ -39,12 +39,17 @@ public class NextToPosition extends UnaryExpression<Vector, Vector> {
 				cube -> this.getRunner().getExecutingUnit().isValidPosition(cube.getPosition()),
 				cube -> cube
 		);
-		Vector nextTo = new TargetMove(this.getRunner().getExecutingUnit(), positions).getNearestPos();
-		if(nextTo == null){
-			// No accessible positions available => stop activity
-			this.getRunner().stop();// TODO: check if taskRunner is stopped before executing next statement
+		try {
+			Vector nextTo = new TargetMove(this.getRunner().getExecutingUnit(), positions).getNearestPos();
+			if (nextTo == null) {
+				// No accessible positions available => stop activity
+				this.getRunner().stop();// TODO: check if taskRunner is stopped before executing next statement
+			}
+			return nextTo;
+		}catch(IllegalArgumentException e){
+			this.getRunner().stop();// No reachable positions available
+			return null;
 		}
-		return nextTo;
 	}
 
 }

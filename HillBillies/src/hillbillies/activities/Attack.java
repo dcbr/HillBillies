@@ -96,12 +96,13 @@ public class Attack extends Activity{
         return unit.getId() != defender.getId() &&
                 !unit.isAttacking() &&
                 !unit.isInitialRestMode() &&
-                (defender.getHitpoints() > Unit.MIN_HITPOINTS) && // TODO: !defender.isTerminated() ?
+                (defender.getHitpoints() > Unit.MIN_HITPOINTS) &&
                 unit.getWorld().getDirectlyAdjacentCubesPositions(
                         defender.getPosition().getCubeCoordinates()
                 ).contains(unit.getPosition().getCubeCoordinates()) &&
                 unit.getFaction() != defender.getFaction() &&
                 !defender.isFalling() &&
+                !defender.isTerminated() &&
                 !unit.isFalling();
     }
 
@@ -124,8 +125,6 @@ public class Attack extends Activity{
         return ATTACK_XP;
     }
 
-
-    // Maybe move defend code to separate Activity Defend? which immediately calls requestActivityFinish?
     /**
      * Return the probability a unit can block an attack.
      * @return 	The probability to block an attack is positive for all units.
@@ -189,8 +188,7 @@ public class Attack extends Activity{
         }// fails to block
         else if (!((randInt(0,99)/100.0) < this.getBlockingProbability())){
             defender.removeHitpoints(this.getDamagingPoints());
-            //this.setHitpoints(this.getHitpoints()- this.getDamagingPoints(attacker));
-            unit.addXP(ATTACK_XP);// TODO: let ActivityController set the XP via getXp and wasSuccessful
+            unit.addXP(ATTACK_XP);
         }else
             defender.addXP(ATTACK_XP);
 

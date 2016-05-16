@@ -68,7 +68,7 @@ public class Work extends Activity {
                     unit.dropCarriedMaterial(this.workCube);
                 }
             }else if(workCube.getTerrain()== Terrain.WORKSHOP && workCube.containsLogs() && workCube.containsBoulders()){
-                workCube.getBoulder().terminate();// TODO: make sure Materials are removed from world as soon as they are terminated!
+                workCube.getBoulder().terminate();
                 workCube.getLog().terminate();
                 if(unit.getWeight()!=Unit.MAX_WEIGHT)
                     unit.setWeight(unit.getWeight() + 1);
@@ -81,7 +81,7 @@ public class Work extends Activity {
             }else if(workCube.getTerrain() == Terrain.WOOD){
                 unit.getWorld().collapse(workCube.getPosition());
             }else if(workCube.getTerrain() == Terrain.ROCK){
-                unit.getWorld().collapse(workCube.getPosition());//TODO: change collapse to cube itself
+                unit.getWorld().collapse(workCube.getPosition());
             }
             this.requestFinish(true);
         }

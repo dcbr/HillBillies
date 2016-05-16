@@ -84,7 +84,7 @@ public class None extends Activity {
      * @return True if this Activity should be interrupted for nextActivity.
      */
     @Override
-    protected boolean shouldInterruptFor(Activity nextActivity) {// TODO: if this is set to true, None will always be the lowest Activity on activityStack?
+    protected boolean shouldInterruptFor(Activity nextActivity) {
         return true;// None can be interrupted for any Activity
     }
 
@@ -132,16 +132,8 @@ public class None extends Activity {
             else unit.rest();
         }
         if (activity ==1){
-			/*PathCalculator p = new PathCalculator(this.getPosition());
-			Vector target = new Vector(-1,-1,-1);
-			this.path = p.computePath(this.getPosition());
-			int size = controlledPos.size();
-			if( size == 0)
-				activity = 2;
-			*/
-            //TODO: manier zoeken om alle bereikbare posities op te lijsten
             try{
-            	/*controller*/unit.requestNewActivity(new TargetMove(unit));
+            	unit.requestNewActivity(new TargetMove(unit));
             }catch (IllegalStateException e){
             	activity =2;
             }

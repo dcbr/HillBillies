@@ -4,7 +4,9 @@ import hillbillies.model.*;
 import hillbillies.part3.programs.expressions.LiteralPosition;
 import hillbillies.part3.programs.expressions.SelectedPosition;
 import hillbillies.part3.programs.statements.Assignment;
+import hillbillies.part3.programs.statements.MoveTo;
 import hillbillies.part3.programs.statements.Print;
+import hillbillies.utils.Vector;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -25,22 +27,23 @@ public class SchedulerTest {
     private static Faction faction1, faction2;
     private static Scheduler scheduler1, scheduler2;
     private static Unit unit11, unit12, unit13, unit21, unit22;
-    private static Task task1, task2;
+    private static Task task1, task2, task3;
 
     @BeforeClass
     public static void setUpClass() throws Exception {
-        unit11 = new Unit(lobby);
-        unit12 = new Unit(lobby);
-        unit13 = new Unit(lobby);
+        unit11 = new Unit(lobby, "UnitAA", new Vector(0,0,0));
+        unit12 = new Unit(lobby, "UnitAB", new Vector(1,0,0));
+        unit13 = new Unit(lobby, "UnitAC", new Vector(0,1,0));
         lobby.addNewFaction();// Create second faction
-        unit21 = new Unit(lobby);
-        unit22 = new Unit(lobby);
+        unit21 = new Unit(lobby, "UnitBA", new Vector(0,0,1));
+        unit22 = new Unit(lobby, "UnitBB", new Vector(1,1,1));
         faction1 = unit11.getFaction();
         faction2 = unit21.getFaction();
         scheduler1 = faction1.getScheduler();
         scheduler2 = faction2.getScheduler();
         task1 = new Task("task1",100,new Print(new LiteralPosition(0,0,0)),new int[]{0,0,0});
         task2 = new Task("task2",200,new Assignment<>("blub", new SelectedPosition()),new int[]{0,0,0});
+        task3 = new Task("task3",200,new MoveTo(new SelectedPosition()),new int[]{0,0,0});
     }
 
     @Before
@@ -49,10 +52,14 @@ public class SchedulerTest {
             scheduler1.removeTask(task1);
         if(scheduler1.hasAsTask(task2))
             scheduler1.removeTask(task2);
+        if(scheduler1.hasAsTask(task3))
+            scheduler1.removeTask(task3);
         if(scheduler2.hasAsTask(task1))
             scheduler2.removeTask(task1);
         if(scheduler2.hasAsTask(task2))
             scheduler2.removeTask(task2);
+        if(scheduler2.hasAsTask(task3))
+            scheduler2.removeTask(task3);
 
         scheduler1.addTask(task1);
     }
@@ -95,8 +102,11 @@ public class SchedulerTest {
         assertTrue(scheduler1.hasAsTask(task2));
         scheduler1.removeTask(task1);
         assertFalse(scheduler1.hasAsTask(task1));
+    }
 
-        assertFalse(scheduler2.hasAsTask(null));
+    @Test(expected = NullPointerException.class)
+    public void hasAsTaskIllegal() throws NullPointerException{
+        scheduler2.hasAsTask(null);
     }
 
     @Test
@@ -108,8 +118,11 @@ public class SchedulerTest {
         assertTrue(scheduler1.hasAsTasks(tasks));
         scheduler1.removeTask(task1);
         assertFalse(scheduler1.hasAsTasks(tasks));
+    }
 
-        assertFalse(scheduler2.hasAsTasks(null));
+    @Test(expected = NullPointerException.class)
+    public void hasAsTasksIllegal() throws NullPointerException{
+        scheduler2.hasAsTasks(null);
     }
 
     @Test
@@ -245,19 +258,28 @@ public class SchedulerTest {
     }
 
     @Test
-    public void scheduleIllegal() throws Exception {
+    public void schedule() throws Exception {
         scheduler1.schedule(task1, unit11);
-        assertFalse(task1.getAssignedUnit()==unit11);
-        assertFalse(unit11.getTask()==task1);
+        assertTrue(task1.getAssignedUnit()==unit11);
+        assertTrue(unit11.getTask()==task1);
+    }
+
+    @Test
+    public void scheduleIllegal() throws Exception {
+        scheduler1.schedule(task2, unit11);// task2 is not part of scheduler1
+        assertFalse(task2.getAssignedUnit()==unit11);
+        assertFalse(unit11.getTask()==task2);
 
         scheduler1.addTask(task2);
         scheduler1.schedule(task2, unit11);// Valid schedule
-        task2.run();
-        scheduler1.schedule(task2, unit12);// Invalid schedule
+        scheduler1.schedule(task2, unit12);// Invalid schedule, task2 is already scheduled
         assertFalse(unit12.getTask()==task2);
         assertFalse(task2.getAssignedUnit()==unit12);
+        scheduler1.schedule(task1, unit11);// Invalid schedule, unit11 has already a scheduled task
+        assertFalse(unit11.getTask()==task1);
+        assertFalse(task1.getAssignedUnit()==unit11);
 
-        scheduler1.schedule(task1, unit21);
+        scheduler1.schedule(task1, unit21);// Unit's faction has not scheduler1 as its Scheduler
         assertFalse(task1.getAssignedUnit()==unit21);
         assertFalse(unit21.getTask()==task1);
     }
@@ -297,9 +319,10 @@ public class SchedulerTest {
     @Test
     public void iterator() throws Exception {
         scheduler1.addTask(task2);
+        scheduler1.addTask(task3);
         Iterator<Task> iterator = scheduler1.iterator();
+        assertTrue(iterator.next().getPriority()>=iterator.next().getPriority());
         assertEquals(task1, iterator.next());
-        assertEquals(task2, iterator.next());
     }
 
 }

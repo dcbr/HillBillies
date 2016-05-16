@@ -5,6 +5,7 @@ import hillbillies.part3.programs.VariableCollection;
 import hillbillies.part3.programs.expressions.Expression;
 
 import java.util.*;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Predicate;
 
 import hillbillies.part3.programs.statements.Statement;
@@ -107,7 +108,10 @@ public class Task implements Comparable<Task> {
             throw new IllegalArgumentException();
         this.activity = activity;
 
-        this.selectedCube = new Vector(selectedCube);
+        if(selectedCube!=null)
+            this.selectedCube = new Vector(selectedCube);
+        else
+            this.selectedCube = null;
     }
     /**
      * Return the name of this Task.
@@ -175,8 +179,10 @@ public class Task implements Comparable<Task> {
      * @post The new priority of this task is the old priority minus 1.
      *          | new.getPriority() == getPriority()-1
      */
-    public void decreasePriority(){
+    private void decreasePriority(){
         this.setPriority(this.getPriority()-1);
+        for(Scheduler s : this.schedulers)
+            s.notifyTaskPriorityChange(this.getPriority()+1, this);
     }
 
     /**
@@ -198,7 +204,7 @@ public class Task implements Comparable<Task> {
      */
     @Raw
     public boolean canHaveAsActivity(Statement activity) {
-        return true;// TODO check well-formedness?
+        return true;
     }
 
     /**
@@ -401,8 +407,10 @@ public class Task implements Comparable<Task> {
     }
 
     public void run(){
+        if(!this.getActivity().check())
+            throw new IllegalStateException("This task's activity is not well-formed.");
         if(runner==null){
-            runner = new TaskRunner(this.getSelectedCube());
+            runner = new TaskRunner();
         }
         if(runner.isRunning())
             throw new IllegalStateException("This task is already running.");
@@ -436,13 +444,11 @@ public class Task implements Comparable<Task> {
 
     public class TaskRunner{
 
-        private final Vector selectedCubeCoordinates;
         private final VariableCollection assignedVariables;
         private final LinkedList<Integer> savedState;
         private boolean isRunning, isPaused;
 
-        private TaskRunner(Vector selectedCubeCoordinates){
-            this.selectedCubeCoordinates = selectedCubeCoordinates;
+        private TaskRunner(){
             this.assignedVariables = new VariableCollection();
             this.savedState = new LinkedList<>();
             this.isRunning = false;

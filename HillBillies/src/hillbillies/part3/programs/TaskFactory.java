@@ -34,6 +34,8 @@ public class TaskFactory implements ITaskFactory<Expression<?>, Statement, Task>
         List<Task> tasks = new ArrayList<>();
         for(int[] cubeCoordinates : selectedCubes)
             tasks.add(new Task(name, priority, activity, cubeCoordinates));
+        if(selectedCubes.isEmpty())
+            tasks.add(new Task(name, priority, activity, null));
         return tasks;
     }
 

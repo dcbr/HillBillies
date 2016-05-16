@@ -21,7 +21,9 @@ public class While extends Statement {
 
     @Override
     public void execute() {
-        while(this.getCurrentChild()==BODY_INDEX || runChild(condition)){// TODO: this will throw exception after first iteration, since currentChild cannot decrease
+        boolean resuming = this.getCurrentChild()==BODY_INDEX;
+        while(resuming || runChild(condition)){
+            resuming = false;
             runChild(body);
             if(this.getRunner().breakLoop){
                 this.getRunner().breakLoop = false;

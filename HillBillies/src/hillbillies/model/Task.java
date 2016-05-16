@@ -204,7 +204,7 @@ public class Task implements Comparable<Task> {
      */
     @Raw
     public boolean canHaveAsActivity(Statement activity) {
-        return true;// TODO check well-formedness?
+        return true;
     }
 
     /**
@@ -407,8 +407,10 @@ public class Task implements Comparable<Task> {
     }
 
     public void run(){
+        if(!this.getActivity().check())
+            throw new IllegalStateException("This task's activity is not well-formed.");
         if(runner==null){
-            runner = new TaskRunner(this.getSelectedCube());
+            runner = new TaskRunner();
         }
         if(runner.isRunning())
             throw new IllegalStateException("This task is already running.");
@@ -442,13 +444,11 @@ public class Task implements Comparable<Task> {
 
     public class TaskRunner{
 
-        private final Vector selectedCubeCoordinates;
         private final VariableCollection assignedVariables;
         private final LinkedList<Integer> savedState;
         private boolean isRunning, isPaused;
 
-        private TaskRunner(Vector selectedCubeCoordinates){
-            this.selectedCubeCoordinates = selectedCubeCoordinates;
+        private TaskRunner(){
             this.assignedVariables = new VariableCollection();
             this.savedState = new LinkedList<>();
             this.isRunning = false;

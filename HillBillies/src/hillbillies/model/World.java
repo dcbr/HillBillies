@@ -246,7 +246,7 @@ public class World implements IWorld {
 	
 	public Unit spawnUnit(boolean enableDefaultBehavior){
 		// addUnit is called inside Unit's constructor
-		Unit unit = new Unit(this);// TODO: make constructor which chooses random initial properties
+		Unit unit = new Unit(this);
 		if(enableDefaultBehavior)
 			unit.startDefaultBehaviour();
 		return unit;

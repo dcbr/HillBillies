@@ -171,34 +171,9 @@ public class Unit extends WorldObject {
 	private String name;
 
 	/**
-	 * Variable registering the strength of this unit.
+	 * Variables registering the strength, agility, toughness, weight, stamina and hitpoints of this unit.
 	 */
-	private int strength;
-
-	/**
-	 * Variable registering the agility of this unit.
-	 */
-	private int agility;
-
-	/**
-	 * Variable registering the toughness of this unit.
-	 */
-	private int toughness;
-
-	/**
-	 * Variable registering the weight of this unit.
-	 */
-	private int weight;
-
-	/**
-	 * Variable registering the stamina of this unit.
-	 */
-	private int stamina;
-
-	/**
-	 * Variable registering the hitpoints of this unit.
-	 */
-	private int hitpoints;
+	private int strength, agility, toughness, weight, stamina, hitpoints;
 
 	/**
 	 * Variable registering the orientation of this Unit.

@@ -108,7 +108,10 @@ public class Task implements Comparable<Task> {
             throw new IllegalArgumentException();
         this.activity = activity;
 
-        this.selectedCube = new Vector(selectedCube);
+        if(selectedCube!=null)
+            this.selectedCube = new Vector(selectedCube);
+        else
+            this.selectedCube = null;
     }
     /**
      * Return the name of this Task.

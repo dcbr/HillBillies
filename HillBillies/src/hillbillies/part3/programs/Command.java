@@ -133,7 +133,10 @@ public abstract class Command<T> {
             throw new IllegalStateException("This command is not linked to any task yet, so it can't be executed.");
         if(!this.getCurrentTask().isRunning() || this.getRunner().isPaused())
             return null;
-        return process();// TODO: change this by a directly call to process? since the preconditions are already checked
+        T result = process();// TODO: change this by a directly call to process? since the preconditions are already checked
+        this.currentChild = 0;
+        this.executedChildren.clear();
+        return result;
     }
 
     protected <E> E runChild(Command<E> child) throws IllegalStateException, IllegalArgumentException{

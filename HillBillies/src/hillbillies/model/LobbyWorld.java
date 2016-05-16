@@ -58,9 +58,10 @@ public class LobbyWorld implements IWorld {
 	 */
 	@Override
 	public void addUnit(Unit unit) {
-		if(getCurrentFaction().canHaveNewUnit())
+		if(getCurrentFaction().canHaveNewUnit()) {
 			getCurrentFaction().addUnit(unit);
-		else {
+			unit.setFaction(getCurrentFaction());
+		}else {
 			addNewFaction();
 			addUnit(unit);
 		}

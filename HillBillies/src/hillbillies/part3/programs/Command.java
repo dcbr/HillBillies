@@ -138,8 +138,8 @@ public abstract class Command<T> {
         if(!this.getRunner().isRunning() || this.getRunner().isPaused())
             return null;// We are stopping / pausing
         int childIndex = this.getChildren().indexOf(child);
-        if(childIndex<currentChild)
-            throw new IllegalArgumentException("The given child command should be run before the currently running command.");
+//        if(childIndex<currentChild)
+//            throw new IllegalArgumentException("The given child command should be run before the currently running command.");
         setCurrentChild(childIndex);
         return child.run();
     }

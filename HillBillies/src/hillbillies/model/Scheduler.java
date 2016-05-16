@@ -1,9 +1,11 @@
 package hillbillies.model;
 
 import be.kuleuven.cs.som.annotate.*;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * Class representing a Faction's Task Scheduler
@@ -21,23 +23,27 @@ public class Scheduler implements Iterable<Task> {
      */
     private final Faction faction;
     /**
-     * Variable referencing a sorted set collecting all
-     * the tasks of this scheduler.
+     * Variable referencing a sorted map collecting all
+     * the tasks of this scheduler grouped by their
+     * priority.
      *
-     * @invar The referenced set is effective.
+     * @invar The referenced map is effective.
      * | tasks != null
-     * @invar Each task registered in the referenced list is
-     * effective and not yet terminated.
-     * | for each task in tasks:
-     * | ( (task != null) &&
-     * | (! task.isTerminated()) )
+     * @invar Each HashSet registered in the referenced map
+     * is effective and each task in that set is effective
+     * and not yet terminated.
+     * | for each taskSet in tasks:
+     * | ( (taskSet != null) &&
+     * |    for each task in taskSet:
+     * |    ( (task != null) &&
+     * |    (! task.isTerminated()) )
+     * | )
      */
-    private final SortedSet<Task> tasks = new TreeSet<>(new Comparator<Task>() {
-        @Override
-        public int compare(Task t1, Task t2) {
-            return t2.getPriority()-t1.getPriority();
-        }
-    });
+    private final SortedMap<Integer, HashSet<Task>> tasks = new TreeMap<>(Collections.reverseOrder());
+    /**
+     * Variable registering the current number of tasks.
+     */
+    private int nbTasks;
 
     /**
      * Initialize this new Scheduler with given faction and no tasks yet.
@@ -57,6 +63,7 @@ public class Scheduler implements Iterable<Task> {
         if(faction==null)
             throw new IllegalArgumentException("The given faction is not effective.");
         this.faction = faction;
+        this.nbTasks = 0;
     }
 
     /**
@@ -88,11 +95,14 @@ public class Scheduler implements Iterable<Task> {
      * The task to check.
      * @return True when the given task is part of this scheduler
      *          | tasks.contains(task)
+     * @throws NullPointerException
+     *          When the given task is not effective
+     *          | task == null
      */
     @Basic
     @Raw
-    public boolean hasAsTask(@Raw Task task) {
-    	return tasks.contains(task);
+    public boolean hasAsTask(@Raw Task task) throws NullPointerException {
+        return tasks.containsKey(task.getPriority()) && tasks.get(task.getPriority()).contains(task);
     }
 
     /**
@@ -104,9 +114,15 @@ public class Scheduler implements Iterable<Task> {
      *          |      result == true
      *          | else
      *          |      result == false
+     * @throws NullPointerException
+     *          When the given tasks collection is not effective
+     *          | tasks == null
      */
-    public boolean hasAsTasks(Collection<Task> tasks){
-        return this.tasks.containsAll(tasks);
+    public boolean hasAsTasks(Collection<Task> tasks) throws NullPointerException{
+        for(Task t : tasks)
+            if(!hasAsTask(t))
+                return false;
+        return true;
     }
 
     /**
@@ -139,11 +155,13 @@ public class Scheduler implements Iterable<Task> {
      * | (task.getScheduler() == this)
      */
     public boolean hasProperTasks() {
-    	for (Task task: tasks) {
-    		if (!canHaveAsTask(task))
-    		    return false;
-    		if (!task.hasAsScheduler(this))
-    		    return false;
+    	for (Map.Entry<Integer, HashSet<Task>> taskSet: tasks.entrySet()) {
+            for(Task task : taskSet.getValue()) {
+                if (!canHaveAsTask(task))
+                    return false;
+                if (!task.hasAsScheduler(this))
+                    return false;
+            }
     	}
     	return true;
     }
@@ -156,7 +174,7 @@ public class Scheduler implements Iterable<Task> {
      * | card({task:Task | hasAsTask({task)})
      */
     public int getNbTasks() {
-    	return tasks.size();
+        return this.nbTasks;
     }
 
     /**
@@ -174,8 +192,11 @@ public class Scheduler implements Iterable<Task> {
      */
     public void addTask(@Raw Task task) {
     	assert(task != null) && (!task.hasAsScheduler(this));
-    	tasks.add(task);
+        if(!tasks.containsKey(task.getPriority()))
+            tasks.put(task.getPriority(), new HashSet<>());
+        tasks.get(task.getPriority()).add(task);
         task.addScheduler(this);
+        this.nbTasks++;
     }
 
     /**
@@ -194,14 +215,21 @@ public class Scheduler implements Iterable<Task> {
      * @post The given task no longer has this scheduler as
      * one of its schedulers.
      * | ! task.hasAsScheduler(this)
+     * @throws NullPointerException
+     *          When the given task is not effective
+     *          | task == null
      */
     @Raw
-    public void removeTask(Task task) {
+    public void removeTask(Task task) throws NullPointerException {
     	assert this.hasAsTask(task) && (task.hasAsScheduler(this));
-        if(task.getAssignedUnit().getFaction().getScheduler()==this)
+        if(task.getAssignedUnit()!=null && task.getAssignedUnit().getFaction().getScheduler()==this)
             deschedule(task);// Deschedule the task
-        tasks.remove(task);
+        HashSet<Task> taskSet = tasks.get(task.getPriority());
+        taskSet.remove(task);
+        if(taskSet.isEmpty())
+            tasks.remove(task.getPriority());
         task.removeScheduler(this);
+        this.nbTasks--;
     }
 
     /**
@@ -218,7 +246,7 @@ public class Scheduler implements Iterable<Task> {
      *          | newTask == null || newTask.hasAsScheduler(this)
      */
     public void replaceTask(Task oldTask, Task newTask) throws IllegalArgumentException{
-        if(!this.hasAsTask(oldTask) || !(oldTask.hasAsScheduler(this)))
+        if(oldTask==null || !this.hasAsTask(oldTask) || !(oldTask.hasAsScheduler(this)))
             throw new IllegalArgumentException("The given oldTask does not satisfy removeTask's preconditions.");
         if((newTask == null) || (newTask.hasAsScheduler(this)))
             throw new IllegalArgumentException("The given newTask does not satisfy addTask's preconditions.");
@@ -237,9 +265,8 @@ public class Scheduler implements Iterable<Task> {
      */
     public Collection<Task> getAllTasksSatisfying(Predicate<Task> condition) throws NullPointerException{
         Set<Task> result = new HashSet<>();
-        for(Task task : tasks){
-            if(condition.test(task))
-                result.add(task);
+        for(Map.Entry<Integer,HashSet<Task>> taskSet : tasks.entrySet()){
+            result.addAll(taskSet.getValue().stream().filter(condition).collect(Collectors.toList()));
         }
         return result;
     }
@@ -264,9 +291,11 @@ public class Scheduler implements Iterable<Task> {
      *          | condition == null
      */
     public Task getTaskSatisfying(Predicate<Task> condition) throws NullPointerException{
-        for(Task task : tasks)
-            if(condition.test(task))
-                return task;
+        for(Map.Entry<Integer, HashSet<Task>> taskSet : tasks.entrySet()) {
+            Task result = taskSet.getValue().stream().filter(condition).findFirst().orElse(null);
+            if(result!=null)
+                return result;
+        }
         return null;
     }
 
@@ -301,10 +330,10 @@ public class Scheduler implements Iterable<Task> {
      * Schedule the given task for the given unit.
      * @param task The task to schedule
      * @param unit The unit to assign the task to
-     * @post If the task has this scheduler as its Scheduler AND the task is not running
-     *       at this moment AND the unit's faction's Scheduler is this scheduler, the
-     *       unit's Task is set to the given task and the task's assigned Unit is set to
-     *       the given unit.
+     * @post If the task has this scheduler as its Scheduler AND the task is not assigned
+     *       at this moment AND the unit's faction's Scheduler is this scheduler AND
+     *       the unit has no task assigned yet, the unit's Task is set to the given task
+     *       and the task's assigned Unit is set to the given unit.
      *       | unit.getTask() == task
      *       | task.getAssignedUnit() == unit
      * @throws NullPointerException
@@ -312,7 +341,7 @@ public class Scheduler implements Iterable<Task> {
      *          | task == null || unit == null
      */
     public void schedule(Task task, Unit unit) throws NullPointerException{
-        if(task.hasAsScheduler(this) && !task.isRunning() && unit.getFaction().getScheduler()==this){
+        if(task.hasAsScheduler(this) && task.getAssignedUnit()==null && unit.getFaction().getScheduler()==this && unit.getTask()==null){
             unit.setTask(task);
             task.setAssignedUnit(unit);
         }
@@ -342,12 +371,53 @@ public class Scheduler implements Iterable<Task> {
     }
 
     /**
+     * Method that every task that is part of this scheduler should
+     * call once its priority is changed. Otherwise the task will
+     * never be found again in the TreeMap collecting all the tasks
+     * based on their priority.
+     * @param oldPriority The old priority of the task
+     * @param task The task of which the priority has changed
+     * @post The given task is accessible again.
+     */
+    public void notifyTaskPriorityChange(int oldPriority, Task task){
+        if(task==null || !this.tasks.containsKey(oldPriority) || !this.tasks.get(oldPriority).contains(task))
+            throw new IllegalArgumentException("The given task could not be found inside the TreeMap.");
+        HashSet<Task> taskSet = tasks.get(oldPriority);
+        taskSet.remove(task);
+        if(taskSet.isEmpty())
+            tasks.remove(oldPriority);
+        if(!tasks.containsKey(task.getPriority()))
+            tasks.put(task.getPriority(), new HashSet<>());
+        tasks.get(task.getPriority()).add(task);
+    }
+
+    /**
      * Returns an iterator over elements of type {@code Task}.
      *
      * @return an Iterator.
      */
     @Override
     public Iterator<Task> iterator() {
-        return tasks.iterator();
+        return new Iterator<Task>() {
+
+            private Iterator<HashSet<Task>> taskSetIterator = tasks.values().iterator();
+            private Iterator<Task> taskIterator;
+
+            @Override
+            public boolean hasNext() {
+                if(tasks.isEmpty()) return false;
+                return taskSetIterator.hasNext() || taskIterator.hasNext();
+            }
+
+            @Override
+            public Task next() throws NoSuchElementException {
+                if(!hasNext())
+                    throw new NoSuchElementException("The iterator has no more elements to iterate over.");
+                if(taskIterator==null || !taskIterator.hasNext())
+                    taskIterator = taskSetIterator.next().iterator();
+                return taskIterator.next();
+            }
+        };
     }
+
 }

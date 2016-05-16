@@ -1046,6 +1046,7 @@ public class Unit extends WorldObject {
 	@Override
 	protected boolean validatePosition(Vector position) {
 		IWorld world = this.getWorld();
+		if(world instanceof LobbyWorld) return true;
 		// world.isValidPosition(position) wordt al gecontroleerd in isValidPosition
 		if(world.isCubePassable(position.getCubeCoordinates())){
 			if(isAdjacentSolid(position))

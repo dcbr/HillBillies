@@ -5,6 +5,7 @@ import hillbillies.part3.programs.VariableCollection;
 import hillbillies.part3.programs.expressions.Expression;
 
 import java.util.*;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Predicate;
 
 import hillbillies.part3.programs.statements.Statement;
@@ -175,8 +176,10 @@ public class Task implements Comparable<Task> {
      * @post The new priority of this task is the old priority minus 1.
      *          | new.getPriority() == getPriority()-1
      */
-    public void decreasePriority(){
+    private void decreasePriority(){
         this.setPriority(this.getPriority()-1);
+        for(Scheduler s : this.schedulers)
+            s.notifyTaskPriorityChange(this.getPriority()+1, this);
     }
 
     /**

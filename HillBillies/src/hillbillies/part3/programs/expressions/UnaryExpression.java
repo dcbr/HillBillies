@@ -16,7 +16,7 @@ public abstract class UnaryExpression<E, T> extends Expression<T> {
     public T evaluate() throws NullPointerException {
         E value = this.runChild(expression);
         if(value==null)
-            throw new NullPointerException("The expression yields null.");
+            throw new NullPointerException("The expression yields null.");// Is catched inside Expression's process method
         return compute(value);
     }
 

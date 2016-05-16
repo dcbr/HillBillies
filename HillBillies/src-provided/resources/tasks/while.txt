@@ -1,0 +1,8 @@
+name: "while"
+priority : 35
+activities:
+	w := selected;
+	while is_solid(w) do
+		print w;
+		w := next_to(w);
+	done

@@ -19,7 +19,7 @@ public abstract class BinaryExpression<L,R,T> extends Expression<T> {
         L leftValue = this.runChild(leftExpression);
         R rightValue = this.runChild(rightExpression);
         if(leftValue==null || rightValue==null)
-            throw new NullPointerException("The left or right expression yield null.");
+            throw new NullPointerException("The left or right expression yield null.");// Is catched inside Expression's process method
         return combine(leftValue, rightValue);
     }
 

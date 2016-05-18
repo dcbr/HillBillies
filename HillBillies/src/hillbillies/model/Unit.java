@@ -1333,7 +1333,7 @@ public class Unit extends WorldObject {
 	public void terminate() {
 	    this.isTerminated = true;
 		this.setHitpoints(0);
-		this.getWorld().removeUnit(this);
+		this.getWorld().removeUnit(this);// TODO: fix iterator problem
 		Faction f = this.getFaction();
 		this.faction = null;
 		f.removeUnit(this);

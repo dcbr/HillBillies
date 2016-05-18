@@ -79,9 +79,9 @@ public class Work extends Activity {
             }else if(workCube.containsLogs()){
                 unit.setCarriedMaterial(workCube.getLog());
             }else if(workCube.getTerrain() == Terrain.WOOD){
-                unit.getWorld().collapse(workCube.getPosition());
+                workCube.setTerrain(Terrain.AIR);
             }else if(workCube.getTerrain() == Terrain.ROCK){
-                unit.getWorld().collapse(workCube.getPosition());
+                workCube.setTerrain(Terrain.AIR);
             }
             this.requestFinish(true);
         }

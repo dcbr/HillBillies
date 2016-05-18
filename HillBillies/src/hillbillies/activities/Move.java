@@ -233,14 +233,11 @@ public abstract class Move extends Activity {
      *          | fromPosition==null || nextPosition==null
      */
     protected boolean isValidNextPosition(Vector fromPosition, Vector nextPosition) throws IllegalArgumentException{
-        return isValidNextPosition(unit, fromPosition, nextPosition);
-    }
-
-    public static boolean isValidNextPosition(Unit unit, Vector fromPosition, Vector nextPosition){
         if(fromPosition==null || nextPosition==null)
             throw new IllegalArgumentException("The from and next position must be effective positions in order to check their validity.");
         if(!unit.isValidPosition(nextPosition)) return false;// Check if it's a valid position itself
-        for(Vector d : nextPosition.difference(fromPosition).decompose()){
+        List<Vector> decomposed = nextPosition.difference(fromPosition).decompose();
+        for(Vector d : decomposed){
             if(!unit.isValidPosition(fromPosition.add(d)) || !unit.isValidPosition(nextPosition.difference(d))) 
             	return false;// Check if surrounding positions are valid too (prevent corner glitch)
         }

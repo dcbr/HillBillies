@@ -7,6 +7,8 @@ import hillbillies.utils.Vector;
 import java.util.*;
 import java.util.function.BiConsumer;
 
+import static hillbillies.utils.Utils.randInt;
+
 /**
  * Created by Bram on 1-4-2016.
  */
@@ -19,14 +21,39 @@ public class Cube extends WorldObject {
 
     private BiConsumer<Terrain, Cube> terrainChangeListener;
 
+    private double collapseTime = -1;
 
     public Cube(World world, Vector position, BiConsumer<Terrain, Cube> terrainChangeListener){
         this(world, position, null, terrainChangeListener);// Null will result in the default Terrain type -> Terrain.AIR
     }
 
+    public void collapse() throws IllegalStateException{
+        if(this.getTerrain().isPassable())
+            throw new IllegalStateException("A passable cube cannot be collapsed.");
+        this.collapseTime = 4d;
+    }
+
+    public boolean isCollapsing(){
+        return this.collapseTime>=0d;
+    }
+
     @Override
     public void advanceTime(double dt) {
-        // TODO
+        if(this.collapseTime>0d){
+            this.collapseTime-=dt;
+            if(this.collapseTime<=0d){
+                this.collapseTime = -1;
+
+                if(randInt(0, 99) < 25){
+                    if(this.getTerrain() == Terrain.ROCK)
+                        new Boulder((World)this.getWorld(), this);
+                    if(this.getTerrain() == Terrain.WOOD)
+                        new Log((World)this.getWorld(), this);
+                }
+
+                this.setTerrain(Terrain.AIR);
+            }
+        }
     }
 
     /**

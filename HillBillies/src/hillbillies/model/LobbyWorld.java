@@ -126,10 +126,6 @@ public class LobbyWorld implements IWorld {
 		throw new NoSuchMethodError("This method is not supported by the lobby.");
 	}
 
-	@Override
-	public void collapse(Vector cube) {
-
-	}
 
 	@Override
 	public void removeUnit(Unit unit){

@@ -111,7 +111,49 @@ public class World implements IWorld {
 	 * | for each faction in factions:
 	 * | ( (faction != null) )
 	 */
-	private final Set <Faction> factions = new HashSet<>(MAX_FACTIONS);
+	private final Set<Faction> factions = new HashSet<>(MAX_FACTIONS);
+	/**
+	 * Variable referencing a set collecting all the units
+	 * of this world.
+	 *
+	 * @invar The referenced set is effective.
+	 * | units != null
+	 * @invar Each unit registered in the referenced list is
+	 * effective and not yet terminated and references this
+	 * world as its World.
+	 * | for each unit in units:
+	 * | ( (unit != null) &&
+	 * | (! unit.isTerminated()) ) &&
+	 * | ( unit.getWorld() == this)
+	 */
+	private final Set<Unit> units = new HashSet<>(MAX_UNITS);
+	/**
+	 * Variable referencing a map collecting all the cubes
+	 * in this world. The key of each map entry is equal to
+	 * the cube's position in this world, the value references
+	 * the cube itself.
+	 * @invar Each cube registered in the referenced list is
+	 * effective and not yet terminated and references this
+	 * world as its World.
+	 * | for each workshop in workshops:
+	 * | ( (cube != null) &&
+	 * | (! cube.isTerminated()) &&
+	 * | ( cube.getWorld() == this)
+	 */
+	private final Map<Vector, Cube> CubeMap = new HashMap<>();
+	/**
+	 * Variable referencing a set collecting all the workshops
+	 * in this world.
+	 * @invar Each workshop registered in the referenced list is
+	 * effective and not yet terminated and references this world
+	 * as its World. The terrain of each workshop is WORKSHOP.
+	 * | for each workshop in workshops:
+	 * | ( (workshop != null) &&
+	 * | (! workshop.isTerminated()) &&
+	 * | ( workshop.getWorld() == this ) &&
+	 * | ( workshop.getTerrain() == Terrain.WORKSHOP) )
+	 */
+	private final Set<Cube> workshops = new HashSet<>();
 
 	/**
 	 * Initialize this new World with given Terrain Matrix and terrainChangeListener.
@@ -174,8 +216,6 @@ public class World implements IWorld {
 			}
 		}
 	}
-		
-
 	
 	/**
 	 * Check whether the given position is a valid position for
@@ -225,68 +265,6 @@ public class World implements IWorld {
 	@Override
 	public Vector getMaxPosition(){
 		return new Vector(Cube.CUBE_SIDE_LENGTH * getNbCubesX(), Cube.CUBE_SIDE_LENGTH * getNbCubesY(), Cube.CUBE_SIDE_LENGTH * getNbCubesZ());
-	}
-
-	/**
-	 * Spawn a new Unit in this World. The new Unit's default behaviour mode
-	 * is set to the given value of enableDefaultBehavior.
-	 * @param enableDefaultBehavior The requested default behaviour mode of
-	 *                              the new Unit.
-	 * @effect Create a new Unit with this world as its World and with proper
-	 * 			default behavior mode.
-	 * 			| Unit unit = new Unit(this)
-	 * 			| if(enableDefaultBehavior) unit.startDefaultBehaviour()
-	 * @return A new Unit with this World set as its world and with its default
-	 * 			behaviour mode set to the given value of enableDefaultBehavior.
-	 * 			| result.getWorld() == this
-	 * 			| result.isDefaultActive() == enableDefaultBehavior
-     */
-	public Unit spawnUnit(boolean enableDefaultBehavior){
-		// addUnit is called inside Unit's constructor
-		Unit unit = new Unit(this);
-		if(enableDefaultBehavior)
-			unit.startDefaultBehaviour();
-		return unit;
-	}
-
-	/**
-	 * Add the given unit to the set of units of this world.
-	 *
-	 * @param unit
-	 * The unit to be added.
-	 * @pre The given unit is effective and already references
-	 * this world.
-	 * | (unit != null) && (unit.getWorld() == this)
-	 * @post This world has the given unit as one of its units.
-	 * | new.hasAsUnit(unit)
-	 * @post The given unit is added to a proper faction of this
-	 * 		 world. If the maximum number of factions in this
-	 * 		 world isn't reached, a new Faction is created.
-	 * 		 Otherwise the unit is added to the faction containing
-	 * 		 the least units.
-	 * 		 | Faction f = this.getFactionWithLeastUnits()
-	 * 		 | if(this.factions.size()<MAX_FACTIONS)
-	 * 		 |		(new this).getNbFactions() == this.getNbFactions()+1
-	 * 		 |		f = new Faction()
-	 * 		 | unit.getFaction() == f
-	 */
-	@Override
-	public void addUnit(Unit unit){
-		assert canHaveAsUnit(unit);
-		// Bind unit to this world
-		unit.setWorld(this);
-		units.add(unit);
-
-		Faction f;
-		if(this.factions.size()<MAX_FACTIONS) {
-			f = new Faction();
-			this.addFaction(f);
-		}else {
-			f = getFactionWithLeastUnits();
-		}
-		// Bind unit to its faction
-		f.addUnit(unit);
-		unit.setFaction(f);
 	}
 
 	/**
@@ -390,6 +368,70 @@ public class World implements IWorld {
 	}
 
 	/**
+	 * Spawn a new Unit in this World. The new Unit's default behaviour mode
+	 * is set to the given value of enableDefaultBehavior.
+	 * @param enableDefaultBehavior The requested default behaviour mode of
+	 *                              the new Unit.
+	 * @effect Create a new Unit with this world as its World and with proper
+	 * 			default behavior mode.
+	 * 			| Unit unit = new Unit(this)
+	 * 			| if(enableDefaultBehavior) unit.startDefaultBehaviour()
+	 * @return A new Unit with this World set as its world and with its default
+	 * 			behaviour mode set to the given value of enableDefaultBehavior.
+	 * 			| result.getWorld() == this
+	 * 			| result.isDefaultActive() == enableDefaultBehavior
+	 */
+	public Unit spawnUnit(boolean enableDefaultBehavior){
+		// addUnit is called inside Unit's constructor
+		Unit unit = new Unit(this);
+		if(enableDefaultBehavior)
+			unit.startDefaultBehaviour();
+		return unit;
+	}
+
+	/**
+	 * Add the given unit to the set of units of this world.
+	 *
+	 * @param unit
+	 * The unit to be added.
+	 * @pre The given unit is effective and already references
+	 * this world. And this world has not the maximum number
+	 * of units yet.
+	 * | (unit != null) && (unit.getWorld() == this) &&
+	 * | this.getNbUnits() < MAX_UNITS
+	 * @post This world has the given unit as one of its units.
+	 * | new.hasAsUnit(unit)
+	 * @post The given unit is added to a proper faction of this
+	 * 		 world. If the maximum number of factions in this
+	 * 		 world isn't reached, a new Faction is created.
+	 * 		 Otherwise the unit is added to the faction containing
+	 * 		 the least units.
+	 * 		 | Faction f = this.getFactionWithLeastUnits()
+	 * 		 | if(this.factions.size()<MAX_FACTIONS)
+	 * 		 |		(new this).getNbFactions() == this.getNbFactions()+1
+	 * 		 |		f = new Faction()
+	 * 		 | unit.getFaction() == f
+	 */
+	@Override
+	public void addUnit(Unit unit){
+		assert canHaveAsUnit(unit) && this.getNbUnits()<MAX_UNITS;
+		// Bind unit to this world
+		unit.setWorld(this);
+		units.add(unit);
+
+		Faction f;
+		if(this.factions.size()<MAX_FACTIONS) {
+			f = new Faction();
+			this.addFaction(f);
+		}else {
+			f = getFactionWithLeastUnits();
+		}
+		// Bind unit to its faction
+		f.addUnit(unit);
+		unit.setFaction(f);
+	}
+
+	/**
 	 * Check whether this world has the given unit as one of its
 	 * units.
 	 *
@@ -409,28 +451,32 @@ public class World implements IWorld {
 	 * @param unit
 	 * The unit to check.
 	 * @return True if and only if the given unit is effective
-	 * and that unit is a valid unit for a world.
+	 * and not terminated.
 	 * | result ==
-	 * | (unit != null) &&
-	 * | Unit.isValidWorld(this)
+	 * | (unit != null)
 	 */
 	@Raw
 	public boolean canHaveAsUnit(Unit unit) {
-		return (unit != null) && (this.getNbUnits() < MAX_UNITS);// TODO: dit klopt niet
+		return (unit != null) && !unit.isTerminated();
 	}
+
 	/**
 	 * Check whether this world has proper units attached to it.
 	 *
 	 * @return True if and only if this world can have each of the
 	 * units attached to it as one of its units,
 	 * and if each of these units references this world as
-	 * the world to which they are attached.
+	 * the world to which they are attached. And the total number
+	 * of units in this world doesn't exceed the maximum number of
+	 * allowed units in this world.
 	 * | for each unit in Unit:
 	 * | if (hasAsUnit(unit))
 	 * | then canHaveAsUnit(unit) &&
 	 * | (unit.getWorld() == this)
+	 * | if(this.getNbUnits()>MAX_UNITS) result == false
 	 */
 	public boolean hasProperUnits() {
+		if(this.getNbUnits()>MAX_UNITS) return false;
 		for (Unit unit: units) {
 			if (!canHaveAsUnit(unit))
 			    return false;
@@ -439,6 +485,7 @@ public class World implements IWorld {
 		}
 		return true;
 	}
+
 	/**
 	 * Return the number of units associated with this world.
 	 *
@@ -468,95 +515,77 @@ public class World implements IWorld {
 		assert this.hasAsUnit(unit) && unit.isTerminated();
 		units.remove(unit);
 	}
+
 	/**
-	 * Variable referencing a set collecting all the units
-	 * of this world.
-	 *
-	 * @invar The referenced set is effective.
-	 * | units != null
-	 * @invar Each unit registered in the referenced list is
-	 * effective and not yet terminated.
-	 * | for each unit in units:
-	 * | ( (unit != null) &&
-	 * | (! unit.isTerminated()) )
+	 * @return A set containing all the units associated to this world.
+	 * 			| foreach(Unit u in result : this.hasAsUnit(u))
 	 */
-	private final Set<Unit> units = new HashSet <>(MAX_UNITS);
-	
 	@Override
 	public Set<Unit> getUnits(){
 		return new HashSet<>(units);
 	}
 
 	/**
-	 * Variable referencing a set collecting all the workshops
-	 * of this world.
-	 * @invar Each workshop registered in the referenced list is
-	 * effective and not yet terminated.
-	 * | for each workshop in workshop:
-	 * | ( (workshop != null) &&
-	 * | (! workshop == Terrain.WORKSHOP) )
+	 * @return A set containing all the workshops in this world.
+	 * 			| foreach(Cube c in result : c.getWorld()==this && c.getTerrain()==Terrain.WORKSHOP)
 	 */
-	private final Set<Cube> workshops = new HashSet<>();
-	
 	public Set<Cube> getWorkshops(){
 		return new HashSet<>(workshops);
 	}
+
 	/**
-	 * Remove the given workshop from the set of workshops of this world.
-	 *
-	 * @param workshop
-	 * The workshop to be removed.
-	 * @pre This world has the given workshop as one of
-	 * its workshops. And the given workshop is collapsed.
-	 * | workshops.contains(workshop) &&
-	 * | workshop.getTerrain() != Terrain.WORKSHOP
-	 * @post This world no longer has the given workshop as
-	 * one of its workshops.
-	 * | ! new.workshops
-	 */
-	@Raw
-	private void removeWorkshop(Cube workshop) {
-		assert workshops.contains(workshop) && workshop.getTerrain() != Terrain.WORKSHOP;
-		workshops.remove(workshop);
-	}
-	
-	private Map<Vector, Cube> CubeMap = new HashMap<Vector , Cube>();
-	
-	/*
-	 * (non-Javadoc)
-	 * @see hillbillies.model.IWorld#isCubePassable(hillbillies.utils.Vector)
-	 */
+	 * Check whether the cube with given cubeCoordinates is passable or not.
+	 * @param cubeCoordinates The cubeCoordinates of the cube to check
+	 * @return True when the cube corresponding to the given cubeCoordinates
+	 * 			is passable.
+	 * 			| result == this.getCube(cubeCoordinates).isPassable()
+     */
 	@Override
 	public boolean isCubePassable(Vector cubeCoordinates){
-		return getCube(cubeCoordinates).isPassable();
+		return this.getCube(cubeCoordinates).isPassable();
 	}
-	
+
+	/**
+	 * Get a valid random spawn position in this world.
+	 * @return A random valid position for any unit in this world. The position
+	 * 			is also	valid for units whose World isn't set to this world, but
+	 * 			who will set their World to this world right after this method call.
+	 * 			| foreach(Unit u in this.getUnits() : u.isValidPosition(result))
+	 * @throws IllegalStateException
+	 * 			When this world has no valid spawn positions. All cubes are solid.
+	 * 			| foreach(Cube c : if(c.getWorld()==this) then !c.isPassable())
+     */
 	@Override
 	public Vector getSpawnPosition() throws IllegalStateException{
 		if(passableList.isEmpty())
-			throw new IllegalStateException("There are no passable cube in this world");
+			throw new IllegalStateException("There are no passable cubes in this world");
 		Vector position = passableList.get(randInt(0, passableList.size()-1));
 		Vector lower = new Vector(0,0,-Cube.CUBE_SIDE_LENGTH);
-		while(!CorrectSpawnPosition(position)){
+		while(!isCorrectSpawnPosition(position)){
 			position = position.add(lower);
 		}
-		position.add(
-				new Vector(randDouble(0, Cube.CUBE_SIDE_LENGTH),
-						randDouble(0, Cube.CUBE_SIDE_LENGTH),
-						randDouble(0, Cube.CUBE_SIDE_LENGTH)));
 		return position;
 	}
-	
-	
-	protected boolean CorrectSpawnPosition(Vector position) {// TODO: waarom dit niet vervangen door unit.isValidPosition?
-		if(this.isValidPosition(position) && this.isCubePassable(position) && (position.cubeZ() ==0 || !this.isCubePassable(new Vector(position.X(),position.Y(),position.Z()-1))))
-			return true;
-		return false;
+
+	/**
+	 * Check whether the given position is a correct position to spawn
+	 * for any unit.
+	 * @param position The position to check.
+	 * @return True if the position is valid in this world and the position
+	 * 			references a cube which is passable and the lower position
+	 * 			is solid.
+	 * 			| result == this.isValidPosition(position) &&
+	 * 			| 			this.isCubePassable(position) &&
+	 * 			|			this.isLowerSolid(position)
+     */
+	private boolean isCorrectSpawnPosition(Vector position) {
+		return this.isValidPosition(position) && this.isCubePassable(position) && this.isLowerSolid(position);
 	}
 
 	/**
 	 * Get the Cube at the corresponding position.
-	 * @param cubeCoordinates The position of the cube
+	 * @param cubeCoordinates The position of the cube. This position must be
+	 *                        given in cube coordinates!
 	 * @return The Cube associated with this position
 	 * @throws IllegalArgumentException
 	 * 			When the given position is not a valid position in this World.
@@ -568,25 +597,43 @@ public class World implements IWorld {
 		return this.CubeMap.get(cubeCoordinates);
 	}
 
+	/**
+	 * Retrieve a set of the directly adjacent cubes of the cube with the
+	 * given cubeCoordinates.
+	 * @param cubeCoordinates The coordinates of the cube of which the
+	 *                        directly adjacent cubes should be returned.
+	 *                        These coordinates must be cube coordinates!
+	 * @effect Create a new HashSet and fill it with the directly adjacent
+	 * 			cubes of the cube with given cubeCoordinates.
+	 * 			| Set<Cube> result = new HashSet<>();
+	 * 			| getDirectlyAdjacentCubesSatisfying(result, cubeCoordinates, cube -> true, cube -> cube)
+	 * @return A set containing the directly adjacent cubes of the cube
+	 * 			with the given cubeCoordinates.
+     */
 	@Override
 	public Set<Cube> getDirectlyAdjacentCubes(Vector cubeCoordinates){
 		Set<Cube> result = new HashSet<>(NB_DIRECTLY_ADJACENT_DIRECTIONS);
-		getDirectlyAdjacentCubesSatisfying(result, cubeCoordinates, cube -> true, cube -> cube);
+		this.getDirectlyAdjacentCubesSatisfying(result, cubeCoordinates, cube -> true, cube -> cube);
 		return result;
 	}
 
+	/**
+	 * Retrieve a set of the neighbouring cubes of the cube with the
+	 * given cubeCoordinates.
+	 * @param cubeCoordinates The coordinates of the cube of which the
+	 *                        neighbouring cubes should be returned.
+	 *                        These coordinates must be cube coordinates!
+	 * @effect Create a new HashSet and fill it with the neighbouring
+	 * 			cubes of the cube with given cubeCoordinates.
+	 * 			| Set<Cube> result = new HashSet<>();
+	 * 			| getNeighbouringCubesSatisfying(result, cubeCoordinates, cube -> true, cube -> cube)
+	 * @return A set containing the neighbouring cubes of the cube
+	 * 			with the given cubeCoordinates.
+	 */
 	public Set<Cube> getNeighbouringCubes(Vector cubeCoordinates){
 		Set<Cube> result = new HashSet<>(NB_NEIGHBOURING_DIRECTIONS);
-		getNeighbouringCubesSatisfying(result, cubeCoordinates, cube -> true, cube -> cube);
+		this.getNeighbouringCubesSatisfying(result, cubeCoordinates, cube -> true, cube -> cube);
 		return result;
-	}
-
-	public Set<Cube> getDirectlyAdjacentCubes(Cube cube){
-		return getDirectlyAdjacentCubes(cube.getPosition());
-	}
-
-	public Set<Cube> getNeighbouringCubes(Cube cube){
-		return getNeighbouringCubes(cube.getPosition());
 	}
 
 	/**
@@ -617,17 +664,18 @@ public class World implements IWorld {
 	}
 
 	/**
-	 * Return the set of neighbouring cubes, of the Cube with position cubeCoordinates, which
-	 * satisfy the given condition. The resulting set is mapped to a custom type using the given
-	 * mapper.
-	 * @param cubeCoordinates The CUBE-coordinates of the Cube. The method will return the neighbouring
+	 * Fill the given collection with neighbouring cubes, of the Cube with position cubeCoordinates,
+	 * which satisfy the given condition. The resulting cubes are mapped to a custom type using the given
+	 * mapper. These mapped cubes are then added to the given collection.
+	 * @param cubeCoordinates The CUBE-coordinates of the Cube. The method will only return the neighbouring
 	 *                        cubes relative to this Cube.
-	 * @param condition The condition imposed on the neighbouring cubes. Only neighbouring cubes
-	 *                  satisfying this condition will be added to the resulting Set.
-	 * @param mapper The mapper used to map the resulting neighbouring cubes set to a set of custom Type
-	 * @param <T> The type of the resulting Set after mapping it.
-	 * @return The mapped set of valid neighbouring cubes satisfying condition.
-	 * 			| foreach(T element in result)
+	 * @param condition The condition imposed on the neighbouring cubes. Only neighbouring cubes satisfying
+	 *                  this condition will be added to the resulting collection.
+	 * @param mapper The mapper used to map the resulting neighbouring cubes to the custom Type of the
+	 *               given collection
+	 * @param <T> The type of the resulting collection after mapping it.
+	 * @post The given collection contains valid neighbouring cubes satisfying condition.
+	 * 			| foreach(new T element in collection)
 	 * 			|	exists(Cube c | isValidPosition(c.getPosition()) && condition.test(c) &&
 	 * 			|		exists(Vector neighbouringDirection | NEIGHBOURING_DIRECTIONS.contains(neighbouringDirection) &&
 	 * 			|			cubeCoordinates.add(neighbouringDirection).equals(c.getPosition())
@@ -643,31 +691,59 @@ public class World implements IWorld {
 		}
 	}
 
+	/**
+	 * Retrieve a list of the directly adjacent cubes' positions of the cube
+	 * with the given cubeCoordinates.
+	 * @param cubeCoordinates The coordinates of the cube of which the
+	 *                        directly adjacent cubes' positions should be
+	 *                        returned.
+	 *                        These coordinates must be cube coordinates!
+	 * @effect Create a new ArrayList and fill it with the directly adjacent
+	 * 			cubes' positions of the cube with given cubeCoordinates.
+	 * 			| List<Cube> result = new ArrayList<>();
+	 * 			| getDirectlyAdjacentCubesSatisfying(result, cubeCoordinates, cube -> true, WorldObject::getPosition)
+	 * @return A list containing the directly adjacent cubes' positions of
+	 * 			the cube with the given cubeCoordinates.
+	 */
 	@Override
-	public List<Vector> getDirectlyAdjacentCubesPositions(Vector cubeCoordinates){// TODO: update this so it supports more general method
+	public List<Vector> getDirectlyAdjacentCubesPositions(Vector cubeCoordinates){
 		List<Vector> adjacentCubes = new ArrayList<>(NB_DIRECTLY_ADJACENT_DIRECTIONS);
-		for(Vector adjacentDirection : DIRECTLY_ADJACENT_DIRECTIONS) {
-			Vector adjacentPos = cubeCoordinates.add(adjacentDirection);
-			if (isValidPosition(adjacentPos))
-				adjacentCubes.add(adjacentPos);
-		}
+		this.getDirectlyAdjacentCubesSatisfying(adjacentCubes, cubeCoordinates, cube -> true, WorldObject::getPosition);
 		return adjacentCubes;
 	}
 
+	/**
+	 * Retrieve a list of the neighbouring cubes' positions of the cube
+	 * with the given cubeCoordinates.
+	 * @param cubeCoordinates The coordinates of the cube of which the
+	 *                        neighbouring cubes' positions should be
+	 *                        returned.
+	 *                        These coordinates must be cube coordinates!
+	 * @effect Create a new ArrayList and fill it with the neighbouring
+	 * 			cubes' positions of the cube with given cubeCoordinates.
+	 * 			| List<Cube> result = new ArrayList<>();
+	 * 			| getNeighbouringCubesSatisfying(result, cubeCoordinates, cube -> true, WorldObject::getPosition)
+	 * @return A list containing the neighbouring cubes' positions of
+	 * 			the cube with the given cubeCoordinates.
+	 */
 	public List<Vector> getNeighbouringCubesPositions(Vector cubeCoordinates){
 		List<Vector> neighbouringCubes = new ArrayList<>(NB_NEIGHBOURING_DIRECTIONS);
-		for(Vector neighbouringDirection : NEIGHBOURING_DIRECTIONS) {
-			Vector neighbouringPos = cubeCoordinates.add(neighbouringDirection);
-			if (isValidPosition(neighbouringPos))
-				neighbouringCubes.add(neighbouringPos);
-		}
+		this.getNeighbouringCubesSatisfying(neighbouringCubes, cubeCoordinates, cube -> true, WorldObject::getPosition);
 		return neighbouringCubes;
 	}
 
-	public List<Vector> getDirectlyAdjacentCubesPositions(Cube cube){
-		return getDirectlyAdjacentCubesPositions(cube.getPosition());
-	}
-
+	/**
+	 * Check whether any of the directly adjacent cubes of the cube
+	 * with the given position are solid.
+	 * @param position The position of the cube to check
+	 * @return True if any of the directly adjacent cubes of the cube
+	 * 			with the given position are solid OR when the given position
+	 * 			references a cube with Z-coordinate (in cube coordinates) equal to zero.
+	 * 			| if(position.cubeZ() == 0) result == true
+	 * 			| else if(for any Cube c in this.getDirectlyAdjacentCubes(position.getCubeCoordinates()) :
+	 * 			|			!c.isPassable()) result == true
+	 * 			| else result == false
+     */
 	public boolean isAdjacentSolid(Vector position){
 		if(position.cubeZ() == 0)
 			return true;
@@ -678,6 +754,18 @@ public class World implements IWorld {
 		return !solidAdjacentCubes.isEmpty();
 	}
 
+	/**
+	 * Check whether the cube beneath the cube with the given position
+	 * is solid or not.
+	 * @param position The position of the cube to check
+	 * @return True if the cube beneath the cube with the given position
+	 * 			is solid OR when the given position references a cube
+	 * 			with Z-coordinate (in cube coordinates) equal to zero.
+	 * 			| if(position.cubeZ() == 0) result == true
+	 * 			| else if(!this.getCube(position.getCubeCoordinates().add(new Vector(0,0,-1))).isPassable())
+	 * 			|	result == true
+	 * 			| else result == false
+     */
 	public boolean isLowerSolid(Vector position){
 		if(position.cubeZ() == 0)
 			return true;
@@ -686,6 +774,11 @@ public class World implements IWorld {
 		return false;
 	}
 
+	/**
+	 * Advance the game time of this world with the given amount
+	 * of time.
+	 * @param dt The amount of time to advance the game time with.
+     */
 	public void advanceTime(double dt){
 		unitsByCubePosition.clear();
 		for(Unit unit : units){
@@ -694,44 +787,13 @@ public class World implements IWorld {
 				unitsByCubePosition.put(unit.getPosition().getCubeCoordinates(), new HashSet<>());
 			unitsByCubePosition.get(unit.getPosition().getCubeCoordinates()).add(unit);
 		}
+
+		for(Vector cubePosition : CubeMap.keySet())
+			this.getCube(cubePosition).advanceTime(dt);
+
 		for(Material m : materials){
 			m.advanceTime(dt);
 		}
-		//COLLAPSING CUBES
-		Iterator<Vector> cubeIterator = CollapsingCubes.keySet().iterator();
-		while(cubeIterator.hasNext()){
-			Vector cube = cubeIterator.next();
-			double time = CollapsingCubes.get(cube);
-			if (time >= 4d){
-				collapse(cube);
-				cubeIterator.remove();
-				CollapsingCubes.remove(cube);
-			}
-			else
-				CollapsingCubes.replace(cube, time+dt);
-
-		}
-	}
-
-	public void collapse(Vector coordinate) {
-		Vector CubeCoor = coordinate.getCubeCoordinates();
-		Cube cube  = getCube(CubeCoor);
-		Terrain cubeTerrain = cube.getTerrain();
-		if (cubeTerrain == Terrain.ROCK){
-			if (randInt(0, 99) < 25)
-				//cubeTerrain = Terrain.AIR;
-				new Boulder(this,cube);
-		}
-		else if (cubeTerrain == Terrain.WOOD){
-			if (randInt(0, 99) < 25)
-				//cubeTerrain = Terrain.AIR;
-				new Log(this,cube);
-		}
-		else if (cubeTerrain == Terrain.WORKSHOP){
-			this.removeWorkshop(cube);			
-		}
-		cube.setTerrain(Terrain.AIR);
-		this.passableList.add(CubeCoor);
 	}
 
 
@@ -748,24 +810,23 @@ public class World implements IWorld {
 		int x = (int)cube.getPosition().X();
 		int y = (int)cube.getPosition().Y();
 		int z = (int)cube.getPosition().Z();
-		if(oldTerrain!=null) {
+		if(oldTerrain!=null) {// Notify terrainChangeListener and units of change
 			terrainChangeListener.notifyTerrainChanged(x, y, z);
-			if (cube.isPassable() && !oldTerrain.isPassable()){
-				List<int[]> changingCubes = connectedToBorder.changeSolidToPassable(x, y, z);
-				for (int[] coord : changingCubes){
-					Vector coordi = new Vector(coord[0], coord[1], coord[2]);
-					if(!CollapsingCubes.containsKey(coordi))
-							CollapsingCubes.put(coordi, 0d);
-				}
-			}
-			else if (!cube.isPassable() && oldTerrain.isPassable())
-				connectedToBorder.changePassableToSolid(x, y, z);
-			for(Unit unit : units){
+
+			for(Unit unit : units)
 				unit.notifyTerrainChange(oldTerrain, cube);
-			}
-		}else if(cube.isPassable()){
-			connectedToBorder.changeSolidToPassable(x, y, z);
 		}
+		if (cube.isPassable() && (oldTerrain==null || !oldTerrain.isPassable())){
+			List<int[]> changingCubes = connectedToBorder.changeSolidToPassable(x, y, z);
+			for (int[] coord : changingCubes){
+				Cube changingCube = this.getCube(new Vector(coord));
+				if(!changingCube.isCollapsing())
+					changingCube.collapse();
+			}
+			this.passableList.add(cube.getPosition());
+		}
+		else if (!cube.isPassable() && (oldTerrain==null || oldTerrain.isPassable()))
+			connectedToBorder.changePassableToSolid(x, y, z);
 	}
 	
 	/**
@@ -926,18 +987,16 @@ public class World implements IWorld {
 		return getMaterials(Boulder.class, inCube);
 	}
 
-	public void checkWorld(){
+	/*public void checkWorld(){
 		for(int x = 0; x < this.getNbCubesX(); x++){
 			for(int y = 0; y < this.getNbCubesX(); y++){
 				for(int z = 0; z < this.getNbCubesX(); z++){
 					if( !connectedToBorder.isSolidConnectedToBorder(x, y, z))
-						CollapsingCubes.put(new Vector(x,y,z), 0d);
+						CollapsingCubes.put(new Vector(x,y,z), 0d);// TODO
 
 				}
 			}
 		}
-	}
-
-	private Map<Vector, Double> CollapsingCubes = new HashMap<Vector , Double>();
+	}*/
 
 }

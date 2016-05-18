@@ -68,8 +68,6 @@ public interface IWorld {
 
     public Cube getCube(Vector position);
 
-    public void collapse(Vector coordinate);
-
     public void removeUnit(Unit unit);
 
     public boolean hasAsFaction(@Raw Faction faction);

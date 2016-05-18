@@ -53,6 +53,15 @@ public class World implements IWorld {
 	 * Constant reflecting number of neighboring directions.    
 	 */
 	private static final int NB_NEIGHBOURING_DIRECTIONS = 26;
+	/**
+	 * A map of all passable positions.
+	 * Vector in CubeCoordinates.
+	 */
+	private Map<Integer,Vector> passableMap = new HashMap<>();
+	/**
+	 * Constant reflecting the size of passableMap.     
+	 */
+	private int passableSize = 0;
 
 	/**
 	 * TODO
@@ -151,7 +160,10 @@ public class World implements IWorld {
 					if(terrain == Terrain.WORKSHOP){
 						this.workshops.add(cube);
 					}
-						
+					if(cube.isPassable()){
+						this.passableMap.put(this.passableSize, position);
+						this.passableSize +=1;
+					}
 				}
 			}
 		}
@@ -545,23 +557,18 @@ public class World implements IWorld {
 	}
 	
 	@Override
-	public Vector getSpawnPosition(){
-		boolean isPassable = false;
-		int x = 0;
-		int y = 0;
-		int z = 0;
-		Vector position = new Vector(x,y,z);
-		while (!isPassable){
-			x = (int)(randDouble(this.getMinPosition().X(), this.getMaxPosition().X()));
-			y = (int)(randDouble(this.getMinPosition().Y(), this.getMaxPosition().Y()));
-			z = (int)(randDouble(this.getMinPosition().Z(), this.getMaxPosition().Z()));
-			position = (new Vector(x,y,z)).getCubeCoordinates();
-			isPassable = isCubePassable(position);
-		}
+	public Vector getSpawnPosition() throws IllegalStateException{
+		if(passableMap.isEmpty())
+			throw new IllegalStateException("There are no passable cube in this world");
+		Vector position = passableMap.get(randInt(0, passableSize-1));
+		Vector lower = new Vector(0,0,-Cube.CUBE_SIDE_LENGTH);
 		while(!CorrectSpawnPosition(position)){
-			z -=1;
-			position = new Vector(x,y,z);
+			position = position.add(lower);
 		}
+		position.add(
+				new Vector(randDouble(0, Cube.CUBE_SIDE_LENGTH), 
+						randDouble(0, Cube.CUBE_SIDE_LENGTH), 
+						randDouble(0, Cube.CUBE_SIDE_LENGTH)));
 		return position;	
 	}
 	
@@ -731,7 +738,8 @@ public class World implements IWorld {
 			this.removeWorkshop(cube);			
 		}
 		cube.setTerrain(Terrain.AIR);
-
+		this.passableMap.put(this.passableSize, CubeCoor);
+		this.passableSize +=1;
 
 	}
 

@@ -171,7 +171,10 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public Unit spawnUnit(World world, boolean enableDefaultBehavior) throws ModelException {
-        return world.spawnUnit(enableDefaultBehavior);
+        try{ return world.spawnUnit(enableDefaultBehavior);
+        }catch(IllegalStateException e){
+        	throw new ModelException("There are no passable cube in this world");
+        }
     }
 
     /**

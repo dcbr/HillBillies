@@ -471,6 +471,8 @@ public class Unit extends WorldObject {
 
 	/**
 	 * Return the agility of this unit.
+	 * @return The agility of this unit.
+	 * 			| result == this.agility
 	 */
 	@Basic @Raw
 	public int getAgility() {
@@ -479,15 +481,19 @@ public class Unit extends WorldObject {
 
 	/**
 	 * Return the current speed of this unit.
+	 * @return The current speed of this unit.
+	 * 			| result >= 0
 	 */
 	public double getCurrentSpeed(){
 		if(!this.isMoving() && !this.isFalling())
 			return (0d);
-		return ((Move)this./*activityController.*/getCurrentActivity()).getCurrentSpeed();
+		return ((Move)this.getCurrentActivity()).getCurrentSpeed();
 	}
 
 	/**
 	 * Return the hitpoints of this unit.
+	 * @return The hitpoints of this unit.
+	 * 			| result == this.hitpoints
 	 */
 	@Basic @Raw
 	public int getHitpoints() {
@@ -496,6 +502,8 @@ public class Unit extends WorldObject {
 
 	/**
 	 * Return the Id of this Unit.
+	 * @return The ID of this unit.
+	 * 			| result == this.Id
 	 */
 	@Basic
 	@Raw
@@ -506,6 +514,8 @@ public class Unit extends WorldObject {
 
 	/**
 	 * Return the name of this Unit.
+	 * @return The name of this unit.
+	 * 			| result == this.name
 	 */
 	@Basic
 	@Raw
@@ -515,6 +525,8 @@ public class Unit extends WorldObject {
 	
 	/**
 	 * Return the orientation of this Unit.
+	 * @return The orientation of this unit.
+	 * 			| result == this.orientation
 	 */
 	@Basic
 	@Raw
@@ -524,6 +536,8 @@ public class Unit extends WorldObject {
 
 	/**
 	 * Return the stamina of this unit.
+	 * @return The stamina of this unit.
+	 * 			| result == this.stamina
 	 */
 	@Basic @Raw
 	public int getStamina() {
@@ -532,6 +546,8 @@ public class Unit extends WorldObject {
 
 	/**
 	 * Return the strength of this unit.
+	 * @return The strength of this unit.
+	 * 			| result == this.strength
 	 */
 	@Basic @Raw
 	public int getStrength() {
@@ -540,6 +556,8 @@ public class Unit extends WorldObject {
 
 	/**
 	 * Return the toughness of this unit.
+	 * @return The toughness of this unit.
+	 * 			| result == this.toughness
 	 */
 	@Basic @Raw
 	public int getToughness() {
@@ -548,6 +566,9 @@ public class Unit extends WorldObject {
 
 	/**
 	 * Return the weight of this unit.
+	 * @return The weight of this unit,
+	 * 	 plus the weight of his materials.	
+	 * 		| result >= this.weight
 	 */
 	@Basic @Raw
 	public int getWeight() {
@@ -558,51 +579,35 @@ public class Unit extends WorldObject {
 
 	//region Checkers
 	/**
-	 * Return a boolean indicating whether or not this person
-	 * is attacking.
-	 */
-	/*@Raw
-	public boolean isAttacking() {
-		return this.activityController.isAttacking();
-	}*/
-
-	/**
-	 * Return a boolean indicating whether or not the units default behaviour is activated.
+	 * Check whether the default behaviour is activated for this unit.
+	 * @return True if and only if the default behaviour is activated for this unit.
+	 *       | result ==
+	 *       |   this.getCurrentActivity().isDefault()
 	 */
 	@Basic
 	public boolean isDefaultActive(){
-		return this./*activityController.*/getCurrentActivity().isDefault();
+		return this.getCurrentActivity().isDefault();
 	}
 
 	/**
-	 * Return a boolean indicating whether or not this person
-	 * is in its initial resting period.
+	 * Check whether this unit is in its initial resting period.
+	 * @return True if and only if this unit is resting and is in its initial resting period.
+	 *       | result ==
+	 *       |   this.isResting() && ((Rest)this.getCurrentActivity()).isInitialRestMode()
 	 */
 	public boolean isInitialRestMode(){
-		return this.isResting() && ((Rest)this./*activityController.*/getCurrentActivity()).isInitialRestMode();
+		return this.isResting() && ((Rest)this.getCurrentActivity()).isInitialRestMode();
 	}
+
 	/**
-	 * Return a boolean indicating whether or not this person
-	 * is moving.
-	 */
-	/*public boolean isMoving(){
-		return this.activityController.isMoving();
-	}
-	public boolean isResting(){
-		return this.activityController.isResting();
-	}*/
-	/**
-	 * Return a boolean indicating whether or not this person
-	 * is sprinting.
+	 * Check whether this unit is sprinting.
+	 * @return False if and only if this unit is not sprinting.
+	 *       | if (!((Move)this.getCurrentActivity()).isSprinting())
+	 *       | 		result == false
 	 */
 	public boolean isSprinting(){
-		return this.isMoving() && !this.isFalling() && ((Move)this./*activityController.*/getCurrentActivity()).isSprinting();
+		return this.isMoving() && !this.isFalling() && ((Move)this.getCurrentActivity()).isSprinting();
 	}
-
-	/*public boolean isWorking(){
-		return this.activityController.isWorking();
-	}*/
-
 	//endregion
 
 	//region Setters
@@ -633,8 +638,6 @@ public class Unit extends WorldObject {
 		if (this.getWeight() < minWeight)
 			this.setWeight(minWeight);
 	}
-
-
 
 	/**
 	 * Set the hitpoints of this unit to the given hitpoints.
@@ -922,10 +925,10 @@ public class Unit extends WorldObject {
 	 * @post	This new Unit belongs to a Faction related to the given world.
 	 * 			| world.getFactions().contains(this.getFaction()) == true
 	 * @effect The name of this new Unit is set to
-	 * the given name.
-	 * | this.setName(name)
+	 * 			the given name.
+	 * 		| this.setName(name)
 	 * @effect The orientation of this new Unit is set to the default orientation.
-	 * 			| this.setOrientation(INITIAL_ORIENTATION)
+	 * 		| this.setOrientation(INITIAL_ORIENTATION)
 	 * @post The Id of this new Unit is equal to ID.
 	 * 		| this.getId()==ID
 	 * @post The static field ID is incremented by 1. This way uniqueness is almost certainly guaranteed.
@@ -1005,7 +1008,9 @@ public class Unit extends WorldObject {
 	//endregion
 
 	//region AdvanceTime
-
+	/**
+	 * No documentation needed
+	 */
 	@Override
 	public void advanceTime(double dt){
 		if(dt<0 || dt>0.2)
@@ -1025,11 +1030,31 @@ public class Unit extends WorldObject {
 		this.getCurrentActivity().advanceTime(dt);
 	}
 
+    /**
+     * Check whether the given position is a valid position for
+     * any unit in the units world.
+     *  
+     * @param  position
+     * 		   The position to check.
+     * @return True if this unit is in a LobbyWorld. 
+     * 		 | if(this.getWorld() instanceof LobbyWorld)
+     * 		 | result == true
+     * @return False if the unit is not in a lobbyWorld 
+     * 	and the given position is not passable.
+     *       | if(!this.getWorld() instanceof LobbyWorld && 
+     *       | 		this.getWorld().isCubePassable(position.getCubeCoordinates))
+     *       |			result == false
+     *       
+     * @return False if the unit is not in a lobbyWorld and       
+     * 	there is no an adjacent cube solid.
+     *       | if(!this.getWorld() instanceof LobbyWorld && 
+     *       | 		this.getWorld().isAdjacentSolid(position.getCubeCoordinates))
+     *       |			result == false
+     */
 	@Override
 	protected boolean validatePosition(Vector position) {
 		IWorld world = this.getWorld();
 		if(world instanceof LobbyWorld) return true;
-		// world.isValidPosition(position) wordt al gecontroleerd in isValidPosition
 		if(world.isCubePassable(position.getCubeCoordinates())){
 			if(isAdjacentSolid(position))
 				return true;
@@ -1063,53 +1088,41 @@ public class Unit extends WorldObject {
 	/**
 	 * Activate the default behaviour of this unit.
 	 *
-	 * @post	Default behaviour of this unit is activated.
+	 * @effect	Default behaviour of this unit is activated.
 	 *       	| new.isDefaultActive() == true
 	 */
 	public void startDefaultBehaviour(){
-		this./*activityController.*/getCurrentActivity().setDefault(true);
+		this.getCurrentActivity().setDefault(true);
 	}
 
 	/**
 	 * Deactivate the default behaviour of this unit.
 	 *
-	 * @post   	Default behaviour of this unit is deactivated.
+	 * @effect   	Default behaviour of this unit is deactivated.
 	 *       	| new.isDefaultActive() == false
-	 * @post   	The unit stops doing the default.
+	 * @effect   	The unit stops doing the default.
 	 * 			| this.stopDoingDefault()
-	 * @post   	The new current activity of this unit is equal to None.
+	 * @effect   	The new current activity of this unit is equal to None.
 	 * 			| new.getCurrentActivity() == NONE.
 	 */
 	public void stopDefaultBehaviour(){
-		this./*activityController.*/getCurrentActivity().setDefault(false);
-		this./*activityController.*/requestActivityFinish(this./*activityController.*/getCurrentActivity());
+		this.getCurrentActivity().setDefault(false);
+		this.requestActivityFinish(this.getCurrentActivity());
 	}
 	//endregion
 
 	//region Fighting
 	/**
-	 * Let this unit attack the defender.
-	 *
-	 * @param  defender
-	 *         The defender of this attack.
-	 * @post   	The orientation of this unit and the defender is changed. 
-	 * 			They are orientated to each other.
-	 *			| (new defender).getOrientation() == -this.setOrientation((float)Math.atan2(defender.getPosition().Y()-this.getPosition().Y(), (defender.getPosition().X()-this.getPosition().X())))
-	 * 			| new.getOrientation() == this.setOrientation((float)Math.atan2(defender.getPosition().Y()-this.getPosition().Y(), (defender.getPosition().X()-this.getPosition().X())))
-	 * @post	the attacker is attacking.
-	 * 			| new.isAttacking() == true
-	 * @post	the current activity is attack
-	 * 			| new.getCurrentActivity() == Activity.Attack
-	 * @post	The attacker stops the default behaviour if it was doing this.
-	 * 			| new.isDoingBehaviour
-	 * @effect	The defender defends this attack
-	 * 			| defender.defend(this)
-	 * @effect	If the attack is successfully, the attacker gains FIGHT_POINTS, else, the defender gains them.
-	 * @throws	IllegalArgumentException * the attacker is not able to attack this unit.
-	 * 			| !this.isValidAttack(defender)	
+	 * Let this unit attack another unit.
+	 * @param defender
+	 * 			The defender to attack.
+	 * @effect This unit will try to attack the defender.
+	 * 		| this.requestNewActivity(new Attack(this, defender))
+	 * @throws IllegalArgumentException
+	 * 			When this unit is not able to attack the attacker.
 	 */
 	public void attack(Unit defender) throws IllegalArgumentException{
-		/*activityController.*/requestNewActivity(new Attack(this, defender));
+		requestNewActivity(new Attack(this, defender));
 	}
 	
 	/**
@@ -1117,11 +1130,14 @@ public class Unit extends WorldObject {
 	 *
 	 * @param  attacker
 	 *         The attacker of this attack.
-	 * @effect The unit first tries to dodge the attack, then blocks it. 
-	 * 			If it fails to dodge and block, this unit will lose hitpoins.
+	 * @effect This unit will try to attack the defender.
+	 * 		| this.requestNewActivity(new Attack(this, defender))
+	 * @throws IllegalArgumentException
+	 * 			When the attacker is not able to attack this unit.
 	 */
-	public void defend(Unit attacker){// Code is moved to Activity Attack
-		// empty method since attacking is controlled by the attacker
+	public void defend(Unit attacker) throws IllegalArgumentException{// Code is moved to Activity Attack
+		// never used
+		requestNewActivity(new Attack(attacker, this));
 	}
 	//endregion
 
@@ -1130,8 +1146,8 @@ public class Unit extends WorldObject {
 	 * Method to let the Unit move to an adjacent cube.
 	 * @param direction The direction the Unit should move towards. Since this method can only be used to move to
 	 *                  neighbouring cubes, each element of the array must have a value of (-)1 or 0.
-	 * @post	This unit stops the default behaviour if it was doing this
-	 * 			| new.isDoingBehaviour
+	 * @effect This unit will try to move to the direction.
+	 * 		| this.requestNewActivity(new AdjacentMove(this, direction))
 	 * @throws IllegalStateException
 	 * 			When this Unit is not able to move at this moment
 	 * 			| this.isAbleToMove() == false
@@ -1140,61 +1156,76 @@ public class Unit extends WorldObject {
 	 * 			| isValidPosition(this.getPosition().getCubeCenterCoordinates().add(direction)) == false
      */
 	public void moveToAdjacent(Vector direction) throws IllegalStateException, IllegalArgumentException{
-		/*activityController.*/requestNewActivity(new AdjacentMove(this, direction));
+		requestNewActivity(new AdjacentMove(this, direction));
 	}
 
 	/**
 	 * Method to let the Unit move to a target.
 	 * @param targetPosition 
 	 * 			The direction the Unit should move towards.
-	 * @post	This unit stops the default behaviour if it was doing this
-	 * 			| new.isDoingBehaviour
+	 * @effect This unit will try to move to the direction.
+	 * 			| this.requestNewActivity(new AdjacentMove(this, direction))
 	 * @post	if this is the default behaviour, set the stateDefault to a new state.
 	 * 			| new.isDoingBehaviour
 	 * @throws IllegalStateException * If this unit isn't able to move.
-	 * 		|!this.isAbleToMove()
+	 * 			|!this.isAbleToMove()
 	 */
 	public void moveToTarget(Vector targetPosition) throws IllegalStateException, IllegalArgumentException{
 		if(targetPosition==null || !isValidPosition(targetPosition))
 			throw new IllegalArgumentException("The target is not a valid position.");
-		/*activityController.*/requestNewActivity(new TargetMove(this, targetPosition));
+		requestNewActivity(new TargetMove(this, targetPosition));
 	}
-
+	/**
+	 * Method to let the Unit sprint.
+	 * @effect this unit will sprint
+	 * 			| new.isSprinting = true
+	 * @throws IllegalStateException
+	 * 			When the unit is not moving.
+	 * 			| !this.isMoving()
+	 */
 	public void sprint() throws IllegalStateException{
 		if(!this.isMoving() || this.isFalling())
 			throw new IllegalStateException("Unit is not able to sprint at this moment.");
-		((Move)/*activityController.*/getCurrentActivity()).sprint();
+		((Move)getCurrentActivity()).sprint();
 	}
-
+	/**
+	 * Method to let the Unit stop sprinting.
+	 * @effect this unit will stop sprinting.
+	 * 			| new.isSprinting = false
+	 * @throws IllegalStateException
+	 * 			When the unit is not moving.
+	 * 			| !this.isMoving()
+	 */
 	public void stopSprint(){
 		if(!this.isMoving() || this.isFalling())
 			throw new IllegalStateException("Unit is not moving at this moment.");
-		((Move)/*activityController.*/getCurrentActivity()).stopSprint();
+		((Move)getCurrentActivity()).stopSprint();
 	}
-	
-	public void follow(Unit unit){
+	/**
+	 * Method to let this unit follow another unit.
+	 * @param unit
+	 * 			The unit to follow.
+	 * @effect This unit will follow the given unit.
+	 * 			| this.requestNewActivity(new TargetMove(this, Set<Unit>(unit)))
+	 * @throws IllegalArgumentException
+	 * 			When the given equals null or this unit.
+	 * 			| unit==null OR unit == this
+	 */
+	public void follow(Unit unit) throws IllegalArgumentException{
 		if(unit==null || unit == this)
 			throw new IllegalArgumentException("The unit is not a valid unit.");
 		Set<Unit> units = new HashSet<>();
 		units.add(unit);
-		/*activityController.*/requestNewActivity(new TargetMove(this, units));
+		requestNewActivity(new TargetMove(this, units));
 	}
 	
 	//endregion
 	/**
 	 * Method to let the Unit rest.
-	 * @post the unit is resting.
-	 * 		| new.getCurrentActivity() == Activity.REST
 	 * @post This unit stops the default behaviour if it was doing this.
 	 * 		| new.isDoingBehaviour
-	 * @post if this is the default behaviour, set the stateDefault to a new state.
-	 * 		| new.isDoingBehaviour 
-	 * @post reset the restTimer of this unit
-	 * 		new.restTimer
-	 * @post reset the restHitpoints of this unit
-	 * 		new.restHitpoints
-	 * @post reset the restStamina of this unit
-	 * 		new.restStamina
+	 * @effect This unit will rest.
+	 * 			| this.requestNewActivity(new Rest(this))
 	 * @throws IllegalStateException * if the unit isn't able to rest.
 	 * | !this.isAbleToRest()
 	 */
@@ -1208,27 +1239,22 @@ public class Unit extends WorldObject {
 	//region Working
 	/**
 	 * Method to let the Unit work.
-	 * @post the unit is working.
-	 * 		| new.getCurrentActivity() == Activity.WORK
 	 * @post This unit stops the default behaviour if it was doing this.
 	 * 		| new.isDoingBehaviour
 	 * @post if this is the default behaviour, set the stateDefault to a new state.
 	 * 		| new.isDoingBehaviour 
-	 * @post reset the work progress
-	 * 		| new.getWorkprogress()
-	 * @post reset the work duration
-	 * 		| new.getWorkDuration()
-	 * @throws IllegalStateException * if the unit isn't able to work.
-	 * | !this.isAbleToWork()
-	 * @throws IllegalArgumentException
-	 * 			The given position is not a neighbouring position
-	 * 			| !isValidWorkPosition(position)
+	 * @throws IllegalStateException, IllegalArgumentException
+	 * 	
 	 */
 	public void work(Vector position) throws IllegalStateException, IllegalArgumentException{
 		//activityController.
 		requestNewActivity(new Work(this, position));
 	}
-
+	/**
+	 * Return the maximum number of materials this unit can own.
+	 * @return The maximum is greter than or equal then 0.
+	 * 	| result >=0
+	 */
 	@Override
 	public int getMaxNbOwnedMaterials() {
 		return 1;
@@ -1236,6 +1262,9 @@ public class Unit extends WorldObject {
 
 	/**
 	 * Return the carriedMaterial of this Unit.
+	 * @return The carried material of this unit if he owns something.
+	 * |if (this.getNbOwnedMaterials()==0)
+	 * |	result == null
 	 */
 	@Basic
 	@Raw
@@ -1261,19 +1290,45 @@ public class Unit extends WorldObject {
 		material.setOwner(this);
 		this.addOwnedMaterial(material);
 	}
-
+	
+	/**
+	 * Check whether this unit is carrying a log.
+	 * @return True if and only if this unit is carrying a log.
+	 *       | result == this.getCarriedMaterial()!=null AND this.getCarriedMaterial() instanceof Log
+	 */
 	public boolean isCarryingLog(){
 		return this.getCarriedMaterial()!=null && this.getCarriedMaterial() instanceof Log;
 	}
 
+	/**
+	 * Check whether this unit is carrying a boulder.
+	 * @return True if and only if this unit is carrying a boulder.
+	 *       | result == this.getCarriedMaterial()!=null AND this.getCarriedMaterial() instanceof Boulder
+	 */
 	public boolean isCarryingBoulder(){
 		return this.getCarriedMaterial()!=null && this.getCarriedMaterial() instanceof Boulder;
 	}
 
+	/**
+	 * Check whether this unit is carrying a material.
+	 * @return False if this unit is carrying nothing.
+	 * 		 | if (this.getCarriedMaterial()==null)
+	 *       | 	result == false
+	 */
 	public boolean isCarryingMaterial(){
 		return this.getCarriedMaterial()!=null;
 	}
-
+	/**
+	 * Method to drop the carried material of this unit.
+	 * @param dropCube
+	 * 			The cube to drop the material
+	 * @effect this unit no longer carrying a material
+	 * 			| new.isCarryingMaterial() == false
+	 * @effect if the unit was caarying some material, that material gets the dropCube as owner.
+	 * 			| this.getCarriedMaterial().setOwner(dropCube)
+	 * 			| this.removeOwnedMaterial(this.getCarriedMaterial());
+	 *			| dropCube.addOwnedMaterial(this.getCarriedMaterial());
+	 */
 	public void dropCarriedMaterial(Cube dropCube){
 		Material m = this.getCarriedMaterial();
 		if(m!=null) {
@@ -1283,15 +1338,15 @@ public class Unit extends WorldObject {
 		}
 	}
 	//endregion
-
-	//TODO: work this out
+	
 	/**
 	 * Terminate this Unit.
 	 *
-	 * @post This Unit is terminated.
+	 * @effect This Unit is terminated.
 	 * | new.isTerminated()
-	 * @post ...
-	 * | ...
+	 * @effect The unit is removed from his faction and world.
+	 * | (new this).getFaction().hasAsUnit(this) == false
+	 * | (new this).getWorld().hasAsUnit(this) == false
 	 */
 	@Override
 	public void terminate() {
@@ -1305,6 +1360,8 @@ public class Unit extends WorldObject {
 	/**
 	 * Return a boolean indicating whether or not this Unit
 	 * is terminated.
+	 * @return the isTerminated of this unit.
+	 * 		| result == this.isTerminated
 	 */
 	@Override
 	@Basic
@@ -1320,6 +1377,8 @@ public class Unit extends WorldObject {
 
 	/**
 	 * Return the faction of this Unit.
+	 * @return the faction of this unit.
+	 * 	| result == this.faction
 	*/
 	@Basic
 	@Raw
@@ -1332,8 +1391,8 @@ public class Unit extends WorldObject {
 	 *
 	 * @param faction
 	 * The faction to check.
-	 * @return
-	 * | result ==
+	 * @return True if and only is this world contains the given faction.
+	 * | result == this.getWorld().hasAsFaction(faction)
 	 */
 	public boolean isValidFaction(Faction faction) {
 		return this.getWorld().hasAsFaction(faction);
@@ -1403,17 +1462,6 @@ public class Unit extends WorldObject {
 	 */
 	private Task task;
 
-//	private Vector getValidatePosition(IWorld world){
-//		double x = randDouble(world.getMinPosition().X(), world.getMaxPosition().X());
-//		double y = randDouble(world.getMinPosition().Y(), world.getMaxPosition().Y());
-//		double z = randDouble(world.getMinPosition().Z(), world.getMaxPosition().Z());
-//		Vector position = new Vector(x,y,z).getCubeCoordinates();
-//		if(validatePosition(position))
-//			return position;
-//		else
-//			return getValidatePosition(world);
-//	}
-
 	//region XP points
 	/**
 	 * Variable registering the experience points of this unit.
@@ -1424,15 +1472,11 @@ public class Unit extends WorldObject {
 	 * Add XP by the units current XP.
 	 * @param xp
 	 * The to be added xp.
-	 * @effect	...
-	 * 			| this.getXP() += xp.
-	 * @effect 	...
-	 * 			|while (this.getXP() >= MAX_XP &&
-	 * 			|	(this.getStrength() != MAX_STRENGTH || this.getAgility() != MAX_AGILITY || this.getToughness() != MAX_TOUGHNESS)
-	 * 			|		( (new this).getStrength() || (new this).getAgility() || (new this).Toughness())
-	 * 			| 		&& (new this).getXP()
+	 * @effect	If this units xp is greater then MAX_XP, it wilt be upgraded 
+	 * 			till this Units XP is less then MAX_XP.
+	 * 			| this.getXP() < MAX_XP
 	 */
-	public void addXP(int xp){ //TODO: toevoegen bij methodes waar en hoeveel xp wordt verdient
+	public void addXP(int xp){ 
 		experiencePoints += xp;
 		while (experiencePoints >= MAX_XP){
 			final String Strength = "s", Agility = "a", Toughness = "t";
@@ -1446,7 +1490,7 @@ public class Unit extends WorldObject {
 			int size = attributes.size();
 			if(size == 0){
 				experiencePoints = MAX_XP-1;
-				return; //TODO: experiencePoints gelijk zetten aan MAX_XP-1 of laten opbouwen naar oneindig?
+				return;
 			}
 			else{
 				experiencePoints -= MAX_XP;
@@ -1467,13 +1511,24 @@ public class Unit extends WorldObject {
 
 	/**
 	 * Return the XP of this unit.
+	 * @return this units experiencePoints
+	 * 		|result == this.experiencePoints
 	 */
 	@Basic
 	public int getXP(){
 		return experiencePoints;
 	}
 	//endregion
-
+	
+	/**
+	 * Method to notify the chaning terrain
+	 * @param oldTerrain
+	 * 		The old terrain of the unit.
+	 * @param cube
+	 * 		The cube where the change happened.
+	 * @effect If the unit is moving, the activity will be stopped.
+	 * | this.requestActivityFinish(this.getCurrentActivity())
+	 */
 	public void notifyTerrainChange(Terrain oldTerrain, Cube cube){
 		if(!this.isFalling() && this.isMoving()){
 			if(this.isExecuting(AdjacentMove.class))
@@ -1487,13 +1542,24 @@ public class Unit extends WorldObject {
 	 * Variable registering the time passed since the unit's last rest.
 	 */
 	private double restTimer = 0d;
-
+	/**
+	 * Constant reflecting the NONE activity of this unit.
+	 */
 	public final None NONE = new None(Unit.this);
+	/**
+	 * Constant reflecting the REST activity of this unit.
+	 */
 	public final Rest REST = new Rest(Unit.this);
 
+	/**
+	 * A stack of activities of this unit.
+	 */
 	private Stack<Activity> activityStack;
 
-	public void requestNewActivity(Activity activity) throws IllegalArgumentException,IllegalStateException{
+	
+	public void requestNewActivity(Activity activity) throws NullPointerException, IllegalArgumentException,IllegalStateException{
+		if(activity == null)
+			throw new NullPointerException("The activity cannot be null");
 		if(activity.getUnitId()!=Unit.this.getId())
 			throw new IllegalArgumentException("This activity is not bound to this unit.");
 		if(activity.isActive())
@@ -1516,7 +1582,11 @@ public class Unit extends WorldObject {
 		if(this.getCurrentActivity() instanceof Rest)
 			restTimer = 0d;// Reset rest timer
 	}
-
+	/**
+	 * Method to request the finish of the given activity for this unit.
+	 * @param activity
+	 * 			The activity to finish.
+	 */
 	public void requestActivityFinish(Activity activity){
 		requestActivityFinish(activity, false);
 	}
@@ -1564,13 +1634,26 @@ public class Unit extends WorldObject {
 		if(finishParent && oldActivity.isParentActivity(this.getCurrentActivity()))
 			stopCurrentActivity(true);
 	}
-
+	/**
+	 * Return the current activity of this unit.
+	 * @return This units current activity if the activityStack is not null.
+	 * | if ( !(this.activityStack == null))
+	 * |	result == this.activityStack.peek()
+	 */
 	private Activity getCurrentActivity(){
 		if(this.activityStack == null)
 			return null;
 		return this.activityStack.peek();
 	}
 
+	/**
+	 * Check is this units current activity is the given activity.
+	 * @param activity
+	 * 			The activity to check againts.
+	 * @return True if and only if this units current activity is the given activity.
+	 * | if(this.getCurrentActivity()==activity)
+	 * | 	result == true
+	 */
 	public boolean isCurrentActivity(Activity activity){
 		return this.getCurrentActivity()==activity;
 	}
@@ -1583,23 +1666,44 @@ public class Unit extends WorldObject {
 	public boolean isExecuting(Class<? extends Activity> activity){
 		return this.getCurrentActivity().isActive() && activity.isInstance(this.getCurrentActivity());
 	}
-
+	
+	/**
+	 * Check whether this unit is Attacking.
+	 * @return true if and only if the unit is executing the activity Attack.
+	 * |this.isExecuting(Attack.class)
+	 */
 	public boolean isAttacking(){
 		return this.isExecuting(Attack.class);
 	}
-
+	/**
+	 * Check whether this unit is Moving.
+	 * @return true if and only if the unit is executing the activity Move.
+	 * |this.isExecuting(Move.class)
+	 */
 	public boolean isMoving(){
 		return this.isExecuting(Move.class);
 	}
-
+	/**
+	 * Check whether this unit is Resting.
+	 * @return true if and only if the unit is executing the activity Rest.
+	 * |this.isExecuting(Rest.class)
+	 */
 	public boolean isResting(){
 		return this.isExecuting(Rest.class);
 	}
-
+	/**
+	 * Check whether this unit is Working.
+	 * @return true if and only if the unit is executing the activity Work.
+	 * |this.isExecuting(Work.class)
+	 */
 	public boolean isWorking(){
 		return this.isExecuting(Work.class);
 	}
-
+	/**
+	 * Check whether this unit is Falling.
+	 * @return true if and only if the unit is executing the activity Fall.
+	 * |this.isExecuting(Fall.class)
+	 */
 	public boolean isFalling(){
 		return this.isExecuting(Fall.class);
 	}

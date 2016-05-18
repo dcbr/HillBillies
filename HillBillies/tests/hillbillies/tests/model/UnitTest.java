@@ -1,6 +1,7 @@
 package hillbillies.tests.model;
 
 import hillbillies.model.Faction;
+import hillbillies.model.Log;
 import hillbillies.model.Unit;
 import hillbillies.model.World;
 import hillbillies.part2.listener.TerrainChangeListener;
@@ -425,9 +426,10 @@ public class UnitTest {
     	assertTrue(testUnit.getWeight()== Unit.INITIAL_MIN_WEIGHT);
     	testUnit.setWeight(Unit.MAX_WEIGHT);
     	assertTrue(testUnit.getWeight()== Unit.MAX_WEIGHT);
+    	int weight = testUnit.getWeight();
+    	Log log = new Log(AirWorld,testUnit);
+    	assertTrue(testUnit.getWeight()> weight);
     }
-    
-    
     
 /*    @Test
     public void testIsAbleToMove(){

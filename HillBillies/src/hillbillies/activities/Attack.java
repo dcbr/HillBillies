@@ -39,7 +39,19 @@ public class Attack extends Activity{
         super(attacker);
         this.defender = defender;
     }
-
+	/**
+	 * Let the unit of this activity attack the defender.
+	 * @post   	The orientation of this unit and the defender is changed. 
+	 * 			They are orientated to each other.
+	 *			| (new defender).getOrientation() == -this.setOrientation((float)Math.atan2(defender.getPosition().Y()-this.getPosition().Y(), (defender.getPosition().X()-this.getPosition().X())))
+	 * 			| (new unit).getOrientation() == this.setOrientation((float)Math.atan2(defender.getPosition().Y()-this.getPosition().Y(), (defender.getPosition().X()-this.getPosition().X())))
+	 * @post	the unit is attacking.
+	 * 			| new.isAttacking() == true
+	 * @post	the current activity of the unit is attack
+	 * 			| new.getCurrentActivity() == Activity.Attack
+	 * @effect	The defender defends this attack
+	 * 			| defender.defend()	
+	 */
     @Override
     public void startActivity() {
         double dx = (defender.getPosition().X()-unit.getPosition().X());

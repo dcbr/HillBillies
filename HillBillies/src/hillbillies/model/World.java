@@ -29,7 +29,7 @@ public class World implements IWorld {
 	/**
 	 * Constant reflecting the maximum units in a world.    
 	 */
-	private static final int MAX_UNITS = 100;
+	public static final int MAX_UNITS = 100;
 	/**
 	 * Constant reflecting the maximum factions in a world.    
 	 */

@@ -63,41 +63,22 @@ public abstract class Statement extends Command<Void> {
     }
 
     protected boolean checkVariableAccess(HashSet<String> assignedVariables){
-        for(Command child : this.getChildren()){
-            if(child instanceof ReadVariable && !assignedVariables.contains(((ReadVariable)child).getVariableName()))
+        for(Command<?> child : this.getChildren()){
+            if(child instanceof ReadVariable && !assignedVariables.contains(((ReadVariable<?>)child).getVariableName()))
                 return false;
             if(child instanceof Statement && !((Statement)child).checkVariableAccess(assignedVariables))
                 return false;
             if(child instanceof Assignment)
-                assignedVariables.add(((Assignment)child).getVariableName());
+                assignedVariables.add(((Assignment<?>)child).getVariableName());
         }
         return true;
     }
 
     protected boolean checkBreak(){
-        for(Command child : this.getChildren())
+        for(Command<?> child : this.getChildren())
             if(child instanceof Break || (child instanceof Statement && !((Statement)child).checkBreak()))
                 return false;
         return true;
-    }
-
-    protected static class Result{
-
-        private final boolean success;
-        private final boolean pausing;
-
-        public Result(boolean success, boolean pausing){
-            this.success = success;
-            this.pausing = pausing;
-        }
-
-        public boolean getSuccess(){
-            return this.success;
-        }
-
-        public boolean getPausing(){
-            return this.pausing;
-        }
     }
 
 }

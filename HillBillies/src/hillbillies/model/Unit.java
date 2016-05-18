@@ -735,7 +735,7 @@ public class Unit extends WorldObject {
 	@Raw
 	public void setName(String name) throws IllegalArgumentException {
 		if (! isValidName(name))
-			throw new IllegalArgumentException();
+			throw new IllegalArgumentException("The given name is an invalid name for this Unit.");
 		this.name = name;
 	}
 

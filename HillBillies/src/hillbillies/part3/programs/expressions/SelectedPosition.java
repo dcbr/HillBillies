@@ -20,7 +20,7 @@ public class SelectedPosition extends Expression<Vector> {
 
 	@Override
 	public Vector evaluate() throws NullPointerException {
-		return this.getRunner().getSelectedCube().getPosition();//TODO
+		return this.getRunner().getSelectedCube().getPosition();
 	}
 
 }

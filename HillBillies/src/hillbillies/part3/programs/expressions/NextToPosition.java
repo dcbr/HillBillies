@@ -46,7 +46,7 @@ public class NextToPosition extends UnaryExpression<Vector, Vector> {
 				this.getRunner().stop();
 			}
 			return nextTo;
-		}catch(IllegalArgumentException | NullPointerException e){
+		}catch(IllegalArgumentException e){
 			this.getRunner().stop();// No reachable positions available
 			return null;
 		}

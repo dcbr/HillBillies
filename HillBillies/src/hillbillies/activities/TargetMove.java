@@ -31,7 +31,7 @@ public class TargetMove extends Move {
     public TargetMove(Unit unit, Set<? extends IWorldObject> worldObjects) {
     	super(unit);
     	if (worldObjects.isEmpty())
-    		throw new NullPointerException("The given set of worldObjects is empty");
+    		throw new IllegalArgumentException("The given set of worldObjects is empty");
         if(!calculatePath(unit.getPosition().getCubeCoordinates(), worldObjects))
             throw new IllegalArgumentException("The given target objects are not reachable from the Unit's current position.");
     }
@@ -63,8 +63,6 @@ public class TargetMove extends Move {
      */
     @Override
     protected void startActivity() {
-        // TODO: check if cubes along the path have collapsed
-        // Recalculate path?
     }
 
     /**

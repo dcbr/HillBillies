@@ -15,7 +15,7 @@ import java.util.Set;
  * @version 1.0
  *
  */
-public class Facade implements IFacade {// TODO: check if some methods throw Exceptions and cast them to ModelExceptions
+public class Facade implements IFacade {
     /**
      * Create a new world of the given size and with the given terrain. To keep
      * the GUI display up to date, the method in the given listener must be
@@ -246,7 +246,7 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public int getExperiencePoints(Unit unit) throws ModelException {
-        return unit.getXP();//TODO: toevoegen wanneer hoeveel wordt verdiend
+        return unit.getXP();
     }
 
     /**

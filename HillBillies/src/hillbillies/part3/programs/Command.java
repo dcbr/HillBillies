@@ -133,7 +133,7 @@ public abstract class Command<T> {
             throw new IllegalStateException("This command is not linked to any task yet, so it can't be executed.");
         if(!this.getCurrentTask().isRunning() || this.getRunner().isPausing())
             return null;
-        T result = process();// TODO: change this by a directly call to process? since the preconditions are already checked
+        T result = process();
         this.currentChild = 0;
         this.executedChildren.clear();
         return result;

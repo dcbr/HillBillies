@@ -1,5 +1,6 @@
 package hillbillies.part3.facade;
 
+import com.sun.javafx.sg.prism.NGShape;
 import hillbillies.model.*;
 import hillbillies.part2.listener.TerrainChangeListener;
 import hillbillies.part3.programs.ITaskFactory;
@@ -7,6 +8,8 @@ import hillbillies.model.Scheduler;
 import hillbillies.model.Task;
 import hillbillies.part3.programs.TaskFactory;
 import hillbillies.part3.programs.TaskParser;
+import hillbillies.part3.programs.expressions.Expression;
+import hillbillies.part3.programs.statements.Statement;
 import hillbillies.tests.facade.Part3TestPartial;
 import hillbillies.utils.*;
 import ogp.framework.util.ModelException;
@@ -20,7 +23,7 @@ import java.util.Set;
  * @author Kenneth & Bram
  * @version 1.0
  */
-public class Facade implements IFacade {// TODO: check if some methods throw Exceptions and cast them to ModelExceptions
+public class Facade implements IFacade {
     /**
      * Create a new world of the given size and with the given terrain. To keep
      * the GUI display up to date, the method in the given listener must be
@@ -50,7 +53,11 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public World createWorld(int[][][] terrainTypes, TerrainChangeListener modelListener) throws ModelException {
-        return new World(terrainTypes, modelListener);
+        try {
+            return new World(terrainTypes, modelListener);
+        }catch(IllegalArgumentException e){
+            throw new ModelException("Invalid terrainTypes matrix", e);
+        }
     }
 
     /**
@@ -62,6 +69,8 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public int getNbCubesX(World world) throws ModelException {
+        if(world==null)
+            throw new ModelException("The given world is not effective.");
         return world.getNbCubesX();
     }
 
@@ -74,6 +83,8 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public int getNbCubesY(World world) throws ModelException {
+        if(world==null)
+            throw new ModelException("The given world is not effective.");
         return world.getNbCubesY();
     }
 
@@ -86,6 +97,8 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public int getNbCubesZ(World world) throws ModelException {
+        if(world==null)
+            throw new ModelException("The given world is not effective.");
         return world.getNbCubesZ();
     }
 
@@ -101,6 +114,8 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public void advanceTime(World world, double dt) throws ModelException {
+        if(world==null)
+            throw new ModelException("The given world is not effective.");
         world.advanceTime(dt);
     }
 
@@ -118,6 +133,8 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public int getCubeType(World world, int x, int y, int z) throws ModelException {
+        if(world==null)
+            throw new ModelException("The given world is not effective.");
         try {
             return world.getCube(new Vector(x, y, z)).getTerrain().getId();
         }catch(IllegalArgumentException e){
@@ -140,6 +157,8 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public void setCubeType(World world, int x, int y, int z, int value) throws ModelException {
+        if(world==null)
+            throw new ModelException("The given world is not effective.");
         try {
             world.getCube(new Vector(x, y, z)).setTerrain(Terrain.fromId(value));
         }catch(IllegalArgumentException e){
@@ -161,6 +180,8 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public boolean isSolidConnectedToBorder(World world, int x, int y, int z) throws ModelException {
+        if(world==null)
+            throw new ModelException("The given world is not effective.");
         return world.connectedToBorder.isSolidConnectedToBorder(x,y,z);
     }
 
@@ -176,9 +197,12 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public Unit spawnUnit(World world, boolean enableDefaultBehavior) throws ModelException {
-        try{ return world.spawnUnit(enableDefaultBehavior);
+        if(world==null)
+            throw new ModelException("The given world is not effective.");
+        try{
+            return world.spawnUnit(enableDefaultBehavior);
         }catch(IllegalStateException e){
-        	throw new ModelException("There are no passable cube in this world");
+        	throw new ModelException("There are no passable cubes in this world", e);
         }
     }
 
@@ -191,6 +215,12 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public void addUnit(Unit unit, World world) throws ModelException {
+        if(world==null)
+            throw new ModelException("The given world is not effective.");
+        if(unit==null)
+            throw new ModelException("The given unit is not effective.");
+        if(!world.canHaveAsUnit(unit) || world.getNbUnits()>=World.MAX_UNITS)
+            throw new ModelException("world.addUnit's preconditions are violated.");
         world.addUnit(unit);
     }
 
@@ -203,6 +233,8 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public Set<Unit> getUnits(World world) throws ModelException {
+        if(world==null)
+            throw new ModelException("The given world is not effective.");
         return world.getUnits();
     }
 
@@ -215,6 +247,8 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public boolean isCarryingLog(Unit unit) throws ModelException {
+        if(unit==null)
+            throw new ModelException("The given unit is not effective.");
         return unit.isCarryingLog();
     }
 
@@ -227,6 +261,8 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public boolean isCarryingBoulder(Unit unit) throws ModelException {
+        if(unit==null)
+            throw new ModelException("The given unit is not effective.");
         return unit.isCarryingBoulder();
     }
 
@@ -239,6 +275,8 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public boolean isAlive(Unit unit) throws ModelException {
+        if(unit==null)
+            throw new ModelException("The given unit is not effective.");
         return !unit.isTerminated();
     }
 
@@ -251,6 +289,8 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public int getExperiencePoints(Unit unit) throws ModelException {
+        if(unit==null)
+            throw new ModelException("The given unit is not effective.");
         return unit.getXP();//TODO: toevoegen wanneer hoeveel wordt verdiend
     }
 
@@ -266,6 +306,8 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public void workAt(Unit unit, int x, int y, int z) throws ModelException {
+        if(unit==null)
+            throw new ModelException("The given unit is not effective.");
         try{
             unit.work(new Vector(x,y,z));
         }catch(IllegalArgumentException e){
@@ -284,6 +326,8 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public Faction getFaction(Unit unit) throws ModelException {
+        if(unit==null)
+            throw new ModelException("The given unit is not effective.");
         return unit.getFaction();
     }
 
@@ -296,17 +340,22 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public Set<Unit> getUnitsOfFaction(Faction faction) throws ModelException {
+        if(faction==null)
+            throw new ModelException("The given faction is not effective.");
         return faction.getUnits();
     }
 
     /**
      * Return all the active factions of the given world.
      *
-     * @param world@return A set of all active (i.e., non-empty) factions in the world.
+     * @param world
+     * @return A set of all active (i.e., non-empty) factions in the world.
      * @throws ModelException A precondition was violated or an exception was thrown.
      */
     @Override
     public Set<Faction> getActiveFactions(World world) throws ModelException {
+        if(world==null)
+            throw new ModelException("The given world is not effective.");
         return world.getFactions();
     }
 
@@ -320,6 +369,8 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public double[] getPosition(Boulder boulder) throws ModelException {
+        if(boulder==null)
+            throw new ModelException("The given boulder is not effective.");
         return boulder.getPosition().asArray();
     }
 
@@ -333,6 +384,8 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public Set<Boulder> getBoulders(World world) throws ModelException {
+        if(world==null)
+            throw new ModelException("The given world is not effective.");
         return world.getBoulders(true);
     }
 
@@ -346,6 +399,8 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public double[] getPosition(Log log) throws ModelException {
+        if(log==null)
+            throw new ModelException("The given log is not effective.");
         return log.getPosition().asArray();
     }
 
@@ -359,6 +414,8 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public Set<Log> getLogs(World world) throws ModelException {
+        if(world==null)
+            throw new ModelException("The given world is not effective.");
         return world.getLogs(true);
     }
 
@@ -378,10 +435,14 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public Unit createUnit(String name, int[] initialPosition, int weight, int agility, int strength, int toughness, boolean enableDefaultBehavior) throws ModelException {
-        Unit unit = new Unit(LobbyWorld.lobby, name, new Vector(initialPosition), strength, agility, toughness, weight);
-        if(enableDefaultBehavior)
-            unit.startDefaultBehaviour();
-        return unit;
+        try {
+            Unit unit = new Unit(LobbyWorld.lobby, name, new Vector(initialPosition), strength, agility, toughness, weight);
+            if(enableDefaultBehavior)
+                unit.startDefaultBehaviour();
+            return unit;
+        }catch(IllegalArgumentException e){
+            throw new ModelException("Some of the parameters of the Unit may be invalid.", e);
+        }
     }
 
     /**
@@ -394,6 +455,8 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public double[] getPosition(Unit unit) throws ModelException {
+        if(unit==null)
+            throw new ModelException("The given unit is not effective.");
         return unit.getPosition().asArray();
     }
 
@@ -407,6 +470,8 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public int[] getCubeCoordinate(Unit unit) throws ModelException {
+        if(unit==null)
+            throw new ModelException("The given unit is not effective.");
         return Utils.ArrayConvert.doubleToInt(unit.getPosition().getCubeCoordinates().asArray());
     }
 
@@ -419,6 +484,8 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public String getName(Unit unit) throws ModelException {
+        if(unit==null)
+            throw new ModelException("The given unit is not effective.");
         return unit.getName();
     }
 
@@ -431,6 +498,8 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public void setName(Unit unit, String newName) throws ModelException {
+        if(unit==null)
+            throw new ModelException("The given unit is not effective.");
         try {
             unit.setName(newName);
         }catch(IllegalArgumentException e){
@@ -447,6 +516,8 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public int getWeight(Unit unit) throws ModelException {
+        if(unit==null)
+            throw new ModelException("The given unit is not effective.");
         return unit.getWeight();
     }
 
@@ -459,6 +530,8 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public void setWeight(Unit unit, int newValue) throws ModelException {
+        if(unit==null)
+            throw new ModelException("The given unit is not effective.");
         if (!Unit.isValidWeight(newValue, unit.getStrength(), unit.getAgility()))
             throw new ModelException("Invalid weight for this unit");
         unit.setWeight(newValue);
@@ -473,6 +546,8 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public int getStrength(Unit unit) throws ModelException {
+        if(unit==null)
+            throw new ModelException("The given unit is not effective.");
         return unit.getStrength();
     }
 
@@ -485,6 +560,8 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public void setStrength(Unit unit, int newValue) throws ModelException {
+        if(unit==null)
+            throw new ModelException("The given unit is not effective.");
         if (!Unit.isValidStrength(newValue))
             throw new ModelException("Invalid strength for this unit");
         unit.setStrength(newValue);
@@ -499,6 +576,8 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public int getAgility(Unit unit) throws ModelException {
+        if(unit==null)
+            throw new ModelException("The given unit is not effective.");
         return unit.getAgility();
     }
 
@@ -511,6 +590,8 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public void setAgility(Unit unit, int newValue) throws ModelException {
+        if(unit==null)
+            throw new ModelException("The given unit is not effective.");
         if (!Unit.isValidAgility(newValue))
             throw new ModelException("Invalid agility for this unit");
         unit.setAgility(newValue);
@@ -525,6 +606,8 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public int getToughness(Unit unit) throws ModelException {
+        if(unit==null)
+            throw new ModelException("The given unit is not effective.");
         return unit.getToughness();
     }
 
@@ -538,6 +621,8 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public void setToughness(Unit unit, int newValue) throws ModelException {
+        if(unit==null)
+            throw new ModelException("The given unit is not effective.");
         if (!Unit.isValidToughness(newValue))
             throw new ModelException("Invalid toughness for this unit");
         unit.setToughness(newValue);
@@ -552,6 +637,8 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public int getMaxHitPoints(Unit unit) throws ModelException {
+        if(unit==null)
+            throw new ModelException("The given unit is not effective.");
         return Unit.getMaxHitpoints(unit.getWeight(), unit.getToughness());
     }
 
@@ -564,6 +651,8 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public int getCurrentHitPoints(Unit unit) throws ModelException {
+        if(unit==null)
+            throw new ModelException("The given unit is not effective.");
         return unit.getHitpoints();
     }
 
@@ -577,6 +666,8 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public int getMaxStaminaPoints(Unit unit) throws ModelException {
+        if(unit==null)
+            throw new ModelException("The given unit is not effective.");
         return Unit.getMaxStamina(unit.getWeight(), unit.getToughness());
     }
 
@@ -590,6 +681,8 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public int getCurrentStaminaPoints(Unit unit) throws ModelException {
+        if(unit==null)
+            throw new ModelException("The given unit is not effective.");
         return unit.getStamina();
     }
 
@@ -607,6 +700,8 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public void moveToAdjacent(Unit unit, int dx, int dy, int dz) throws ModelException {
+        if(unit==null)
+            throw new ModelException("The given unit is not effective.");
         try{
             unit.moveToAdjacent(new Vector(dx,dy,dz));
         }catch(IllegalStateException e){
@@ -625,6 +720,8 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public double getCurrentSpeed(Unit unit) throws ModelException {
+        if(unit==null)
+            throw new ModelException("The given unit is not effective.");
         return unit.getCurrentSpeed();
     }
 
@@ -637,6 +734,8 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public boolean isMoving(Unit unit) throws ModelException {
+        if(unit==null)
+            throw new ModelException("The given unit is not effective.");
         return unit.isMoving();
     }
 
@@ -648,6 +747,8 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public void startSprinting(Unit unit) throws ModelException {
+        if(unit==null)
+            throw new ModelException("The given unit is not effective.");
         try{
             unit.sprint();
         }catch(IllegalStateException e){
@@ -663,6 +764,8 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public void stopSprinting(Unit unit) throws ModelException {
+        if(unit==null)
+            throw new ModelException("The given unit is not effective.");
         if(!unit.isSprinting())
             throw new ModelException("Unit was not sprinting");
         unit.stopSprint();
@@ -677,6 +780,8 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public boolean isSprinting(Unit unit) throws ModelException {
+        if(unit==null)
+            throw new ModelException("The given unit is not effective.");
         return unit.isSprinting();
     }
 
@@ -689,6 +794,8 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public double getOrientation(Unit unit) throws ModelException {
+        if(unit==null)
+            throw new ModelException("The given unit is not effective.");
         return unit.getOrientation();
     }
 
@@ -702,6 +809,8 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public void moveTo(Unit unit, int[] cube) throws ModelException {
+        if(unit==null)
+            throw new ModelException("The given unit is not effective.");
         try{
             unit.moveToTarget(new Vector (cube));
         }catch (IllegalStateException e){
@@ -720,6 +829,8 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public boolean isWorking(Unit unit) throws ModelException {
+        if(unit==null)
+            throw new ModelException("The given unit is not effective.");
         return unit.isWorking();
     }
 
@@ -732,10 +843,14 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public void fight(Unit attacker, Unit defender) throws ModelException {
+        if(attacker==null || defender==null)
+            throw new ModelException("One of the given units is not effective.");
         try{
             attacker.attack(defender);
         }catch(IllegalArgumentException e){
             throw new ModelException("Cannot attack that unit", e);
+        }catch(IllegalStateException e){
+            throw new ModelException("Attacker is not able to attack at this moment", e);
         }
     }
 
@@ -749,6 +864,8 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public boolean isAttacking(Unit unit) throws ModelException {
+        if(unit==null)
+            throw new ModelException("The given unit is not effective.");
         return unit.isAttacking();
     }
 
@@ -760,6 +877,8 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public void rest(Unit unit) throws ModelException {
+        if(unit==null)
+            throw new ModelException("The given unit is not effective.");
         try{
             unit.rest();
         }catch(IllegalStateException e){
@@ -776,6 +895,8 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public boolean isResting(Unit unit) throws ModelException {
+        if(unit==null)
+            throw new ModelException("The given unit is not effective.");
         return unit.isResting();
     }
 
@@ -789,6 +910,8 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public void setDefaultBehaviorEnabled(Unit unit, boolean value) throws ModelException {
+        if(unit==null)
+            throw new ModelException("The given unit is not effective.");
         if (value)
             unit.startDefaultBehaviour();
         else unit.stopDefaultBehaviour();
@@ -803,6 +926,8 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public boolean isDefaultBehaviorEnabled(Unit unit) throws ModelException {
+        if(unit==null)
+            throw new ModelException("The given unit is not effective.");
         return unit.isDefaultActive();
     }
 
@@ -837,7 +962,7 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      * interface for an explanation of its parameters.
      */
     @Override
-    public ITaskFactory<?, ?, Task> createTaskFactory() {
+    public ITaskFactory<Expression<?>, Statement, Task> createTaskFactory() {
         return new TaskFactory();
     }
 
@@ -858,6 +983,8 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public boolean isWellFormed(Task task) throws ModelException {
+        if(task==null)
+            throw new ModelException("The given task is not effective.");
         // Tasks are guaranteed to be type safe since unsafe statements and expressions cannot be created.
         // Variable type safety is not checked, but gives a runtime error
         return task.getActivity().check();
@@ -872,6 +999,8 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public Scheduler getScheduler(Faction faction) throws ModelException {
+        if(faction==null)
+            throw new ModelException("The given faction is not effective.");
         return faction.getScheduler();
     }
 
@@ -884,6 +1013,12 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public void schedule(Scheduler scheduler, Task task) throws ModelException {
+        if(scheduler==null)
+            throw new ModelException("The given scheduler is not effective.");
+        if(task==null)
+            throw new ModelException("The given task is not effective.");
+        if(task.hasAsScheduler(scheduler))
+            throw new ModelException("A precondition of scheduler.addTask is violated.");
         scheduler.addTask(task);
     }
 
@@ -897,6 +1032,10 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public void replace(Scheduler scheduler, Task original, Task replacement) throws ModelException {
+        if(scheduler==null)
+            throw new ModelException("The given scheduler is not effective.");
+        if(original==null || replacement==null)
+            throw new ModelException("One of the given tasks is not effective.");
         try{
             scheduler.replaceTask(original, replacement);
         }catch(IllegalArgumentException e){
@@ -915,6 +1054,10 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public boolean areTasksPartOf(Scheduler scheduler, Collection<Task> tasks) throws ModelException {
+        if(scheduler==null)
+            throw new ModelException("The given scheduler is not effective.");
+        if(tasks==null)
+            throw new ModelException("The given tasks collection is not effective.");
         return scheduler.hasAsTasks(tasks);
     }
 
@@ -932,6 +1075,8 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public Iterator<Task> getAllTasksIterator(Scheduler scheduler) throws ModelException {
+        if(scheduler==null)
+            throw new ModelException("The given scheduler is not effective.");
         return scheduler.iterator();
     }
 
@@ -944,6 +1089,8 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public Set<Scheduler> getSchedulersForTask(Task task) throws ModelException {
+        if(task==null)
+            throw new ModelException("The given task is not effective.");
         return task.getSchedulers();
     }
 
@@ -957,6 +1104,8 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public Unit getAssignedUnit(Task task) throws ModelException {
+        if(task==null)
+            throw new ModelException("The given task is not effective.");
         return task.getAssignedUnit();
     }
 
@@ -970,6 +1119,8 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public Task getAssignedTask(Unit unit) throws ModelException {
+        if(unit==null)
+            throw new ModelException("The given unit is not effective.");
         return unit.getTask();
     }
 
@@ -982,6 +1133,8 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public String getName(Task task) throws ModelException {
+        if(task==null)
+            throw new ModelException("The given task is not effective.");
         return task.getName();
     }
 
@@ -994,6 +1147,8 @@ public class Facade implements IFacade {// TODO: check if some methods throw Exc
      */
     @Override
     public int getPriority(Task task) throws ModelException {
+        if(task==null)
+            throw new ModelException("The given task is not effective.");
         return task.getPriority();
     }
 }

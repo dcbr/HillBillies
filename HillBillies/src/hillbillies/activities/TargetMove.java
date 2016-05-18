@@ -113,7 +113,8 @@ public class TargetMove extends Move {
             }
         }
         if(this.path!=null && this.path.hasNext()){
-            AdjacentMove nextMove = new AdjacentMove(unit, path.getNext().difference(cpos), this.isSprinting(), this);
+        	Vector nextblub = path.getNext();
+            AdjacentMove nextMove = new AdjacentMove(unit, nextblub.difference(cpos), this.isSprinting(), this);
             unit.requestNewActivity(nextMove);
         }else
             requestFinish();

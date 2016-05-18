@@ -372,6 +372,17 @@ public class UnitTest {
     	testUnit.setHitpoints(Unit.MIN_HITPOINTS);
     	assertTrue(Unit.MIN_HITPOINTS == testUnit.getHitpoints());
     	assertFalse(Unit.MIN_HITPOINTS+1 == testUnit.getHitpoints());
+    	testUnit.setHitpoints(Unit.getMaxHitpoints(testUnit.getWeight(), testUnit.getToughness()));
+    	int hit = testUnit.getHitpoints();
+    	testUnit.removeHitpoints(0);
+    	assertEquals(hit,testUnit.getHitpoints());
+    	testUnit.setHitpoints(hit);
+    	testUnit.removeHitpoints(hit*2);
+    	assertEquals(testUnit.getHitpoints(), Unit.MIN_HITPOINTS);
+    	testUnit.setHitpoints(hit);
+    	testUnit.removeHitpoints(1);
+    	assertEquals(testUnit.getHitpoints(), hit-1);
+    	
     }
     @Test
     public void testSetInitialHitpoints(){
@@ -431,6 +442,7 @@ public class UnitTest {
     	assertTrue(testUnit.getWeight()> weight);
     }
     
+    //TESTING 
 /*    @Test
     public void testIsAbleToMove(){
         assertTrue(unity.isAbleToMove());

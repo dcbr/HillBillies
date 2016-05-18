@@ -5,6 +5,8 @@ import hillbillies.utils.Vector;
 
 import static hillbillies.utils.Utils.*;
 
+import java.util.List;
+
 /**
  * Minpunten:
  *  - Geen private setters in unit -> maybe save Unit properties in Objects instead of primitives (Integer instead of int)
@@ -240,8 +242,10 @@ public abstract class Move extends Activity {
         if(fromPosition==null || nextPosition==null)
             throw new IllegalArgumentException("The from and next position must be effective positions in order to check their validity.");
         if(!unit.isValidPosition(nextPosition)) return false;// Check if it's a valid position itself
+        List<Vector> a = nextPosition.difference(fromPosition).decompose();
         for(Vector d : nextPosition.difference(fromPosition).decompose()){
-            if(!unit.isValidPosition(fromPosition.add(d)) || !unit.isValidPosition(nextPosition.difference(d))) return false;// Check if surrounding positions are valid too (prevent corner glitch)
+            if(!unit.isValidPosition(fromPosition.add(d)) || !unit.isValidPosition(nextPosition.difference(d))) 
+            	return false;// Check if surrounding positions are valid too (prevent corner glitch)
         }
         return true;
     }

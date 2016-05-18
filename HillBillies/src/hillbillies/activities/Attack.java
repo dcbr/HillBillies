@@ -60,7 +60,7 @@ public class Attack extends Activity{
         unit.setOrientation((float)Math.atan2(dy, dx));
 
         this.defend();
-        //setCurrentActivity(Activity.ATTACK);
+        defender.restartActivity(true);
     }
 
     @Override

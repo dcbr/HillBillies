@@ -57,11 +57,7 @@ public class World implements IWorld {
 	 * A map of all passable positions.
 	 * Vector in CubeCoordinates.
 	 */
-	private Map<Integer,Vector> passableMap = new HashMap<>();
-	/**
-	 * Constant reflecting the size of passableMap.     
-	 */
-	private int passableSize = 0;
+	private List<Vector> passableList = new ArrayList<>();
 
 	/**
 	 * TODO
@@ -161,8 +157,7 @@ public class World implements IWorld {
 						this.workshops.add(cube);
 					}
 					if(cube.isPassable()){
-						this.passableMap.put(this.passableSize, position);
-						this.passableSize +=1;
+						this.passableList.add(position);
 					}
 				}
 			}
@@ -558,9 +553,9 @@ public class World implements IWorld {
 	
 	@Override
 	public Vector getSpawnPosition() throws IllegalStateException{
-		if(passableMap.isEmpty())
+		if(passableList.isEmpty())
 			throw new IllegalStateException("There are no passable cube in this world");
-		Vector position = passableMap.get(randInt(0, passableSize-1));
+		Vector position = passableList.get(randInt(0, passableList.size()-1));
 		Vector lower = new Vector(0,0,-Cube.CUBE_SIDE_LENGTH);
 		while(!CorrectSpawnPosition(position)){
 			position = position.add(lower);
@@ -738,9 +733,7 @@ public class World implements IWorld {
 			this.removeWorkshop(cube);			
 		}
 		cube.setTerrain(Terrain.AIR);
-		this.passableMap.put(this.passableSize, CubeCoor);
-		this.passableSize +=1;
-
+		this.passableList.add(CubeCoor);
 	}
 
 

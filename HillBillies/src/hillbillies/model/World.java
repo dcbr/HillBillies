@@ -20,13 +20,12 @@ import hillbillies.utils.Vector;
  *
  * @invar Each world must have proper materials.
  * | hasProperMaterials()
+ * @invar Each world must have proper factions.
+ * | hasProperFactions()
+ * @invar Each world must have proper units.
+ * | hasProperUnits()
  */
 public class World implements IWorld {
-/** TO BE ADDED TO CLASS HEADING
- * @invar  The Terrain Matrix of each World must be a valid Terrain Matrix for any
- *         World.
- *       | isValidTerrainMatrix(getTerrainMatrix())
- */
 	/**
 	 * Constant reflecting the maximum units in a world.    
 	 */
@@ -60,11 +59,6 @@ public class World implements IWorld {
 	private List<Vector> passableList = new ArrayList<>();
 
 	/**
-	 * TODO
-	 */
-	private TerrainChangeListener terrainChangeListener;
-
-	/**
 	 * Static initializer to set-up DIRECTLY_ADJACANT_ and NEIGHBOURING_ DIRECTIONS
 	 */
 	static {
@@ -90,145 +84,127 @@ public class World implements IWorld {
 	}
 
 	/**
-	 * Initialize this new World with given Terrain Matrix.
+	 * Constant reflecting number of cubes in the x-direction.
+	 */
+	private final int NbCubesX;
+	/**
+	 * Constant reflecting number of cubes in the x-direction.
+	 */
+	private final int NbCubesY;
+	/**
+	 * Constant reflecting number of cubes in the x-direction.
+	 */
+	private final int NbCubesZ;
+	/**
+	 * Variable referencing the terrainChangeListener, which is called when the
+	 * Terrain of a Cube in this World is changed.
+	 */
+	private TerrainChangeListener terrainChangeListener;
+	/**
+	 * Variable referencing a set collecting all the factions
+	 * of this world.
+	 *
+	 * @invar The referenced set is effective.
+	 * | factions != null
+	 * @invar Each faction registered in the referenced list is
+	 * effective.
+	 * | for each faction in factions:
+	 * | ( (faction != null) )
+	 */
+	private final Set <Faction> factions = new HashSet<>(MAX_FACTIONS);
+
+	/**
+	 * Initialize this new World with given Terrain Matrix and terrainChangeListener.
 	 *
 	 * @param  terrainTypes
 	 *         The Terrain Matrix for this new World.
-	 * @effect The Terrain Matrix of this new World is set to
-	 *         the given Terrain Matrix.
-	 *       | this.setTerrainMatrix(terrainTypes)
+	 * @param  terrainChangeListener
+	 * 			The TerrainChangeListener which should be called when the Terrain of
+	 * 			a Cube in this World is changed.
+	 * @post The world is constructed based on the terrain types inside the Terrain
+	 * 		 Matrix.
+	 * 		 | for(int i=0;i<terrainTypes.length;i++)
+	 * 		 |		for(int j=0;j<terrainTypes[i].length;j++)
+	 * 		 |			for(int k=0;k<terrainTypes[i][j].length;k++)
+	 * 		 |				this.getCube(new Vector(i,j,k).multiply(Cube.CUBE_SIDE_LENGTH)).getTerrain() ==
+	 * 		 |				Terrain.fromId(terrainTypes[i][j][k])
+	 * @post The dimensions of this world are set based on the given terrain matrix
+	 * 			| this.getNbCubesX() == terrainTypes.length
+	 * 			| this.getNbCubesY() == terrainTypes[0].length
+	 * 			| this.getNbCubesZ() == terrainTypes[0][0].length
 	 * @post This new world has no materials yet.
-	 * | new.getNbMaterials() == 0
+	 * 		| new.getNbMaterials() == 0
+	 * @post The terrainChangeListener of this world is set to the given terrainChangeListener
+	 * 			| this.terrainChangeListener = terrainChangeListener
+	 * @throws IllegalArgumentException
+	 * 			When the given terrain matrix is not valid
+	 * 			| terrainTypes[i].length != terrainTypes[j].length for some i and j element of [0;terrainTypes.length]
+	 * 			| OR
+	 * 			| terrainTypes[i][j].length != terrainTypes[i][k].length for some k and l element of [0;terrainTypes[i].length]
 	 */
 	public World(int[][][] terrainTypes, TerrainChangeListener terrainChangeListener)
 			throws IllegalArgumentException {
 		this.terrainChangeListener = terrainChangeListener;
-		setNbCubesX(terrainTypes.length);
-		setNbCubesY(terrainTypes[0].length);
-		setNbCubesZ(terrainTypes[0][0].length);
-		connectedToBorder = new ConnectedToBorder(this.getNbCubesX(),this.getNbCubesY(),this.getNbCubesZ());
-		this.setTerrainMatrix(terrainTypes);
-	}
+		this.NbCubesX = terrainTypes.length;
+		this.NbCubesY = terrainTypes[0].length;
+		this.NbCubesZ = terrainTypes[0][0].length;
+		connectedToBorder = new ConnectedToBorder(this.getNbCubesX(), this.getNbCubesY(), this.getNbCubesZ());// Initialize connectedToBorder
 
-	/**
-	 * Check whether the given position is a valid position for
-	 * any WorldObject.
-	 *
-	 * @param position The position to check.
-	 * @return True when each coordinate of position is within the predefined bounds of MIN_POSITION and getMaxPosition()
-	 * | result == position.isInBetween(MIN_POSITION, getMaxPosition())
-	 */
-	@Override
-	public boolean isValidPosition(Vector position){
-		return position.isInBetweenStrict(this.getMinPosition(), this.getMaxPosition());
-	}
-	
-	/**
-	 * Set the Terrain Matrix of this World to the given Terrain Matrix.
-	 * 
-	 * @param  terrainMatrix
-	 *         The new Terrain Matrix for this World.
-	 * @post   The Terrain Matrix of this new World is equal to
-	 *         the given Terrain Matrix.
-	 *       | new.getTerrainMatrix() == terrainTypes
-	 * @throws IllegalArgumentException
-	 *         The given Terrain Matrix is not a valid Terrain Matrix for any
-	 *         World.
-	 *       | ! isValidTerrainMatrix(getTerrainMatrix())
-	 */
-	@Raw
-	public void setTerrainMatrix(int[][][] terrainMatrix)
-			throws IllegalArgumentException {
-		//Map<Vector, Cube> CubeMap = new HashMap<Vector , Cube>();
-		for(int x = 0; x< getNbCubesX(); x++){
-			for(int y = 0; y< getNbCubesY(); y++){
-				if (terrainMatrix[x].length != getNbCubesY()){
-					throw new IllegalArgumentException();
-				}
-				for(int z = 0; z< getNbCubesZ(); z++){
-					if (terrainMatrix[x][y].length != getNbCubesZ()){
-						throw new IllegalArgumentException();
-					}
-					Vector position = new Vector(x,y,z);
-					Terrain terrain = Terrain.fromId(terrainMatrix[x][y][z]);
+		// Construct this world:
+		for (int x = 0; x < getNbCubesX(); x++) {
+			for (int y = 0; y < getNbCubesY(); y++) {
+				if (terrainTypes[x].length != getNbCubesY())
+					throw new IllegalArgumentException("The Terrain Matrix' dimensions do not match.");
+
+				for (int z = 0; z < getNbCubesZ(); z++) {
+					if (terrainTypes[x][y].length != getNbCubesZ())
+						throw new IllegalArgumentException("The Terrain Matrix' dimensions do not match.");
+
+					Vector position = new Vector(x, y, z);
+					Terrain terrain = Terrain.fromId(terrainTypes[x][y][z]);
 					Cube cube = new Cube(this, position, terrain, this::onTerrainChange);
 					CubeMap.put(position, cube);
-					if(terrain == Terrain.WORKSHOP){
+					if (terrain == Terrain.WORKSHOP)
 						this.workshops.add(cube);
-					}
-					if(cube.isPassable()){
+
+					if (cube.isPassable()) {
 						this.passableList.add(position);
 					}
 				}
 			}
 		}
-		
-		
 	}
+		
+
 	
 	/**
-	 * Constant reflecting number of cubes in the x-direction.    
-	 */
-	private int NbCubesX;
-	/**
-	 * Constant reflecting number of cubes in the x-direction.    
-	 */
-	private int NbCubesY;
-	/**
-	 * Constant reflecting number of cubes in the x-direction.    
-	 */
-	private int NbCubesZ;
-	
-	/**
-	 * Set NbCubesX of this world to the given number of cubes.
+	 * Check whether the given position is a valid position for
+	 * any WorldObject.
 	 *
-	 * @param nbCubesX
-	 * The new numbers of cubes in x-direction of this world.
-	 * @post NbCubesX of this world is equal to
-	 * the given number.
-	 * | new.getNbCubesX() == nbCubesX
+	 * @param position The position to check.
+	 * @return True when each coordinate of position is within the predefined bounds
+	 * 			of getMinPosition() and getMaxPosition()
+	 * | result == position.isInBetweenStrict(getMinPosition(), getMaxPosition())
 	 */
-	private void setNbCubesX(int nbCubesX){
-		this.NbCubesX = nbCubesX;
+	@Override
+	public boolean isValidPosition(Vector position){
+		return position.isInBetweenStrict(this.getMinPosition(), this.getMaxPosition());
 	}
+
 	/**
 	 * Return the number of x-cubes of this world.
 	 */
 	public int getNbCubesX(){
 		return this.NbCubesX;
 	}
-	
-	/**
-	 * Set NbCubesY of this world to the given number of cubes.
-	 *
-	 * @param nbCubesY
-	 * The new numbers of cubes in y-direction of this world.
-	 * @post NbCubesY of this world is equal to
-	 * the given number.
-	 * | new.getNbCubesY() == nbCubesY
-	 */
-	private void setNbCubesY(int nbCubesY){
-		this.NbCubesY = nbCubesY;
-	}
+
 	/**
 	 * Return the number of y-cubes of this world.
 	 */
 	public int getNbCubesY(){
 		return this.NbCubesY;
 	}
-	
-	/**
-	 * Set NbCubesZ of this world to the given number of cubes.
-	 *
-	 * @param nbCubesZ
-	 * The new numbers of cubes in z-direction of this world.
-	 * @post NbCubesZ of this world is equal to
-	 * the given number.
-	 * | new.getNbCubesZ() == nbCubesZ
-	 */
-	private void setNbCubesZ(int nbCubesZ){
-		this.NbCubesZ = nbCubesZ;
-	}
+
 	/**
 	 * Return the number of z-cubes of this world.
 	 */
@@ -250,7 +226,21 @@ public class World implements IWorld {
 	public Vector getMaxPosition(){
 		return new Vector(Cube.CUBE_SIDE_LENGTH * getNbCubesX(), Cube.CUBE_SIDE_LENGTH * getNbCubesY(), Cube.CUBE_SIDE_LENGTH * getNbCubesZ());
 	}
-	
+
+	/**
+	 * Spawn a new Unit in this World. The new Unit's default behaviour mode
+	 * is set to the given value of enableDefaultBehavior.
+	 * @param enableDefaultBehavior The requested default behaviour mode of
+	 *                              the new Unit.
+	 * @effect Create a new Unit with this world as its World and with proper
+	 * 			default behavior mode.
+	 * 			| Unit unit = new Unit(this)
+	 * 			| if(enableDefaultBehavior) unit.startDefaultBehaviour()
+	 * @return A new Unit with this World set as its world and with its default
+	 * 			behaviour mode set to the given value of enableDefaultBehavior.
+	 * 			| result.getWorld() == this
+	 * 			| result.isDefaultActive() == enableDefaultBehavior
+     */
 	public Unit spawnUnit(boolean enableDefaultBehavior){
 		// addUnit is called inside Unit's constructor
 		Unit unit = new Unit(this);
@@ -269,6 +259,16 @@ public class World implements IWorld {
 	 * | (unit != null) && (unit.getWorld() == this)
 	 * @post This world has the given unit as one of its units.
 	 * | new.hasAsUnit(unit)
+	 * @post The given unit is added to a proper faction of this
+	 * 		 world. If the maximum number of factions in this
+	 * 		 world isn't reached, a new Faction is created.
+	 * 		 Otherwise the unit is added to the faction containing
+	 * 		 the least units.
+	 * 		 | Faction f = this.getFactionWithLeastUnits()
+	 * 		 | if(this.factions.size()<MAX_FACTIONS)
+	 * 		 |		(new this).getNbFactions() == this.getNbFactions()+1
+	 * 		 |		f = new Faction()
+	 * 		 | unit.getFaction() == f
 	 */
 	@Override
 	public void addUnit(Unit unit){
@@ -280,7 +280,7 @@ public class World implements IWorld {
 		Faction f;
 		if(this.factions.size()<MAX_FACTIONS) {
 			f = new Faction();
-			this.factions.add(f);
+			this.addFaction(f);
 		}else {
 			f = getFactionWithLeastUnits();
 		}
@@ -288,11 +288,6 @@ public class World implements IWorld {
 		f.addUnit(unit);
 		unit.setFaction(f);
 	}
-
-	/** TO BE ADDED TO THE CLASS INVARIANTS
-	 * @invar Each world must have proper factions.
-	 * | hasProperFactions()
-	 */
 
 	/**
 	 * Check whether this world has the given faction as one of its
@@ -306,38 +301,44 @@ public class World implements IWorld {
 	public boolean hasAsFaction(@Raw Faction faction) {
 		return factions.contains(faction);
 	}
+
 	/**
 	 * Check whether this world can have the given faction
 	 * as one of its factions.
 	 *
 	 * @param faction
 	 * The faction to check.
-	 * @return True if and only if the given faction is effective
-	 * and that faction is a valid faction for a world.
+	 * @return True if and only if the given faction is effective.
 	 * | result == (faction != null)
 	 */
 	@Raw
 	public boolean canHaveAsFaction(Faction faction) {
 		return (faction != null);
 	}
+
 	/**
 	 * Check whether this world has proper factions attached to it.
 	 *
 	 * @return True if and only if this world can have each of the
 	 * factions attached to it as one of its factions,
 	 * and if each of these factions references this world as
-	 * the world to which they are attached.
+	 * the world to which they are attached. False if there are
+	 * more factions than the maximum number of allowed factions
+	 * in this world.
 	 * | for each faction in Faction:
 	 * | if (hasAsFaction(faction))
 	 * | then canHaveAsFaction(faction)
+	 * | if(this.getNbFactions()>MAX_FACTIONS) result == false
 	 */
 	public boolean hasProperFactions() {
+		if(this.getNbFactions()>MAX_FACTIONS) return false;
 		for (Faction faction: factions) {
 			if (!canHaveAsFaction(faction))
 			    return false;
 		}
 		return true;
 	}
+
 	/**
 	 * Return the number of factions associated with this world.
 	 *
@@ -348,51 +349,29 @@ public class World implements IWorld {
 	public int getNbFactions() {
 		return factions.size();
 	}
+
 	/**
 	 * Add the given faction to the set of factions of this world.
 	 *
 	 * @param faction
 	 * The faction to be added.
 	 * @pre The given faction is effective and already references
-	 * this world.
-	 * | (faction != null) && (faction.getWorld() == this)
+	 * this world. And this world has not the maximum number of
+	 * allowed factions yet.
+	 * | (faction != null) && (faction.getWorld() == this) &&
+	 * | this.getNbFactions()<MAX_FACTIONS
 	 * @post This world has the given faction as one of its factions.
 	 * | new.hasAsFaction(faction)
 	 */
 	public void addFaction(Faction faction) {
-		assert canHaveAsFaction(faction);
-		factions.add(faction);
+		assert canHaveAsFaction(faction) && this.getNbFactions()<MAX_FACTIONS;
+		this.factions.add(faction);
 	}
-	/**
-	 * Remove the given faction from the set of factions of this world.
-	 *
-	 * @param faction
-	 * The faction to be removed.
-	 * @pre This world has the given faction as one of
-	 * its factions.
-	 * | this.hasAsFaction(faction)
-	 * @post This world no longer has the given faction as
-	 * one of its factions.
-	 * | ! new.hasAsFaction(faction)
-	 */
-	@Raw
-	public void removeFaction(Faction faction) {
-		assert this.hasAsFaction(faction);
-		factions.remove(faction);
-	}
-	/**
-	 * Variable referencing a set collecting all the factions
-	 * of this world.
-	 *
-	 * @invar The referenced set is effective.
-	 * | factions != null
-	 * @invar Each faction registered in the referenced list is
-	 * effective.
-	 * | for each faction in factions:
-	 * | ( (faction != null) )
-	 */
-	private final Set <Faction> factions = new HashSet<>(MAX_FACTIONS);
 
+	/**
+	 * @return The faction containing the least units at this moment.
+	 * 			| foreach(Faction f in this.getFactions() : result.getNbUnits()>=f.getNbUnits())
+     */
 	private Faction getFactionWithLeastUnits(){
 		Faction result = null;
 		for(Faction f : factions){
@@ -402,10 +381,13 @@ public class World implements IWorld {
 		return result;
 	}
 
-	/** TO BE ADDED TO THE CLASS INVARIANTS
-	 * @invar Each world must have proper units.
-	 * | hasProperUnits()
-	 */
+	/**
+	 * @return A set containing all the factions associated to this world.
+	 * 			| foreach(Faction f in result : this.hasAsFaction(f))
+     */
+	public Set<Faction> getFactions(){
+		return new HashSet<>(factions);
+	}
 
 	/**
 	 * Check whether this world has the given unit as one of its
@@ -419,6 +401,7 @@ public class World implements IWorld {
 	public boolean hasAsUnit(@Raw Unit unit) {
 		return units.contains(unit);
 	}
+
 	/**
 	 * Check whether this world can have the given unit
 	 * as one of its units.
@@ -433,7 +416,7 @@ public class World implements IWorld {
 	 */
 	@Raw
 	public boolean canHaveAsUnit(Unit unit) {
-		return (unit != null) && (Unit.isValidWorld(this)) && (this.getNbUnits() < MAX_UNITS);
+		return (unit != null) && (this.getNbUnits() < MAX_UNITS);// TODO: dit klopt niet
 	}
 	/**
 	 * Check whether this world has proper units attached to it.
@@ -504,9 +487,6 @@ public class World implements IWorld {
 		return new HashSet<>(units);
 	}
 
-	public Set<Faction> getFactions(){
-		return new HashSet<>(factions);
-	}
 	/**
 	 * Variable referencing a set collecting all the workshops
 	 * of this world.
@@ -561,10 +541,10 @@ public class World implements IWorld {
 			position = position.add(lower);
 		}
 		position.add(
-				new Vector(randDouble(0, Cube.CUBE_SIDE_LENGTH), 
-						randDouble(0, Cube.CUBE_SIDE_LENGTH), 
+				new Vector(randDouble(0, Cube.CUBE_SIDE_LENGTH),
+						randDouble(0, Cube.CUBE_SIDE_LENGTH),
 						randDouble(0, Cube.CUBE_SIDE_LENGTH)));
-		return position;	
+		return position;
 	}
 	
 	
@@ -686,6 +666,24 @@ public class World implements IWorld {
 
 	public List<Vector> getDirectlyAdjacentCubesPositions(Cube cube){
 		return getDirectlyAdjacentCubesPositions(cube.getPosition());
+	}
+
+	public boolean isAdjacentSolid(Vector position){
+		if(position.cubeZ() == 0)
+			return true;
+		Collection<Cube> solidAdjacentCubes = new ArrayList<>();
+		this.getDirectlyAdjacentCubesSatisfying(
+				solidAdjacentCubes, position.getCubeCoordinates(), cube -> !cube.isPassable(), cube -> cube
+		);
+		return !solidAdjacentCubes.isEmpty();
+	}
+
+	public boolean isLowerSolid(Vector position){
+		if(position.cubeZ() == 0)
+			return true;
+		if(!this.getCube(position.getCubeCoordinates().add(new Vector(0,0,-1))).isPassable())
+			return true;
+		return false;
 	}
 
 	public void advanceTime(double dt){

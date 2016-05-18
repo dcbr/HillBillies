@@ -1056,28 +1056,11 @@ public class Unit extends WorldObject {
 		IWorld world = this.getWorld();
 		if(world instanceof LobbyWorld) return true;
 		if(world.isCubePassable(position.getCubeCoordinates())){
-			if(isAdjacentSolid(position))
+			if(world.isAdjacentSolid(position))
 				return true;
 			if(this.getCurrentActivity() != null && isFalling())
 				return true;
 		}
-		return false;
-	}
-
-	private boolean isAdjacentSolid(Vector position){// TODO: move this to World?
-		if(position.cubeZ() == 0)
-			return true;
-		for(Cube cube : this.getWorld().getDirectlyAdjacentCubes(position.getCubeCoordinates()))
-			if(!cube.isPassable())
-				return true;
-		return false;
-	}
-
-	public boolean isLowerSolid(Vector position){// TODO: move this to World?
-		if(position.cubeZ() == 0)
-			return true;
-		if(!this.getWorld().getCube(position.getCubeCoordinates().add(new Vector(0,0,-1))).isPassable())
-			return true;
 		return false;
 	}
 

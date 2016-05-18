@@ -166,4 +166,14 @@ public class LobbyWorld implements IWorld {
 		throw new NoSuchMethodError("This method is not supported by the lobby.");
 	}
 
+	@Override
+	public boolean isAdjacentSolid(Vector position) {
+		throw new NoSuchMethodError("This method is not supported by the lobby.");
+	}
+
+	@Override
+	public boolean isLowerSolid(Vector position) {
+		throw new NoSuchMethodError("This method is not supported by the lobby.");
+	}
+
 }

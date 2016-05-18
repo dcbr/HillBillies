@@ -64,8 +64,6 @@ public interface IWorld {
 
     public List<Vector> getNeighbouringCubesPositions(Vector cubeCoordinates);
 
-    //final Set<Unit> units = new HashSet <>();// Voor wat dient dees?
-
     public Set<Unit> getUnitsInCube(Cube cube);
 
     public Cube getCube(Vector position);
@@ -85,5 +83,9 @@ public interface IWorld {
     public Set<Cube> getWorkshops();
 
     public <T> void getNeighbouringCubesSatisfying(Collection<T> collection, Vector cubeCoordinates, Predicate<Cube> condition, Function<Cube, T> mapper);
+
+    public boolean isAdjacentSolid(Vector position);
+
+    public boolean isLowerSolid(Vector position);
 
 }

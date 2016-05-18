@@ -48,7 +48,7 @@ public class TargetMove extends Move {
                     randDouble(unit.getWorld().getMinPosition().Y(), unit.getWorld().getMaxPosition().Y()),
                     randDouble(unit.getWorld().getMinPosition().Z(), unit.getWorld().getMaxPosition().Z()))).getCubeCoordinates();
             PathCalculator pathCalculator = new PathCalculator(target);
-            Path path = pathCalculator.computePath(unit.getPosition());
+            Path path = pathCalculator.computePath(unit.getPosition().getCubeCoordinates());
 
             if(path!=null && path.hasNext())
                 this.path = path;
@@ -150,7 +150,7 @@ public class TargetMove extends Move {
 
     public void notifyTerrainChange(Terrain oldTerrain, Cube cube){
         if(this.path.dependsOn(cube.getPosition())){
-            if(!calculatePath(unit.getPosition().getCubeCenterCoordinates(), this.path.getTarget()))
+            if(!calculatePath(unit.getPosition().getCubeCoordinates(), this.path.getTarget()))
                 this.requestFinish();
         }
     }
@@ -173,11 +173,23 @@ public class TargetMove extends Move {
         return true;
     }
 
+    /**
+     * from and target position must be CubeCoordinates!
+     * @param fromPosition
+     * @param targetPosition
+     * @return
+     */
     private boolean calculatePath(Vector fromPosition, Vector targetPosition){
         this.path = new PathCalculator(targetPosition).computePath(fromPosition);
         return this.path!=null;
     }
 
+    /**
+     * from position must be in cubeCoordinates!
+     * @param fromPosition
+     * @param targets
+     * @return
+     */
     private boolean calculatePath(Vector fromPosition, Set<? extends IWorldObject> targets){
         this.targets = targets;
         Map<Vector, IWorldObject> positions = new HashMap<>();
@@ -203,13 +215,17 @@ public class TargetMove extends Move {
         private Vector target;
         
         /**
-         * targetPosition
+         * targetPositions must be cubeCoordinates!
          */
         private PathCalculator(Set<Vector> targets) {
             this.targetPositions = targets;
             this.target = null;
         }
 
+        /**
+         * targetPosition must be in cubeCoordinates!
+         * @param target
+         */
         private PathCalculator(Vector target){
             this.targetPositions = new HashSet<>(1);
             this.targetPositions.add(target);
@@ -254,11 +270,11 @@ public class TargetMove extends Move {
 
         /**
          * 
-         * @param fromPosition = zoeken vanaf hier 
+         * @param fromPosition = zoeken vanaf hier must be in cubeCoordinates!
          * @return
          */
         private Path computePath(Vector fromPosition){
-        	this.add(fromPosition.getCubeCoordinates(), 0);
+        	this.add(fromPosition, 0);
             controlledPos.clear();
             if(this.targetPositions.contains(fromPosition)) {// Unit already stands on the target
                 ArrayDeque<Vector> path = new ArrayDeque<>();

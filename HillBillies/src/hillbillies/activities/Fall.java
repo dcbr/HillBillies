@@ -27,7 +27,7 @@ public class Fall extends Move {
     protected void advanceMove(double dt) {
         Vector cPos = unit.getPosition();
         Vector cPosCube = cPos.getCubeCenterCoordinates();
-        if (cPos.equals(cPosCube) && unit.isLowerSolid(cPos) && unit.getWorld().getCube(cPos.getCubeCoordinates()).isPassable()) {
+        if (cPos.equals(cPosCube) && unit.getWorld().isLowerSolid(cPos) && unit.getWorld().getCube(cPos.getCubeCoordinates()).isPassable()) {
             setCurrentSpeed(0);
             unit.removeHitpoints(10*(int)(fallingLevel - cPos.cubeZ()));
             //setHitpoints((int)(getHitpoints()-(fallingLevel-cPos.Z())));
@@ -36,9 +36,9 @@ public class Fall extends Move {
         } else {
             double speed = this.getCurrentSpeed();
             Vector nextPos = cPos.add(new Vector(0, 0, -speed * dt));
-            if (unit.isLowerSolid(cPos) && unit.getWorld().getCube(cPos.getCubeCoordinates()).isPassable() && (cPosCube.isInBetween(2, cPos, nextPos) || cPos.Z() <= cPosCube.Z()))
+            if (unit.getWorld().isLowerSolid(cPos) && unit.getWorld().getCube(cPos.getCubeCoordinates()).isPassable() && (cPosCube.isInBetween(2, cPos, nextPos) || cPos.Z() <= cPosCube.Z()))
                 unit.setPosition(cPosCube);
-            else if (nextPos.getCubeCenterCoordinates().isInBetween(2, cPos, nextPos) && unit.isLowerSolid(nextPos) && unit.getWorld().getCube(nextPos.getCubeCoordinates()).isPassable())
+            else if (nextPos.getCubeCenterCoordinates().isInBetween(2, cPos, nextPos) && unit.getWorld().isLowerSolid(nextPos) && unit.getWorld().getCube(nextPos.getCubeCoordinates()).isPassable())
                 unit.setPosition(nextPos.getCubeCenterCoordinates());
             else
                 unit.setPosition(nextPos);

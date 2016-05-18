@@ -145,37 +145,37 @@ public class World implements IWorld {
 	public World(int[][][] terrainTypes, TerrainChangeListener terrainChangeListener)
 			throws IllegalArgumentException {
 		this.terrainChangeListener = terrainChangeListener;
-		this.NbCubesX=terrainTypes.length;
-		this.NbCubesY=terrainTypes[0].length;
-		this.NbCubesZ=terrainTypes[0][0].length;
-		connectedToBorder = new ConnectedToBorder(this.getNbCubesX(),this.getNbCubesY(),this.getNbCubesZ());// Initialize connectedToBorder
+		this.NbCubesX = terrainTypes.length;
+		this.NbCubesY = terrainTypes[0].length;
+		this.NbCubesZ = terrainTypes[0][0].length;
+		connectedToBorder = new ConnectedToBorder(this.getNbCubesX(), this.getNbCubesY(), this.getNbCubesZ());// Initialize connectedToBorder
 
 		// Construct this world:
-		for(int x = 0; x< getNbCubesX(); x++){
-			for(int y = 0; y< getNbCubesY(); y++){
+		for (int x = 0; x < getNbCubesX(); x++) {
+			for (int y = 0; y < getNbCubesY(); y++) {
 				if (terrainTypes[x].length != getNbCubesY())
 					throw new IllegalArgumentException("The Terrain Matrix' dimensions do not match.");
 
-				for(int z = 0; z< getNbCubesZ(); z++){
+				for (int z = 0; z < getNbCubesZ(); z++) {
 					if (terrainTypes[x][y].length != getNbCubesZ())
 						throw new IllegalArgumentException("The Terrain Matrix' dimensions do not match.");
 
-					Vector position = new Vector(x,y,z);
+					Vector position = new Vector(x, y, z);
 					Terrain terrain = Terrain.fromId(terrainTypes[x][y][z]);
 					Cube cube = new Cube(this, position, terrain, this::onTerrainChange);
 					CubeMap.put(position, cube);
-					if(terrain == Terrain.WORKSHOP)
+					if (terrain == Terrain.WORKSHOP)
 						this.workshops.add(cube);
-					}
-					if(cube.isPassable()){
+
+					if (cube.isPassable()) {
 						this.passableList.add(position);
 					}
 				}
 			}
 		}
-		
-		
 	}
+		
+
 	
 	/**
 	 * Check whether the given position is a valid position for

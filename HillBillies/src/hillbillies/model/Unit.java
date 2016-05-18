@@ -1309,8 +1309,12 @@ public class Unit extends WorldObject {
 	 * 			| this.getCarriedMaterial().setOwner(dropCube)
 	 * 			| this.removeOwnedMaterial(this.getCarriedMaterial());
 	 *			| dropCube.addOwnedMaterial(this.getCarriedMaterial());
+	 * @throws NullpointerException when dropCube is null
+	 * 		| dropCube == null
 	 */
-	public void dropCarriedMaterial(Cube dropCube){
+	public void dropCarriedMaterial(Cube dropCube) throws NullPointerException{
+		if(dropCube == null)
+			throw new NullPointerException("DropCube is not effective");
 		Material m = this.getCarriedMaterial();
 		if(m!=null) {
 			m.setOwner(dropCube);
@@ -1622,7 +1626,7 @@ public class Unit extends WorldObject {
 	 * | if ( !(this.activityStack == null))
 	 * |	result == this.activityStack.peek()
 	 */
-	private Activity getCurrentActivity(){
+	public Activity getCurrentActivity(){
 		if(this.activityStack == null)
 			return null;
 		return this.activityStack.peek();
@@ -1636,7 +1640,7 @@ public class Unit extends WorldObject {
 	 * | if(this.getCurrentActivity()==activity)
 	 * | 	result == true
 	 */
-	public boolean isCurrentActivity(Activity activity){
+	public boolean isCurrentActivity( Activity activity){
 		return this.getCurrentActivity()==activity;
 	}
 

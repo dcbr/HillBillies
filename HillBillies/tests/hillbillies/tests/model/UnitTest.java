@@ -1,5 +1,8 @@
 package hillbillies.tests.model;
 
+import hillbillies.activities.*;
+import hillbillies.model.Boulder;
+import hillbillies.model.Cube;
 import hillbillies.model.Faction;
 import hillbillies.model.Log;
 import hillbillies.model.Unit;
@@ -9,6 +12,8 @@ import hillbillies.utils.Vector;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import com.sun.corba.se.spi.orbutil.threadpool.Work;
 
 import static org.junit.Assert.*;
 
@@ -39,7 +44,7 @@ public class UnitTest {
 
     @BeforeClass
     public static void setUpClass() {
-    	int[][][] types = new int[50][50][2];
+    	int[][][] types = new int[50][50][3];
     	for (int x = 0; x < types.length; x++) {
 			for (int y = 0; y < types[x].length; y++) {
 				for (int z = 0; z < types[x][y].length; z++) {
@@ -47,6 +52,9 @@ public class UnitTest {
 				}
 			}
     	}
+    	types[22][23][0] = 1;
+    	types[21][22][0] = 2;
+    	types[21][22][0] = 2;
     	AirWorld = new World(types, modelListener); 
         unit = new Unit(AirWorld, "Unit", new Vector(25,25,0));
         customUnit = new Unit(AirWorld, "Custom", new Vector(20,20,0), 50, 50, 50, 100, 100, 100);
@@ -54,9 +62,11 @@ public class UnitTest {
 
     @Before
     public void setUp() throws Exception {
+    	for(Unit unit :AirWorld.getUnits())
+    		unit.terminate();
     	unitx = new Unit(AirWorld,"Unitx", new Vector(23,23,0));
     	unity = new Unit(AirWorld,"Unity", new Vector(21,23,0));
-    	unitz = new Unit(AirWorld,"Unitz", new Vector(22,22,0));
+    	unitz = new Unit(AirWorld,"Unitz", new Vector(22,22,0),Unit.INITIAL_MAX_STRENGTH,Unit.INITIAL_MAX_AGILITY,Unit.INITIAL_MAX_TOUGHNESS,Unit.INITIAL_MAX_WEIGHT,Unit.getMaxStamina(Unit.INITIAL_MAX_WEIGHT, Unit.INITIAL_MAX_TOUGHNESS), Unit.getMaxHitpoints(Unit.INITIAL_MAX_WEIGHT, Unit.INITIAL_MAX_TOUGHNESS));
         testUnit = new Unit(AirWorld,"TestUnit", new Vector(0,0,0));
     }
     //TESTING CONSTRUCTORS
@@ -378,7 +388,7 @@ public class UnitTest {
     	assertEquals(hit,testUnit.getHitpoints());
     	testUnit.setHitpoints(hit);
     	testUnit.removeHitpoints(hit*2);
-    	assertEquals(testUnit.getHitpoints(), Unit.MIN_HITPOINTS);
+    	assertTrue(testUnit.getHitpoints() == Unit.MIN_HITPOINTS && testUnit.isTerminated());
     	testUnit.setHitpoints(hit);
     	testUnit.removeHitpoints(1);
     	assertEquals(testUnit.getHitpoints(), hit-1);
@@ -453,8 +463,14 @@ public class UnitTest {
     //TESTING BOOLEANS
     @Test
     public void testIsAttacking(){
-        assertFalse(unitx.isAttacking());
+    	Unit unita = new Unit(AirWorld,"unita",new Vector(23,21,0));
+        assertFalse(unitz.isAttacking());
+        try{
         unitz.attack(unitx);
+        }catch (IllegalStateException e){
+        	assertFalse(unitz.isAttacking());
+        }
+        unitz.attack(unita);
         assertTrue(unitz.isAttacking());
         double time = 0;
         while(unitz.isAttacking()){
@@ -475,14 +491,68 @@ public class UnitTest {
     public void testCarryingMateriel(){
     	assertFalse(testUnit.isCarryingMaterial());
     	Log logTest = new Log(AirWorld,testUnit);
-    	unitx.addOwnedMaterial(logTest);
-    	assertTrue(unitx.isCarryingMaterial() && unitx.isCarryingLog() && !testUnit.isCarryingBoulder() &&
-    			unitx.getNbOwnedMaterials() ==1);
+    	unitx.setCarriedMaterial(logTest);
+    	assertTrue(unitx.isCarryingMaterial() && unitx.isCarryingLog() && !testUnit.isCarryingLog() &&
+    			unitx.getNbOwnedMaterials() ==1 && unitx.getMaxNbOwnedMaterials() >=unitx.getNbOwnedMaterials()&&
+    			unitx.getCarriedMaterial() instanceof Log && testUnit.getCarriedMaterial() ==null);
     	assertTrue(unitx.getMaxNbOwnedMaterials() >= 0);
     	
-    	
+    	Boulder boulderTest = new Boulder(AirWorld,testUnit);
+    	try{
+    	unitx.setCarriedMaterial(boulderTest);
+    	}catch (IllegalArgumentException e){
+    		assertTrue(unitx.isCarryingLog() && !unitx.isCarryingBoulder() && testUnit.isCarryingBoulder() &&
+    				testUnit.getCarriedMaterial() instanceof Boulder);
+    	}
+    	try{
+    	unitx.dropCarriedMaterial(null);
+    	}catch (NullPointerException e){
+    		assertTrue(unitx.isCarryingLog());
+    	}
+    	Cube dropCube = AirWorld.getCube(new Vector(0,0,0));
+    	testUnit.dropCarriedMaterial(dropCube);
+    	unitx.dropCarriedMaterial(dropCube);
+    	assertFalse(testUnit.isCarryingMaterial() || unitx.isCarryingMaterial());
     }
-
+    @Test
+    public void testDefault(){
+    	assertFalse(testUnit.isDefaultActive() || testUnit.getCurrentActivity().isDefault());
+    	testUnit.startDefaultBehaviour();
+    	assertTrue(testUnit.isDefaultActive() && testUnit.getCurrentActivity().isDefault());
+    	testUnit.stopDefaultBehaviour();
+    	assertFalse(testUnit.isDefaultActive() || testUnit.getCurrentActivity().isDefault());
+    }
+    @Test
+    public void testWorkAndFalling(){
+    	unitz.moveToAdjacent(new Vector(0,0,1));
+    	unitx.moveToTarget(new Vector(22,22,1));
+    	while (unitx.isMoving()||unitz.isMoving() || unitx.isResting() ||unitz.isResting()){
+    		if (unitx.isResting() && !unitx.isInitialRestMode())
+    			unitx.moveToTarget(new Vector(22,22,1));
+    		if (unitz.isResting() && !unitz.isInitialRestMode())
+    			unitz.moveToTarget(new Vector(22,22,1));
+    		if(unitx.isMoving() && unitz.isMoving())
+    			assertTrue((unitx.isExecuting(Move.class) || unitz.isExecuting(Move.class)));
+    		unitx.advanceTime(0.2);
+    		unitz.advanceTime(0.2);
+    	}
+    	unitx.work(new Vector());
+    	while(unitx.isWorking()|| unitx.isResting()){
+    		if (unitx.isResting() && !unitx.isInitialRestMode())
+    			unitx.work(new Vector());
+    		else
+    			assertTrue(unitx.isExecuting(hillbillies.activities.Work.class));
+    		unitx.advanceTime(0.2);
+    	}
+    	assertTrue(unitx.isFalling() && testUnit.isFalling());
+    	while(unitx.isFalling())
+    		assertTrue(unitx.getCurrentSpeed() == testUnit.getCurrentSpeed());
+    	assertFalse(unitx.isFalling() || testUnit.isFalling() || testUnit.getCurrentSpeed()>0);
+    }
+    		
+    		
+    
+    
 /*    @Test
     public void testIsAbleToMove(){
         assertTrue(unity.isAbleToMove());

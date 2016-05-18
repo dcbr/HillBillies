@@ -120,6 +120,8 @@ public class Material implements IWorldObject {
     public void setOwner(WorldObject owner) throws IllegalArgumentException {
         if (! isValidOwner(owner))
             throw new IllegalArgumentException();
+        if(this.getOwner() != null)
+        	this.getOwner().removeOwnedMaterial(this);
         this.owner = owner;
     }
     //endregion

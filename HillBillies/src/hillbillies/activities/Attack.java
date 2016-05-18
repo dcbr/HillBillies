@@ -7,6 +7,7 @@ import hillbillies.model.Unit;
 import hillbillies.utils.Vector;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -91,7 +92,8 @@ public class Attack extends Activity{
      * 			or is the same cube and the attacker do not attacks itself and
      * 			the attacker is not attacking another unit at the same time and
      * 			the attacker is not in the initial rest mode and
-     * 			the defender has more hitpoints than MIN_HITPOINTS
+     * 			the defender has more hitpoints than MIN_HITPOINTS and
+     * 			the defenders position is accessible to attack
      *       | result == (this.getId()!=defender.getId() &&
      *				!this.isAttacking &&
      *				!this.isInitialRestMode() &&
@@ -101,7 +103,8 @@ public class Attack extends Activity{
      *				(Math.abs(defender.getPosition().cubeZ()-this.getPosition().cubeZ())<=1)) &&
      *				this.getFaction() != defender.getFaction() &&
      *				this.getCurrentActivity()!=Activity.FALLING &&
-     *				defender.getCurrentActivity()!=Activity.FALLING
+     *				defender.getCurrentActivity()!=Activity.FALLING &&
+     *				this.isAccessible(defender.getPosition.getCubeCoordinates()
      */
     @Override
     public boolean isAbleTo() {
@@ -109,13 +112,14 @@ public class Attack extends Activity{
                 !unit.isAttacking() &&
                 !unit.isInitialRestMode() &&
                 (defender.getHitpoints() > Unit.MIN_HITPOINTS) &&
-                unit.getWorld().getDirectlyAdjacentCubesPositions(
+                unit.getWorld().getNeighbouringCubesPositions(
                         defender.getPosition().getCubeCoordinates()
                 ).contains(unit.getPosition().getCubeCoordinates()) &&
                 unit.getFaction() != defender.getFaction() &&
                 !defender.isFalling() &&
                 !defender.isTerminated() &&
-                !unit.isFalling();
+                !unit.isFalling() &&
+                this.isAccessible( defender.getPosition().getCubeCoordinates());
     }
 
     /**
@@ -219,4 +223,30 @@ public class Attack extends Activity{
             return true;
         return false;
     }
+    /**
+     * Check whether other position is an accessible position to to attack to from units position.
+     * @param otherPosition The position to attack another unit.
+     * @return True if otherPosition is indeed a accessible position to attack to from  units position
+     *          | if(!unit.getWorld.isCubePassable(otherPosition))
+     *          |       result==false
+     *          | if(foreach Vector d in nextPosition.difference(fromPosition).decompose() :
+     *          |       unit.getWorld.isCubePassable(unit.getPosition().add(d)) && unit.getWorld.isCubePassable(unit.getPosition().difference(d))
+     *          |           result==true
+     *          | else
+     *          |       result==false
+     * @throws IllegalArgumentException
+     *          When units position or otherPosition are not effective.
+     *          | unit.getPosition()==null || nextPosition==null
+     */
+    private boolean isAccessible(Vector otherPosition) throws IllegalArgumentException{
+    	Vector unitPosition = unit.getPosition().getCubeCoordinates();
+        if(unitPosition==null || otherPosition==null)
+            throw new IllegalArgumentException("The other position must be an effective position in order to check his validity.");
+        if(!unit.isValidPosition(otherPosition)) return false;// Check if it's a valid position itself
+        for(Vector d : otherPosition.difference(unitPosition).decompose()){
+            if(!unit.getWorld().isCubePassable(unitPosition.add(d)) || !unit.getWorld().isCubePassable((otherPosition.difference(d)))) 
+            	return false;// Check if surrounding positions are valid too (prevent corner glitch)
+        }
+        return true;
+    }    
 }

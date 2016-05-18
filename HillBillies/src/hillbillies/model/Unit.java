@@ -1118,10 +1118,10 @@ public class Unit extends WorldObject {
 	 * 			The defender to attack.
 	 * @effect This unit will try to attack the defender.
 	 * 		| this.requestNewActivity(new Attack(this, defender))
-	 * @throws IllegalArgumentException
+	 * @throws IllegalStateException
 	 * 			When this unit is not able to attack the attacker.
 	 */
-	public void attack(Unit defender) throws IllegalArgumentException{
+	public void attack(Unit defender) throws IllegalStateException{
 		requestNewActivity(new Attack(this, defender));
 	}
 	
@@ -1130,13 +1130,11 @@ public class Unit extends WorldObject {
 	 *
 	 * @param  attacker
 	 *         The attacker of this attack.
-	 * @effect This unit will try to attack the defender.
-	 * 		| this.requestNewActivity(new Attack(this, defender))
-	 * @throws IllegalArgumentException
-	 * 			When the attacker is not able to attack this unit.
+	 * @throws IllegalArgumentException, cannot order the attacker to attack this unit.
+	 * 
 	 */
 	public void defend(Unit attacker) throws IllegalArgumentException{// Code is moved to Activity Attack
-		// never used
+		// never used, throws always an exception
 		requestNewActivity(new Attack(attacker, this));
 	}
 	//endregion
@@ -1252,7 +1250,7 @@ public class Unit extends WorldObject {
 	}
 	/**
 	 * Return the maximum number of materials this unit can own.
-	 * @return The maximum is greter than or equal then 0.
+	 * @return The maximum is greater than or equal then 0.
 	 * 	| result >=0
 	 */
 	@Override
@@ -1511,8 +1509,9 @@ public class Unit extends WorldObject {
 
 	/**
 	 * Return the XP of this unit.
-	 * @return this units experiencePoints
+	 * @return this units experiencePoints and is always less then MAX_XP
 	 * 		|result == this.experiencePoints
+	 * 		| result < MAX_XP
 	 */
 	@Basic
 	public int getXP(){
@@ -1521,7 +1520,7 @@ public class Unit extends WorldObject {
 	//endregion
 	
 	/**
-	 * Method to notify the chaning terrain
+	 * Method to notify the changing terrain
 	 * @param oldTerrain
 	 * 		The old terrain of the unit.
 	 * @param cube

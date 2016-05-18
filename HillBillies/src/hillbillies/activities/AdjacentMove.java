@@ -72,8 +72,6 @@ public class AdjacentMove extends Move {
         super(extendedMovement, unit, sprinting);
         Vector nextPosition = unit.getPosition().getCubeCenterCoordinates().add(direction);
         if (!isValidNextPosition(unit.getPosition(), nextPosition))
-        	System.out.println("blub");
-        if (!isValidNextPosition(unit.getPosition(), nextPosition))
             throw new IllegalArgumentException("Invalid position to move to.");
         this.nextPosition = nextPosition;
         this.targetMove = extendedMovement;

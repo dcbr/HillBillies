@@ -438,11 +438,51 @@ public class UnitTest {
     	testUnit.setWeight(Unit.MAX_WEIGHT);
     	assertTrue(testUnit.getWeight()== Unit.MAX_WEIGHT);
     	int weight = testUnit.getWeight();
-    	Log log = new Log(AirWorld,testUnit);
+    	new Log(AirWorld,testUnit);
     	assertTrue(testUnit.getWeight()> weight);
     }
-    
-    //TESTING 
+    @Test
+    public void testXp(){
+    	testUnit.addXP(1);
+    	assertEquals(testUnit.getXP(),1);
+    	for(int xp = 950; xp<1000; xp++){
+    		testUnit.addXP(xp);
+    		assertTrue(testUnit.getXP() < Unit.MAX_XP);
+    	}
+    }
+    //TESTING BOOLEANS
+    @Test
+    public void testIsAttacking(){
+        assertFalse(unitx.isAttacking());
+        unitz.attack(unitx);
+        assertTrue(unitz.isAttacking());
+        double time = 0;
+        while(unitz.isAttacking()){
+            time += 0.2;
+            unitz.advanceTime(0.2);
+        }
+        try{unitx.attack(unity);
+        }catch (IllegalStateException e){
+        	assertFalse(unitx.isAttacking());
+        }
+        try{
+        unitx.defend(unitz);
+        }catch (IllegalArgumentException e){
+        	assertFalse(unitx.isAttacking() && unitz.isAttacking());
+        }
+    }
+    @Test
+    public void testCarryingMateriel(){
+    	assertFalse(testUnit.isCarryingMaterial());
+    	Log logTest = new Log(AirWorld,testUnit);
+    	unitx.addOwnedMaterial(logTest);
+    	assertTrue(unitx.isCarryingMaterial() && unitx.isCarryingLog() && !testUnit.isCarryingBoulder() &&
+    			unitx.getNbOwnedMaterials() ==1);
+    	assertTrue(unitx.getMaxNbOwnedMaterials() >= 0);
+    	
+    	
+    }
+
 /*    @Test
     public void testIsAbleToMove(){
         assertTrue(unity.isAbleToMove());
@@ -485,13 +525,6 @@ public class UnitTest {
         while(unitz.isInitialRestMode())
             unitz.advanceTime(0.2d);
         assertTrue(unitz.isAbleToWork());// At least one hitpoint recovered => able to work
-    }
-
-    @Test
-    public void testIsAttacking(){
-        assertFalse(unitx.isAttacking());
-        unitx.attack(unitz);
-        assertTrue(unitx.isAttacking());
     }
 
     @Test
@@ -583,11 +616,6 @@ public class UnitTest {
         for(int i=0;i<5;i++)
             unitx.advanceTime(0.2);
         assertTrue(unitx.isAbleToWork() && unitx.isAbleToMove() && unitx.isAbleToRest());
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testIllegalAttack() throws IllegalArgumentException{
-        unitx.attack(unity);
     }
 
     @Test

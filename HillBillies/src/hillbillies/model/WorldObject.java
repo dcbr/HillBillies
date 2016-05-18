@@ -117,18 +117,7 @@ public abstract class WorldObject implements IWorldObject {
     public IWorld getWorld() {
         return this.world;
     }
-    /**
-     * Check whether the given world is a valid world for
-     * any WorldObject.
-     *
-     * @param world
-     * The world to check.
-     * @return
-     * | result ==
-     */
-    public static boolean isValidWorld(IWorld world) {
-        return true;// TODO: is this necessary?
-    }
+
     /**
      * Set the world of this WorldObject to the given world.
      *
@@ -144,8 +133,6 @@ public abstract class WorldObject implements IWorldObject {
      */
     @Raw
     public void setWorld(IWorld world) throws IllegalArgumentException {
-        if (! isValidWorld(world))
-            throw new IllegalArgumentException();
         IWorld oldWorld = this.world;
         this.world = world;
         if(this.position!=null && !this.isValidPosition(this.getPosition())){

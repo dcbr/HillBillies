@@ -135,7 +135,7 @@ public class World implements IWorld {
 	 * @invar Each cube registered in the referenced list is
 	 * effective and not yet terminated and references this
 	 * world as its World.
-	 * | for each workshop in workshops:
+	 * | for each cube in CubeMap:
 	 * | ( (cube != null) &&
 	 * | (! cube.isTerminated()) &&
 	 * | ( cube.getWorld() == this)
@@ -154,6 +154,40 @@ public class World implements IWorld {
 	 * | ( workshop.getTerrain() == Terrain.WORKSHOP) )
 	 */
 	private final Set<Cube> workshops = new HashSet<>();
+	/**
+	 * Variable referencing a map collecting all the units
+	 * in this world. The key of each map entry is equal to
+	 * the unit's position in this world, the value references
+	 * a set of Units who share the same position.
+	 * @invar Each unitSet registered in the referenced list is
+	 * effective and each unit in this unitSet is not yet
+	 * terminated and references this world as its World.
+	 * | for each unitSet in unitsByCubePosition:
+	 * | ( (unitSet != null) &&
+	 * | 	for each unit in unitSet:
+	 * |	( unit != null) &&
+	 * | 	(! unit.isTerminated()) &&
+	 * | 	( unit.getWorld() == this)
+	 * | )
+	 */
+	private final Map<Vector, Set<Unit>> unitsByCubePosition = new HashMap<>();
+	/**
+	 * Variable referencing a set collecting all the materials
+	 * of this world.
+	 *
+	 * @invar The referenced set is effective.
+	 * | materials != null
+	 * @invar Each material registered in the referenced list is
+	 * effective and not yet terminated.
+	 * | for each material in materials:
+	 * | ( (material != null) &&
+	 * | (! material.isTerminated()) )
+	 */
+	private final Set<Material> materials = new HashSet<>();
+	/**
+	 * Variable referencing a connectedToBorder instance.
+	 */
+	public final ConnectedToBorder connectedToBorder;
 
 	/**
 	 * Initialize this new World with given Terrain Matrix and terrainChangeListener.
@@ -796,17 +830,28 @@ public class World implements IWorld {
 		}
 	}
 
-
-	private final Map<Vector, Set<Unit>> unitsByCubePosition = new HashMap<>();
-	
+	/**
+	 * Get a set of all units in the given cube.
+	 * @param cube The cube of which the units should be returned
+	 * @return A set containing all units whose position lies inside
+	 * 			the given cube's position.
+	 * 			| foreach(Unit u in result : u.getPosition().getCubeCoordinates() == cube.getPosition())
+     */
 	@Override
 	public Set<Unit> getUnitsInCube(Cube cube){
 		return unitsByCubePosition.getOrDefault(cube.getPosition(), new HashSet<>());
 	}
 
-	public final ConnectedToBorder connectedToBorder;
-
-	public void onTerrainChange(Terrain oldTerrain, Cube cube){
+	/**
+	 * Listener which is called once a cube's terrain is changed.
+	 * This method notifies the terrainChangeListener and all
+	 * units of the terrain change. It further updates the
+	 * connectedToBorder instance and collapses the appropriate
+	 * cubes when they become detached from the world's borders.
+	 * @param oldTerrain The old Terrain of the cube
+	 * @param cube The cube whose terrain is changed
+     */
+	private void onTerrainChange(Terrain oldTerrain, Cube cube){
 		int x = (int)cube.getPosition().X();
 		int y = (int)cube.getPosition().Y();
 		int z = (int)cube.getPosition().Z();
@@ -841,6 +886,7 @@ public class World implements IWorld {
 	public boolean hasAsMaterial(@Raw Material material) {
 		return materials.contains(material);
 	}
+
 	/**
 	 * Check whether this world can have the given material
 	 * as one of its materials.
@@ -848,13 +894,13 @@ public class World implements IWorld {
 	 * @param material
 	 * The material to check.
 	 * @return True if and only if the given material is effective.
-	 * | result ==
-	 * | (material != null)
+	 * | result == (material != null)
 	 */
 	@Raw
 	public boolean canHaveAsMaterial(Material material) {
 		return (material != null);
 	}
+
 	/**
 	 * Check whether this world has proper materials attached to it.
 	 *
@@ -876,6 +922,7 @@ public class World implements IWorld {
 		}
 		return true;
 	}
+
 	/**
 	 * Return the number of materials associated with this world.
 	 *
@@ -886,6 +933,7 @@ public class World implements IWorld {
 	public int getNbMaterials() {
 		return materials.size();
 	}
+
 	/**
 	 * Add the given material to the set of materials of this world.
 	 *
@@ -901,6 +949,7 @@ public class World implements IWorld {
 		assert(material != null) && (material.getWorld() == this);
 		materials.add(material);
 	}
+
 	/**
 	 * Remove the given material from the set of materials of this world.
 	 *
@@ -919,24 +968,11 @@ public class World implements IWorld {
 		assert this.hasAsMaterial(material) && (material.isTerminated());
 		materials.remove(material);
 	}
-	/**
-	 * Variable referencing a set collecting all the materials
-	 * of this world.
-	 *
-	 * @invar The referenced set is effective.
-	 * | materials != null
-	 * @invar Each material registered in the referenced list is
-	 * effective and not yet terminated.
-	 * | for each material in materials:
-	 * | ( (material != null) &&
-	 * | (! material.isTerminated()) )
-	 */
-	private final Set<Material> materials = new HashSet<>();
 
 	/**
 	 * Get all materials of the given type in this world. If inCube
 	 * is set to true, only materials with an owner of type Cube
-	 * will be returned.
+	 * or an owner set to null (falling materials) will be returned.
 	 * @param type The type of Material to get. This type must extend
 	 *             Material.
 	 * @param inCube Boolean indicating whether only materials with
@@ -945,8 +981,9 @@ public class World implements IWorld {
 	 *            Material.
      * @return A Set<T> containing all materials of given type in this
 	 * 			world. If inCube is true, only materials with an owner
-	 * 		 	of type Cube will be present in the Set.
-	 * 		 | foreach(T material in result : if(inCube) T.getOwner instanceof Cube)
+	 * 		 	of type Cube or an owner set to null will be present
+	 * 		 	in the Set.
+	 * 		 | foreach(T material in result : if(inCube) material.getOwner() instanceof Cube || material.getOwner()==null)
      */
 	public <T extends Material> Set<T> getMaterials(Class<T> type, boolean inCube){
 		Set<T> result = new HashSet<>();
@@ -959,12 +996,12 @@ public class World implements IWorld {
 
 	/**
 	 * Get all Logs in this world. If inCube is true, only Logs with
-	 * an owner of type Cube will be returned.
+	 * an owner of type Cube or an owner set to null will be returned.
 	 * @param inCube Boolean indicating whether only Logs with an owner
 	 *               of type Cube should be returned
 	 * @return A Set<Log> containing all Logs in this world. If inCube
-	 * 			is true, only Logs with an owner of type Cube will be
-	 * 			present in the Set.
+	 * 			is true, only Logs with an owner of type Cube or an
+	 * 			owner set to null will be present in the Set.
 	 * @effect getMaterials(Log.class, inCube)
      */
 	@Override
@@ -974,29 +1011,17 @@ public class World implements IWorld {
 
 	/**
 	 * Get all Boulders in this world. If inCube is true, only Boulders
-	 * with an owner of type Cube will be returned.
+	 * with an owner of type Cube or an owner set to null will be returned.
 	 * @param inCube Boolean indicating whether only Boulders with
 	 *               an owner of type Cube should be returned
 	 * @return A Set<Boulder> containing all Boulders in this world.
-	 * 			If inCube is true, only Logs with an owner of type
-	 * 			Cube will be present in the Set.
+	 * 			If inCube is true, only Boulders with an owner of type
+	 * 			Cube or an owner set to null will be present in the Set.
 	 * @effect getMaterials(Boulder.class, inCube)
 	 */
 	@Override
 	public Set<Boulder> getBoulders(boolean inCube){
 		return getMaterials(Boulder.class, inCube);
 	}
-
-	/*public void checkWorld(){
-		for(int x = 0; x < this.getNbCubesX(); x++){
-			for(int y = 0; y < this.getNbCubesX(); y++){
-				for(int z = 0; z < this.getNbCubesX(); z++){
-					if( !connectedToBorder.isSolidConnectedToBorder(x, y, z))
-						CollapsingCubes.put(new Vector(x,y,z), 0d);// TODO
-
-				}
-			}
-		}
-	}*/
 
 }

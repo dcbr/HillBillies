@@ -1,19 +1,20 @@
 package hillbillies.part3.programs;
 
 import hillbillies.model.Task;
+import hillbillies.model.Unit;
 import hillbillies.part3.programs.expressions.*;
 import hillbillies.part3.programs.statements.*;
+import hillbillies.utils.Vector;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by Bram on 27-4-2016.
+ * Class implementing the ITaskFactory interface
+ * @author Kenneth & Bram
+ * @version 1.0
  */
 public class TaskFactory implements ITaskFactory<Expression<?>, Statement, Task> {
-
-    public TaskFactory(){
-    }
 
     /**
      * Create a list of tasks from the given arguments.
@@ -43,8 +44,8 @@ public class TaskFactory implements ITaskFactory<Expression<?>, Statement, Task>
      * Create a statement that represents the assignment of a variable.
      *
      * @param variableName   The name of the assigned variable
-     * @param value
-     * @param sourceLocation
+     * @param value          The value of the assigned variable
+     * @param sourceLocation The location in the source code of this statement
      */
     @Override
     public Statement createAssignment(String variableName, Expression<?> value, SourceLocation sourceLocation) {
@@ -56,10 +57,10 @@ public class TaskFactory implements ITaskFactory<Expression<?>, Statement, Task>
      *
      * @param condition      The condition of the while loop
      * @param body           The body of the loop (most likely this is a sequence
-     * @param sourceLocation
+     * @param sourceLocation The location in the source code of this statement
      */
     @Override
-    public Statement createWhile(Expression<?> condition, Statement body, SourceLocation sourceLocation) throws ClassCastException {
+    public Statement createWhile(Expression<?> condition, Statement body, SourceLocation sourceLocation) {
         return new While((Expression<Boolean>)condition, body);
     }
 
@@ -71,20 +72,20 @@ public class TaskFactory implements ITaskFactory<Expression<?>, Statement, Task>
      *                       condition evaluates to true
      * @param elseBody       The body of the else-part, which must be executed when the
      *                       condition evaluates to false. Can be null if no else clause is
-     * @param sourceLocation
+     * @param sourceLocation The location in the source code of this statement
      */
     @Override
-    public Statement createIf(Expression condition, Statement ifBody, Statement elseBody, SourceLocation sourceLocation) {
+    public Statement createIf(Expression<?> condition, Statement ifBody, Statement elseBody, SourceLocation sourceLocation) {
         if(elseBody!=null)
-            return new IfElse(condition, ifBody, elseBody);
+            return new IfElse((Expression<Boolean>)condition, ifBody, elseBody);
         else
-            return new If(condition, ifBody);
+            return new If((Expression<Boolean>)condition, ifBody);
     }
 
     /**
      * Create a break statement that immediately terminates the enclosing loop.
      *
-     * @param sourceLocation
+     * @param sourceLocation The location in the source code of this statement
      * @note Students working alone may return null.
      */
     @Override
@@ -97,10 +98,10 @@ public class TaskFactory implements ITaskFactory<Expression<?>, Statement, Task>
      * given expression.
      *
      * @param value          The expression to evaluate and print
-     * @param sourceLocation
+     * @param sourceLocation The location in the source code of this statement
      */
     @Override
-    public Statement createPrint(Expression value, SourceLocation sourceLocation) {
+    public Statement createPrint(Expression<?> value, SourceLocation sourceLocation) {
         return new Print(value);
     }
 
@@ -108,7 +109,7 @@ public class TaskFactory implements ITaskFactory<Expression<?>, Statement, Task>
      * Create a sequence of statements.
      *
      * @param statements     The statements that must be executed in the given order.
-     * @param sourceLocation
+     * @param sourceLocation The location in the source code of this statement
      */
     @Override
     public Statement createSequence(List<Statement> statements, SourceLocation sourceLocation) {
@@ -119,44 +120,44 @@ public class TaskFactory implements ITaskFactory<Expression<?>, Statement, Task>
      * Create a moveTo statement
      *
      * @param position       The position to which to move
-     * @param sourceLocation
+     * @param sourceLocation The location in the source code of this statement
      */
     @Override
-    public Statement createMoveTo(Expression position, SourceLocation sourceLocation) {
-    	return new MoveTo(position);
+    public Statement createMoveTo(Expression<?> position, SourceLocation sourceLocation) {
+    	return new MoveTo((Expression<Vector>)position);
     }
 
     /**
      * Create a work statement
      *
      * @param position       The position on which to work
-     * @param sourceLocation
+     * @param sourceLocation The location in the source code of this statement
      */
     @Override
-    public Statement createWork(Expression position, SourceLocation sourceLocation) {
-        return new WorkAt(position);
+    public Statement createWork(Expression<?> position, SourceLocation sourceLocation) {
+        return new WorkAt((Expression<Vector>)position);
     }
 
     /**
      * Create a follow statement
      *
      * @param unit           The unit to follow
-     * @param sourceLocation
+     * @param sourceLocation The location in the source code of this statement
      */
     @Override
-    public Statement createFollow(Expression unit, SourceLocation sourceLocation) {
-        return new FollowUnit(unit); //TODO
+    public Statement createFollow(Expression<?> unit, SourceLocation sourceLocation) {
+        return new FollowUnit((Expression<Unit>)unit); //TODO
     }
 
     /**
      * Create an attack statement
      *
      * @param unit           The unit to attack
-     * @param sourceLocation
+     * @param sourceLocation The location in the source code of this statement
      */
     @Override
-    public Statement createAttack(Expression unit, SourceLocation sourceLocation) {
-        return new AttackUnit(unit);
+    public Statement createAttack(Expression<?> unit, SourceLocation sourceLocation) {
+        return new AttackUnit((Expression<Unit>)unit);
     }
 
     /**
@@ -164,11 +165,11 @@ public class TaskFactory implements ITaskFactory<Expression<?>, Statement, Task>
      * variable.
      *
      * @param variableName   The name of the variable to read.
-     * @param sourceLocation
+     * @param sourceLocation The location in the source code of this expression
      */
     @Override
-    public Expression createReadVariable(String variableName, SourceLocation sourceLocation) {
-        return new ReadVariable(variableName);// TODO: find a way to pass the type
+    public Expression<?> createReadVariable(String variableName, SourceLocation sourceLocation) {
+        return new ReadVariable(variableName);
     }
 
     /**
@@ -176,11 +177,11 @@ public class TaskFactory implements ITaskFactory<Expression<?>, Statement, Task>
      * evaluates to a solid position; false otherwise.
      *
      * @param position       The position expression
-     * @param sourceLocation
+     * @param sourceLocation The location in the source code of this expression
      */
     @Override
-    public Expression createIsSolid(Expression position, SourceLocation sourceLocation) {
-        return new IsSolid(position);
+    public Expression<Boolean> createIsSolid(Expression<?> position, SourceLocation sourceLocation) {
+        return new IsSolid((Expression<Vector>)position);
     }
 
     /**
@@ -188,11 +189,11 @@ public class TaskFactory implements ITaskFactory<Expression<?>, Statement, Task>
      * evaluates to a passable position; false otherwise.
      *
      * @param position       The position expression
-     * @param sourceLocation
+     * @param sourceLocation The location in the source code of this expression
      */
     @Override
-    public Expression createIsPassable(Expression position, SourceLocation sourceLocation) {
-        return new IsPassable(position);
+    public Expression<Boolean> createIsPassable(Expression<?> position, SourceLocation sourceLocation) {
+        return new IsPassable((Expression<Vector>)position);
     }
 
     /**
@@ -200,11 +201,11 @@ public class TaskFactory implements ITaskFactory<Expression<?>, Statement, Task>
      * to a unit of the same faction; false otherwise.
      *
      * @param unit           The unit expression
-     * @param sourceLocation
+     * @param sourceLocation The location in the source code of this expression
      */
     @Override
-    public Expression createIsFriend(Expression unit, SourceLocation sourceLocation) {
-        return new IsFriend(unit);
+    public Expression<Boolean> createIsFriend(Expression<?> unit, SourceLocation sourceLocation) {
+        return new IsFriend((Expression<Unit>)unit);
     }
 
     /**
@@ -212,11 +213,11 @@ public class TaskFactory implements ITaskFactory<Expression<?>, Statement, Task>
      * to a unit of another faction; false otherwise.
      *
      * @param unit           The unit expression
-     * @param sourceLocation
+     * @param sourceLocation The location in the source code of this expression
      */
     @Override
-    public Expression createIsEnemy(Expression unit, SourceLocation sourceLocation) {
-        return new IsEnemy(unit);
+    public Expression<Boolean> createIsEnemy(Expression<?> unit, SourceLocation sourceLocation) {
+        return new IsEnemy((Expression<Unit>)unit);
     }
 
     /**
@@ -224,11 +225,11 @@ public class TaskFactory implements ITaskFactory<Expression<?>, Statement, Task>
      * to a unit that is alive; false otherwise.
      *
      * @param unit           The unit expression
-     * @param sourceLocation
+     * @param sourceLocation The location in the source code of this expression
      */
     @Override
-    public Expression createIsAlive(Expression unit, SourceLocation sourceLocation) {
-        return new IsAlive(unit);
+    public Expression<Boolean> createIsAlive(Expression<?> unit, SourceLocation sourceLocation) {
+        return new IsAlive((Expression<Unit>)unit);
     }
 
     /**
@@ -236,99 +237,99 @@ public class TaskFactory implements ITaskFactory<Expression<?>, Statement, Task>
      * to a unit that carries an item; false otherwise.
      *
      * @param unit           The unit expression
-     * @param sourceLocation
+     * @param sourceLocation The location in the source code of this expression
      */
     @Override
-    public Expression createCarriesItem(Expression unit, SourceLocation sourceLocation) {
-        return new CarriesItem(unit);
+    public Expression<Boolean> createCarriesItem(Expression<?> unit, SourceLocation sourceLocation) {
+        return new CarriesItem((Expression<Unit>)unit);
     }
 
     /**
      * Create an expression that evaluates to true when the given expression
      * evaluates to false, and vice versa.
      *
-     * @param expression
-     * @param sourceLocation
+     * @param expression        The expression to negate. This must be a Boolean expression
+     * @param sourceLocation    The location in the source code of this expression
      */
     @Override
-    public Expression createNot(Expression expression, SourceLocation sourceLocation) {
-        return new Not(expression);
+    public Expression<Boolean> createNot(Expression<?> expression, SourceLocation sourceLocation) {
+        return new Not((Expression<Boolean>)expression);
     }
 
     /**
      * Create an expression that evaluates to true when both the left and right
      * expression evaluate to true; false otherwise.
      *
-     * @param left
-     * @param right
-     * @param sourceLocation
+     * @param left           The left expression. This must be a Boolean Expression
+     * @param right          The right expression. This must be a Boolean Expression
+     * @param sourceLocation The location in the source code of this expression
      * @note short-circuit: the right expression does not need to be evaluated
      * when the left expression evaluates to false.
      */
     @Override
-    public Expression createAnd(Expression left, Expression right, SourceLocation sourceLocation) {
-        return new And(left, right);
+    public Expression<Boolean> createAnd(Expression<?> left, Expression<?> right, SourceLocation sourceLocation) {
+        return new And((Expression<Boolean>)left, (Expression<Boolean>)right);
     }
 
     /**
      * Create an expression that evaluates to false only when the left and right
      * expression evaluate to false; true otherwise.
      *
-     * @param left
-     * @param right
-     * @param sourceLocation
+     * @param left           The left expression. This must be a Boolean Expression
+     * @param right          The right expression. This must be a Boolean Expression
+     * @param sourceLocation The location in the source code of this expression
      * @note short-circuit: the right expression does not need to be evaluated
      * when the left expression evaluates to true.
      */
     @Override
-    public Expression createOr(Expression left, Expression right, SourceLocation sourceLocation) {
-        return new Or(left, right);
+    public Expression<Boolean> createOr(Expression<?> left, Expression<?> right, SourceLocation sourceLocation) {
+        return new Or((Expression<Boolean>)left, (Expression<Boolean>)right);
     }
 
     /**
      * Create an expression that evaluates to the current position of the unit
      * that is executing the task.
      *
-     * @param sourceLocation
+     * @param sourceLocation The location in the source code of this expression
      */
     @Override
-    public Expression createHerePosition(SourceLocation sourceLocation) {
+    public Expression<Vector> createHerePosition(SourceLocation sourceLocation) {
         return new HerePosition();
     }
 
     /**
      * Create an expression that evaluates to the position of a log.
      *
-     * @param sourceLocation
+     * @param sourceLocation The location in the source code of this expression
      * @note for groups of two students, this needs to be the log closest to the
      * unit that is executing the task.
      */
     @Override
-    public Expression createLogPosition(SourceLocation sourceLocation) {
+    public Expression<Vector> createLogPosition(SourceLocation sourceLocation) {
         return new LogPosition();
     }
 
     /**
      * Create an expression that evaluates to the position of a boulder.
      *
-     * @param sourceLocation
+     * @param sourceLocation The location in the source code of this expression
      * @note for groups of two students, this needs to be the boulder closest to
      * the unit that is executing the task.
      */
     @Override
-    public Expression createBoulderPosition(SourceLocation sourceLocation) {
+    public Expression<Vector> createBoulderPosition(SourceLocation sourceLocation) {
         return new BoulderPosition();
     }
 
     /**
      * Create an expression that evaluates to the position of a workshop.
      *
-     * @param sourceLocation
+     * @param sourceLocation The location in the source code of this expression
      * @note for groups of two students, this needs to be the workshop closest
      * to the unit that is executing the task.
      */
     @Override
-    public Expression createWorkshopPosition(SourceLocation sourceLocation) {
+    public Expression<Vector> createWorkshopPosition(SourceLocation sourceLocation) {
         return new WorkshopPosition();
     }
 
@@ -336,11 +337,11 @@ public class TaskFactory implements ITaskFactory<Expression<?>, Statement, Task>
      * Create an expression that evaluates to the position selected by the user
      * in the GUI.
      *
-     * @param sourceLocation
+     * @param sourceLocation The location in the source code of this expression
      * @note Students working alone may return null.
      */
     @Override
-    public Expression createSelectedPosition(SourceLocation sourceLocation) {
+    public Expression<Vector> createSelectedPosition(SourceLocation sourceLocation) {
         return new SelectedPosition();
     }
 
@@ -348,36 +349,36 @@ public class TaskFactory implements ITaskFactory<Expression<?>, Statement, Task>
      * Create an expression that evaluates to a position next to the given
      * position.
      *
-     * @param position
-     * @param sourceLocation
+     * @param position       The position. This must be a Vector Expression
+     * @param sourceLocation The location in the source code of this expression
      */
     @Override
-    public Expression createNextToPosition(Expression position, SourceLocation sourceLocation) {
-        return new NextToPosition(position); //TODO zie NTP
+    public Expression<Vector> createNextToPosition(Expression<?> position, SourceLocation sourceLocation) {
+        return new NextToPosition((Expression<Vector>)position); //TODO zie NTP
     }
 
     /**
      * Create an expression that evaluates to the position of the given unit.
      *
-     * @param unit
-     * @param sourceLocation
+     * @param unit           The unit. This must be a Unit Expression
+     * @param sourceLocation The location in the source code of this expression
      */
     @Override
-    public Expression createPositionOf(Expression unit, SourceLocation sourceLocation) {
-        return new PositionOfUnit(unit);
+    public Expression<Vector> createPositionOf(Expression<?> unit, SourceLocation sourceLocation) {
+        return new PositionOfUnit((Expression<Unit>)unit);
     }
 
     /**
      * Create an expression that evaluates to a static position with a given
      * coordinate.
      *
-     * @param x
-     * @param y
-     * @param z
-     * @param sourceLocation
+     * @param x              The x coordinate of the literal position
+     * @param y              The y coordinate of the literal position
+     * @param z              The z coordinate of the literal position
+     * @param sourceLocation The location in the source code of this expression
      */
     @Override
-    public Expression createLiteralPosition(int x, int y, int z, SourceLocation sourceLocation) {
+    public Expression<Vector> createLiteralPosition(int x, int y, int z, SourceLocation sourceLocation) {
         return new LiteralPosition(x, y, z);
     }
 
@@ -385,10 +386,10 @@ public class TaskFactory implements ITaskFactory<Expression<?>, Statement, Task>
      * Create an expression that evaluates to the unit that is currently
      * executing the task.
      *
-     * @param sourceLocation
+     * @param sourceLocation The location in the source code of this expression
      */
     @Override
-    public Expression createThis(SourceLocation sourceLocation) {
+    public Expression<Unit> createThis(SourceLocation sourceLocation) {
         return new This();
     }
 
@@ -396,10 +397,10 @@ public class TaskFactory implements ITaskFactory<Expression<?>, Statement, Task>
      * Create an expression that evaluates to a unit that is part of the same
      * faction as the unit currently executing the task.
      *
-     * @param sourceLocation
+     * @param sourceLocation The location in the source code of this expression
      */
     @Override
-    public Expression createFriend(SourceLocation sourceLocation) {
+    public Expression<Unit> createFriend(SourceLocation sourceLocation) {
         return new Friend();
     }
 
@@ -407,40 +408,40 @@ public class TaskFactory implements ITaskFactory<Expression<?>, Statement, Task>
      * Create an expression that evaluates to a unit that is not part of the
      * same faction as the unit currently executing the task.
      *
-     * @param sourceLocation
+     * @param sourceLocation The location in the source code of this expression
      */
     @Override
-    public Expression createEnemy(SourceLocation sourceLocation) {
+    public Expression<Unit> createEnemy(SourceLocation sourceLocation) {
         return new Enemy();
     }
 
     /**
      * Create an expression that evaluates to any unit (other than this).
      *
-     * @param sourceLocation
+     * @param sourceLocation The location in the source code of this expression
      */
     @Override
-    public Expression createAny(SourceLocation sourceLocation) {
+    public Expression<Unit> createAny(SourceLocation sourceLocation) {
         return new Any();
     }
 
     /**
      * Create an expression that evaluates to true.
      *
-     * @param sourceLocation
+     * @param sourceLocation The location in the source code of this expression
      */
     @Override
-    public Expression createTrue(SourceLocation sourceLocation) {
+    public Expression<Boolean> createTrue(SourceLocation sourceLocation) {
         return new True();
     }
 
     /**
      * Create an expression that evaluates to false.
      *
-     * @param sourceLocation
+     * @param sourceLocation The location in the source code of this expression
      */
     @Override
-    public Expression createFalse(SourceLocation sourceLocation) {
+    public Expression<Boolean> createFalse(SourceLocation sourceLocation) {
         return new False();
     }
 }

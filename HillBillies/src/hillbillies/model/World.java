@@ -247,9 +247,9 @@ public class World implements IWorld {
 					if (terrain == Terrain.WORKSHOP)
 						this.workshops.add(cube);
 
-					if (cube.isPassable()) {
+					/*if (cube.isPassable()) {
 						this.passableList.add(position);
-					}
+					}*/
 				}
 			}
 		}

@@ -689,7 +689,7 @@ public class Unit extends WorldObject {
 	 *         	unit.
 	 *       	| isValidInitialHitpoints(hitpoints)
 	 * @pre  	The units weight and toughness should already have been set.
-	| isValidWeight(this.getWeight()) && isValidToughness(this.getToughness())
+	 * 			| isValidWeight(this.getWeight()) && isValidToughness(this.getToughness())
 	 * @post   	The hitpoints of this unit is equal to the given
 	 *         	hitpoints.
 	 *       	| new.getHitpoints() == hitpoints
@@ -846,6 +846,10 @@ public class Unit extends WorldObject {
 	 * @param world The world this new Unit belongs to
 	 * @effect This Unit is initialized in the given world with random initial values for its other properties
 	 * 			| this(world, random toughness, random weight)
+	 * @throws IllegalArgumentException
+	 * 			When the given name is invalid or the given world has
+	 * 			reached its maximum number of units.
+	 * 			| !isValidName(name) || world.getNbUnits() >= world.MAX_UNITS	 
 	 */
 	public Unit(IWorld world) throws IllegalArgumentException{
 		this(world,randInt(INITIAL_MIN_TOUGHNESS, INITIAL_MAX_TOUGHNESS),
@@ -859,6 +863,10 @@ public class Unit extends WorldObject {
 	 * @param weight The weight of this new Unit
 	 * @effect This Unit is initialized in the given world with random initial values for its other properties
 	 * 			| this(world, random Name, random position, random strength, random agility, toughness, weight, random stamina, random hitpoints)
+	 * @throws IllegalArgumentException
+	 * 			When the given name is invalid or the given world has
+	 * 			reached its maximum number of units.
+	 * 			| !isValidName(name) || world.getNbUnits() >= world.MAX_UNITS	 
 	 */
 	private Unit(IWorld world, int toughness, int weight) throws IllegalArgumentException{
 		this(world, "Unnamed Unit", world.getSpawnPosition(), randInt(INITIAL_MIN_STRENGTH, INITIAL_MAX_STRENGTH),
@@ -872,6 +880,10 @@ public class Unit extends WorldObject {
 	 * @param position The position of this new Unit
 	 * @effect This Unit is initialized with the given name and position and the default initial values for its other properties
 	 * 			| this(world, name, position, INITIAL_MIN_STRENGTH, INITIAL_MIN_AGILITY, INITIAL_MIN_TOUGHNESS, INITIAL_MIN_WEIGHT, INITIAL_MIN_STAMINA, INITIAL_MIN_HITPOINTS)
+	 * @throws IllegalArgumentException
+	 * 			When the given name is invalid or the given world has
+	 * 			reached its maximum number of units.
+	 * 			| !isValidName(name) || world.getNbUnits() >= world.MAX_UNITS
 	 */
 	public Unit(IWorld world, String name, Vector position) throws IllegalArgumentException {
 		this(world, name, position, INITIAL_MIN_STRENGTH, INITIAL_MIN_AGILITY, INITIAL_MIN_TOUGHNESS, INITIAL_MIN_WEIGHT, INITIAL_MIN_STAMINA, INITIAL_MIN_HITPOINTS);
@@ -888,6 +900,10 @@ public class Unit extends WorldObject {
      * @param weight The weight of this new Unit
 	 * @effect This Unit is initialized with the given properties and the maximum values for its remaining properties (stamina and hitpoints)
 	 * 			| this(world, name, position, strength, agility, toughness, weight, getMaxStamina(weight, toughness), getMaxHitpoints(weight, toughness)
+	 * @throws IllegalArgumentException
+	 * 			When the given name is invalid or the given world has
+	 * 			reached its maximum number of units.
+	 * 			| !isValidName(name) || world.getNbUnits() >= world.MAX_UNITS    
      */
 	public Unit(IWorld world, String name, Vector position, int strength, int agility, int toughness, int weight){
 		this(world, name, position, strength, agility, toughness, weight, getMaxStamina(weight, toughness), getMaxHitpoints(weight, toughness));
@@ -1156,6 +1172,8 @@ public class Unit extends WorldObject {
 	 * 			| new.isDoingBehaviour
 	 * @throws IllegalStateException * If this unit isn't able to move.
 	 * 			|!this.isAbleToMove()
+	 * @throws IllegalArgumentException When the target is not a valid position.
+	 * 			|targetPosition==null || !isValidPosition(targetPosition)
 	 */
 	public void moveToTarget(Vector targetPosition) throws IllegalStateException, IllegalArgumentException{
 		if(targetPosition==null || !isValidPosition(targetPosition))
@@ -1167,8 +1185,8 @@ public class Unit extends WorldObject {
 	 * @effect this unit will sprint
 	 * 			| new.isSprinting = true
 	 * @throws IllegalStateException
-	 * 			When the unit is not moving.
-	 * 			| !this.isMoving()
+	 * 			When the unit is not moving or it is falling.
+	 * 			| !this.isMoving() || this.isFalling()
 	 */
 	public void sprint() throws IllegalStateException{
 		if(!this.isMoving() || this.isFalling())
@@ -1341,12 +1359,14 @@ public class Unit extends WorldObject {
 	 */
 	@Override
 	public void terminate() {
-	    this.isTerminated = true;
-		this.setHitpoints(0);
-		this.dropCarriedMaterial(this.getWorld().getCube(getPosition().getCubeCoordinates()));
-		Faction f = this.getFaction();
-		this.faction = null;
-		f.removeUnit(this);
+		if(!this.isTerminated()){
+			this.isTerminated = true;
+			this.setHitpoints(0);
+			this.dropCarriedMaterial(this.getWorld().getCube(getPosition().getCubeCoordinates()));
+			Faction f = this.getFaction();
+			this.faction = null;
+			f.removeUnit(this);
+		}
 	}
 	/**
 	 * Return a boolean indicating whether or not this Unit

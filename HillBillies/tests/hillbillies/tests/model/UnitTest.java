@@ -6,6 +6,8 @@ import hillbillies.part2.listener.TerrainChangeListener;
 import hillbillies.part3.programs.expressions.LiteralPosition;
 import hillbillies.part3.programs.statements.Print;
 import hillbillies.utils.Vector;
+
+import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -74,20 +76,25 @@ public class UnitTest {
     	}
     	
     	mazeWorld = new World(types2, modelListener2);
+    	task1 = new Task("task1",100,new Print(new LiteralPosition(0,0,0)),new int[]{0,0,0});
     }
 
     @Before
     public void setUp() throws Exception {
-    	for(Unit unit : airWorld.getUnits())
-    		unit.terminate();
-    	for(Unit unit : mazeWorld.getUnits())
-    		unit.terminate();
+    	mazeWorld.advanceTime(0.2);
         mazeRunner = new Unit(mazeWorld, "Custom", new Vector(1,1,1), 50, 50, 50, 100, 100, 100);
     	unitx = new Unit(airWorld,"Unitx", new Vector(23,23,0));
     	unity = new Unit(airWorld,"Unity", new Vector(21,23,0));
     	unitz = new Unit(airWorld,"Unitz", new Vector(22,22,0),Unit.INITIAL_MAX_STRENGTH,Unit.INITIAL_MAX_AGILITY,Unit.INITIAL_MAX_TOUGHNESS,Unit.INITIAL_MAX_WEIGHT,Unit.getMaxStamina(Unit.INITIAL_MAX_WEIGHT, Unit.INITIAL_MAX_TOUGHNESS), Unit.getMaxHitpoints(Unit.INITIAL_MAX_WEIGHT, Unit.INITIAL_MAX_TOUGHNESS));
         testUnit = new Unit(airWorld,"TestUnit", new Vector(0,0,0));
-        task1 = new Task("task1",100,new Print(new LiteralPosition(0,0,0)),new int[]{0,0,0});
+    }
+    @After
+    public void tearDown(){
+    	for(Unit unit : airWorld.getUnits())
+    		unit.terminate();
+    	airWorld.advanceTime(0.2);
+    	for(Unit unit : mazeWorld.getUnits())
+    		unit.terminate();
     }
     //TESTING CONSTRUCTORS
     @Test

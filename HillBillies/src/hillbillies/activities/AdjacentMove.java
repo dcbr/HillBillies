@@ -5,7 +5,9 @@ import hillbillies.model.Unit;
 import hillbillies.utils.Vector;
 
 /**
- * Created by Bram on 17-4-2016.
+ * Class for the Adjacent Move Activity of a Unit.
+ * @author Kenneth & Bram
+ * @version 1.0
  */
 public class AdjacentMove extends Move {
 

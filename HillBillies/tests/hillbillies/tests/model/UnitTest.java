@@ -1,13 +1,10 @@
 package hillbillies.tests.model;
 
 import hillbillies.activities.*;
-import hillbillies.model.Boulder;
-import hillbillies.model.Cube;
-import hillbillies.model.Faction;
-import hillbillies.model.Log;
-import hillbillies.model.Unit;
-import hillbillies.model.World;
+import hillbillies.model.*;
 import hillbillies.part2.listener.TerrainChangeListener;
+import hillbillies.part3.programs.expressions.LiteralPosition;
+import hillbillies.part3.programs.statements.Print;
 import hillbillies.utils.Vector;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -28,8 +25,18 @@ public class UnitTest {
 
 	private static Unit unitx, mazeRunner, testUnit, unity, unitz;
 	private static World airWorld, mazeWorld;
+	private static Task task1;
 	private final static Set<TerrainChangeListener> listeners = new HashSet<>();
 	private static TerrainChangeListener modelListener = new TerrainChangeListener() {
+
+		@Override
+		public void notifyTerrainChanged(int x, int y, int z) {
+			for (TerrainChangeListener listener : new HashSet<>(listeners)) {
+				listener.notifyTerrainChanged(x, y, z);
+			}
+		}
+	};
+	private static TerrainChangeListener modelListener2 = new TerrainChangeListener() {
 
 		@Override
 		public void notifyTerrainChanged(int x, int y, int z) {
@@ -41,7 +48,7 @@ public class UnitTest {
 
     @BeforeClass
     public static void setUpClass() {
-    	int[][][] types = new int[50][50][3];
+    	int[][][] types = new int[25][25][3];
     	for (int x = 0; x < types.length; x++) {
 			for (int y = 0; y < types[x].length; y++) {
 				for (int z = 0; z < types[x][y].length; z++) {
@@ -54,11 +61,11 @@ public class UnitTest {
     	types[21][22][1] = 2;
     	airWorld = new World(types, modelListener);
     	
-    	int[][][] types2 = new int[50][3][3];
+    	int[][][] types2 = new int[25][3][3];
     	for (int x = 0; x < types2.length; x++) {
 			for (int y = 0; y < types2[x].length; y++) {
 				for (int z = 0; z < types2[x][y].length; z++) {
-					if(y ==2)
+					if(y ==1 && z==0)
 						types2[x][y][z] = 1;
 					else
 						types2[x][y][z] = 0;
@@ -66,7 +73,7 @@ public class UnitTest {
 			}
     	}
     	
-    	mazeWorld = new World(types2, modelListener);
+    	mazeWorld = new World(types2, modelListener2);
     }
 
     @Before
@@ -80,6 +87,7 @@ public class UnitTest {
     	unity = new Unit(airWorld,"Unity", new Vector(21,23,0));
     	unitz = new Unit(airWorld,"Unitz", new Vector(22,22,0),Unit.INITIAL_MAX_STRENGTH,Unit.INITIAL_MAX_AGILITY,Unit.INITIAL_MAX_TOUGHNESS,Unit.INITIAL_MAX_WEIGHT,Unit.getMaxStamina(Unit.INITIAL_MAX_WEIGHT, Unit.INITIAL_MAX_TOUGHNESS), Unit.getMaxHitpoints(Unit.INITIAL_MAX_WEIGHT, Unit.INITIAL_MAX_TOUGHNESS));
         testUnit = new Unit(airWorld,"TestUnit", new Vector(0,0,0));
+        task1 = new Task("task1",100,new Print(new LiteralPosition(0,0,0)),new int[]{0,0,0});
     }
     //TESTING CONSTRUCTORS
     @Test
@@ -174,8 +182,8 @@ public class UnitTest {
     		assertEquals(name, testUnit.getName());
     	}
     }
-    @Test/*(expected = IllegalArgumentException.class)*/
-    public void testSetInvalidNames() throws IllegalArgumentException {
+    @Test
+    public void testSetInvalidNames(){
     	String invalidNames[] = new String[] {"no caps", "B", " Blub", "'ABC", "K3"};
     	for(String name:invalidNames){
     		try{
@@ -671,16 +679,16 @@ public class UnitTest {
         assertTrue(unitx.isMoving());
         unitx.sprint();
         assertTrue(unitx.isSprinting());
-        while(!unitx.getPosition().equals(new Vector(20,20,0).add(0.5))|| unitx.isResting()){
+        while(!unitx.getPosition().getCubeCoordinates().equals(new Vector(20,20,0).getCubeCoordinates())|| unitx.isResting()){
     		if (unitx.isResting() && !unitx.isInitialRestMode())
     			unitx.moveToTarget(new Vector(20,20,0));
         	unitx.advanceTime(0.2);
         }
-        assertTrue(speed < unitx.getCurrentSpeed());
+        assertTrue(speed <= unitx.getCurrentSpeed());
         unitx.stopSprint();
         assertFalse(unitx.isSprinting());
         unitx.advanceTime(0.2);
-        assertTrue(speed >= unitx.getCurrentSpeed());
+        
         
     }
     @Test
@@ -689,253 +697,84 @@ public class UnitTest {
     	unitx.terminate();
     	assertTrue(unitx.getFaction() == null && unitx.getHitpoints() == 0);
     	unitx.setHitpoints(10);
-    	System.out.println(unitx.getHitpoints());
     }
-    
-    
-/*    @Test
-    public void testIsAbleToMove(){
-        assertTrue(unity.isAbleToMove());
-        unity.work();
-        assertFalse(unity.isAbleToMove());// Unit is working
-        unitx.attack(unitz);
-        assertFalse(unitx.isAbleToMove());// Unit is attacking
-        unitz.rest();
-        assertFalse(unitz.isAbleToMove());// Unit is in initial rest mode
-        while(unitz.isInitialRestMode())
-            unitz.advanceTime(0.2d);
-        assertTrue(unitz.isAbleToMove());// At least one hitpoint recovered => able to move
-    }
-
     @Test
-    public void testIsAbleToRest(){
-        assertTrue(unity.isAbleToRest());
-        unitx.attack(unitz);
-        assertFalse(unitx.isAbleToRest());// Unit is attacking
+    public void testTerrainChange(){
+    	unitx.moveToAdjacent(new Vector(1,0,0));
+    	Cube cube = unitx.getWorld().getCube(new Vector(21,22,0));
+    	Terrain terrain = cube.getTerrain();
+    	unitx.notifyTerrainChange(terrain, cube);
+    	while(unitx.isMoving())
+    		unitx.advanceTime(0.2);
+    	assertTrue(unitx.isCurrentActivity(unitx.getCurrentActivity()));
+    	assertFalse(unitz.isCurrentActivity(unity.getCurrentActivity()));
+    	mazeRunner.moveToTarget(new Vector(24,1,1));
+    	assertTrue(mazeRunner.isMoving());
+    	while(mazeRunner.getPosition().X() < 12)
+    		mazeRunner.advanceTime(0.2);
+    	Unit mazeDestroyer = new Unit(mazeWorld, "MazeDestroyer", new Vector(15,0,0));
+    	mazeDestroyer.work(new Vector(15,1,0));
+    	Cube cube2 = mazeDestroyer.getWorld().getCube(new Vector(15,1,0));
+    	Terrain terrain2 = cube2.getTerrain();
+    	while(mazeDestroyer.isWorking())
+    		mazeDestroyer.advanceTime(0.2);
+    	mazeRunner.notifyTerrainChange(terrain2, cube2);
+    	assertFalse(mazeRunner.isMoving());
     }
-
+    //TESTING OTHER ACTIVITIES
     @Test
-    public void testIsAbleToSprint(){
-        assertFalse(unity.isAbleToSprint());// Unit is not moving
-        unity.moveToAdjacent(new Vector(1,0,0));
-        assertTrue(unity.isAbleToSprint());
-        unity.sprint();
-        while(unity.isSprinting())
-            unity.advanceTime(0.2d);
-        assertFalse(unity.isAbleToSprint());// Unit has not enough stamina
+    public void testRequest(){
+    	unitx.requestNewActivity(unitx.REST);
+    	assertTrue(unitx.isResting());
+    	try{unitx.requestNewActivity(unitx.NONE);
+    	}catch(IllegalStateException e){
+    		assertTrue(unitx.isResting());
+    	}
+    	while(unitx.isInitialRestMode())
+    		unitx.advanceTime(0.2);
+    	unitx.requestActivityFinish(unitx.REST);
+    	assertFalse(unitx.isResting());
+    	unitx.requestNewActivity(unitx.REST);
+    	while(unitx.isInitialRestMode())
+    		unitx.advanceTime(0.2);
+    	assertFalse(unitx.isInitialRestMode());
+    	unitx.restartActivity();
+    	assertTrue(unitx.isInitialRestMode());
+    	while(unitx.isInitialRestMode())
+    		unitx.advanceTime(0.2);
+    	unity.moveToTarget(new Vector(15,15,0));
+    	unitx.follow(unity);
+    	while (unity.isMoving() && unitx.isMoving()){//x kan y inhalen
+    		unitx.advanceTime(0.2);
+    		unity.advanceTime(0.2);
+    	}
+    	assertTrue(airWorld.getNeighbouringCubesPositions(unitx.getPosition().getCubeCoordinates()).contains(unity.getPosition().getCubeCoordinates()));
+    	unitx.moveToTarget(new Vector(20,20,0));
+    	Activity targetMove = unitx.getCurrentActivity();
+    	assertTrue(unitx.isMoving());
+    	unitx.restartActivity(true);
+    	assertEquals(unitx.getCurrentActivity(), targetMove);
+    	unitx.restartActivity(false);
+    	assertEquals(unitx.getCurrentActivity(), targetMove);
+    	Unit leader =new Unit(mazeWorld, "Leader", new Vector(5,0,0));
+    	Unit follower = new Unit(mazeWorld, "Follower", new Vector(0,0,0));
+    	leader.moveToTarget(new Vector(24,0,0));
+    	follower.follow(leader);
+    	while(leader.isMoving()){
+    		leader.advanceTime(0.2);
+    		follower.advanceTime(0.2);
+    	}
+    	assertTrue(!leader.isMoving() && follower.isMoving());
+    	while(follower.isMoving())
+    		follower.advanceTime(0.2);
+    	assertTrue(mazeWorld.getNeighbouringCubesPositions(leader.getPosition().getCubeCoordinates()).
+    			contains(follower.getPosition().getCubeCoordinates()));
     }
-
     @Test
-    public void testIsAbleToWork(){
-        assertTrue(unity.isAbleToWork());
-        unitx.attack(unitz);
-        assertFalse(unitx.isAbleToWork());// Unit is attacking
-        unitz.rest();
-        assertFalse(unitz.isAbleToWork());// Unit is in initial rest mode
-        while(unitz.isInitialRestMode())
-            unitz.advanceTime(0.2d);
-        assertTrue(unitz.isAbleToWork());// At least one hitpoint recovered => able to work
+    public void testTastk(){
+    	unitx.setTask(task1);
+    	assertTrue(unitx.getTask() == task1);
+    	assertTrue(Unit.isValidTask(task1));
+    	
     }
-
-    @Test
-    public void testIsDefaultActive(){
-        assertFalse(unitx.isDefaultActive());
-        unitx.startDefaultBehaviour();
-        assertTrue(unitx.isDefaultActive());
-    }
-
-    @Test
-    public void testIsInitialRestMode(){
-        assertFalse(unitx.isInitialRestMode());// Unit is not resting
-        unitx.rest();
-        assertTrue(unitx.isInitialRestMode());
-        int hp = unitx.getHitpoints();
-        while(unitx.getHitpoints()==hp)
-            unitx.advanceTime(0.2d);
-        assertFalse(unitx.isInitialRestMode());// At least one hitpoint recovered => not in initial rest mode
-    }
-
-    @Test
-    public void testIsMoving(){
-        assertFalse(unitx.isMoving());
-        unitx.moveToAdjacent(new Vector(1,1,0));
-        assertTrue(unitx.isMoving());
-    }
-
-    @Test
-    public void testIsSprinting(){
-        assertFalse(unitx.isSprinting());
-        unitx.moveToAdjacent(new Vector(1,1,0));
-        unitx.sprint();
-        assertTrue(unitx.isSprinting());
-    }
-
-    @Test
-    public void testIsValidAttack(){
-    	assertTrue(unitx.isValidAttack(unitz));
-    	assertFalse(unitx.isValidAttack(unitx));// Unit cannot attack himself
-    	assertFalse(unitx.isValidAttack(unity));// Unity is too far to attack
-        unitz.rest();
-        assertFalse(unitz.isValidAttack(unitx));// Unit is still in initial rest mode
-        unitx.attack(unitz);
-        assertFalse(unitx.isValidAttack(unitz));// Unit is still attacking
-        unity.terminate();
-        assertFalse(unitz.isValidAttack(unity));// Unity has no hitpoints
-    }
-
-    @Test
-    public void testGetIntervalTicks(){
-        assertEquals(2, Unit.getIntervalTicks(12.0258, 0.1824, 0.1));// From getIntervalTicksExample.txt
-        assertEquals(0, Unit.getIntervalTicks(12.2082, 0.0523, 0.1));// From getIntervalTicksExample.txt
-
-        assertEquals(2, Unit.getIntervalTicks(19.965, 1.86, 1d));// From restingLogicExample.txt
-        assertEquals(1, Unit.getIntervalTicks(23.562, 0.154, 0.2));// From restingLogicExample.txt
-        assertEquals(1, Unit.getIntervalTicks(19.44, 0.56, 1d));// From restingLogicExample.txt
-        assertEquals(1, Unit.getIntervalTicks(23.562, 0.038, 0.2));// From restingLogicExample.txt
-    }
-
-    @Test
-    public void testDefaultBehaviour(){
-        assertFalse(unitx.isDefaultActive());
-        unitx.startDefaultBehaviour();
-        assertTrue(unitx.isDefaultActive());
-        unitx.stopDefaultBehaviour();
-        assertFalse(unitx.isDefaultActive());
-        assertTrue(unitx.getCurrentActivity()==Activity.NONE);
-    }
-
-    @Test
-    public void testFighting(){
-        Vector oldDefenderPosition = unitz.getPosition();
-        int oldDefenderHp = unitz.getHitpoints();
-        assertFalse(unitx.isAttacking());
-        unitx.startDefaultBehaviour();
-        unitx.attack(unitz);
-        assertFalse(unitx.isDefaultActive());
-        assertTrue(unitx.isAttacking());
-        assertEquals(Math.atan2(unitz.getPosition().Y()-unitx.getPosition().Y(),unitz.getPosition().X()-unitx.getPosition().X()), unitx.getOrientation(), Vector.EQUALS_PRECISION);
-        assertEquals(Math.atan2(unitx.getPosition().Y()-unitz.getPosition().Y(),unitx.getPosition().X()-unitz.getPosition().X()), unitz.getOrientation(), Vector.EQUALS_PRECISION);
-        assertTrue((!unitz.getPosition().equals(oldDefenderPosition) && unitz.getHitpoints()==oldDefenderHp) || // Unit dodged the attack
-                (unitz.getPosition().equals(oldDefenderPosition) && unitz.getHitpoints()==oldDefenderHp) || // Unit blocked the attack
-                (unitz.getPosition().equals(oldDefenderPosition) && unitz.getHitpoints()<oldDefenderHp) // Unit got damage
-        );
-        // Defending is instantaneous:
-        assertTrue(unitz.isAbleToWork() && unitz.isAbleToMove() && unitz.isAbleToRest());
-        // Attacking lasts 1s:
-        assertFalse(unitx.isAbleToWork() || unitx.isAbleToMove() || unitx.isAbleToRest());
-        for(int i=0;i<5;i++)
-            unitx.advanceTime(0.2);
-        assertTrue(unitx.isAbleToWork() && unitx.isAbleToMove() && unitx.isAbleToRest());
-    }
-
-    @Test
-    public void testMove(){
-        // MoveToAdjacent
-        Vector direction = new Vector(1,0,0);
-        Vector target = unitx.getPosition().add(direction);
-        unitx.startDefaultBehaviour();
-        unitx.moveToAdjacent(direction);
-        assertTrue(unitx.isMoving());
-        assertFalse(unitx.isDefaultActive());
-        assertTrue(unitx.getNextPosition().equals(target));
-        while(!unitx.getPosition().equals(target))
-            unitx.advanceTime(0.2);
-        assertTrue(unitx.getPosition().equals(target));
-
-        // MoveToTarget
-        target = new Vector(20,20,1);
-        unitx.startDefaultBehaviour();
-        unitx.moveToTarget(target);
-        assertTrue(unitx.isMoving());
-        assertFalse(unitx.isDefaultActive());
-        while(!unitx.getPosition().equals(target))
-            unitx.advanceTime(0.2);
-        assertTrue(unitx.getPosition().equals(target));
-    }
-
-    @Test(expected = IllegalStateException.class)
-    public void testIllegalMove() throws IllegalStateException{
-        unitx.rest();
-        unitx.moveToAdjacent(new Vector(1,0,0));// Unit is in initial rest mode => not able to move
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testIllegalMove2() throws IllegalArgumentException{
-        unitx.moveToAdjacent(new Vector(0,0,-1));
-    }
-
-    @Test(expected = IllegalStateException.class)
-    public void testIllegalMove3() throws IllegalStateException{
-        unitx.rest();
-        unitx.moveToTarget(new Vector(1,1,1));
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testIllegalMove4() throws IllegalArgumentException{
-        unitx.moveToTarget(new Vector(0,0,-1));
-    }
-
-    @Test
-    public void testSprinting(){
-        unitx.moveToTarget(new Vector(20,20,1));
-        unitx.sprint();
-        assertTrue(unitx.isSprinting());
-        unitx.advanceTime(0.2);
-        unitx.stopSprint();
-        assertFalse(unitx.isSprinting());
-    }
-
-    @Test(expected = IllegalStateException.class)
-    public void testSprintingZeroStamina() throws IllegalStateException{
-        unitx.moveToTarget(new Vector(20,20,1));
-        unitx.sprint();
-        while(unitx.isSprinting())
-            unitx.advanceTime(0.2);
-        unitx.sprint();// Unit is exhausted => unable to sprint
-    }
-
-    @Test
-    public void testRest(){
-        unitx.startDefaultBehaviour();
-        unitx.rest();
-        assertTrue(unitx.getCurrentActivity()==Activity.REST);
-        assertFalse(unitx.isDefaultActive());
-        int maxHp = Unit.getMaxHitpoints(unitx.getWeight(), unitx.getToughness());
-        int maxSt = Unit.getMaxStamina(unitx.getWeight(), unitx.getToughness());
-        while(unitx.getHitpoints()<maxHp || unitx.getStamina()<maxSt)
-            unitx.advanceTime(0.2);
-        assertTrue(unitx.getCurrentActivity()==Activity.NONE);
-        // Test sleep timer
-        for(int i=0;i<=5*60*3;i++)
-            unity.advanceTime(0.2);
-        assertTrue(unity.getCurrentActivity()==Activity.REST);
-    }
-
-    @Test(expected = IllegalStateException.class)
-    public void testRestIllegal() throws IllegalStateException{
-        unitx.work();
-        unitx.rest();// Unit is still working => unable to rest
-    }
-
-    @Test
-    public void testWork(){
-        unitx.startDefaultBehaviour();
-        unitx.work();
-        assertTrue(unitx.getCurrentActivity()==Activity.WORK);
-        assertFalse(unitx.isDefaultActive());
-        float duration = unitx.getWorkDuration();
-        double time = 0;
-        while(time<=duration){
-            time += 0.2;
-            unitx.advanceTime(0.2);
-        }
-        assertTrue(unitx.getCurrentActivity()==Activity.NONE);
-    }
-
-    @Test(expected = IllegalStateException.class)
-    public void testWorkIllegal() throws IllegalStateException{
-        unitx.rest();
-        unitx.work();// Unit is in initial rest mode => unable to work
-    }*/
-
 }

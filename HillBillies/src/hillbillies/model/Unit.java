@@ -1337,6 +1337,7 @@ public class Unit extends WorldObject {
 	public void terminate() {
 	    this.isTerminated = true;
 		this.setHitpoints(0);
+		this.dropCarriedMaterial(this.getWorld().getCube(getPosition().getCubeCoordinates()));
 		this.getWorld().removeUnit(this);// TODO: fix iterator problem
 		Faction f = this.getFaction();
 		this.faction = null;
@@ -1509,7 +1510,7 @@ public class Unit extends WorldObject {
 	/**
 	 * Method to notify the changing terrain
 	 * @param oldTerrain
-	 * 		The old terrain of the unit.
+	 * 		The old terrain of the cube.
 	 * @param cube
 	 * 		The cube where the change happened.
 	 * @effect If the unit is moving, the activity will be stopped.
@@ -1517,8 +1518,15 @@ public class Unit extends WorldObject {
 	 */
 	public void notifyTerrainChange(Terrain oldTerrain, Cube cube){
 		if(!this.isFalling() && this.isMoving()){
-			if(this.isExecuting(AdjacentMove.class))
-				this.requestActivityFinish(this.getCurrentActivity());
+			if(this.isExecuting(AdjacentMove.class)){
+				if(this.getCurrentActivity().isParentActivity(null)){
+					//Vector target = ((AdjacentMove)this.getCurrentActivity()).getNextPosition();
+					this.restartActivity();
+					return;
+				}	
+				else
+					this.requestActivityFinish(this.getCurrentActivity());
+			}
 			assert this.getCurrentActivity() instanceof TargetMove;
 			((TargetMove)this.getCurrentActivity()).notifyTerrainChange(oldTerrain, cube);
 		}
@@ -1542,7 +1550,19 @@ public class Unit extends WorldObject {
 	 */
 	private Stack<Activity> activityStack;
 
-	
+	/**
+	 * Let the unit request a new activity.
+	 * @param activity The activity to do.
+	 * @post If the unit can interrupt or stop his current activity, he will start the new activity.
+	 * 		| new this.getCurrentActivity() == activity
+	 * @throws NullPointerException When the activity is not effective.
+	 * 	| activity == null
+	 * @throws IllegalArgumentException When the activity is not ordered by this unit or when the activity is already active.
+	 * 	|activity.getUnitId()!=Unit.this.getId()
+	 * 	|activity.isActive()
+	 * @throws IllegalStateException When the unit is not able to do the activity at this moment.
+	 * 	|!this.isDefaultActive() && !activity.isAbleTo()
+	 */
 	public void requestNewActivity(Activity activity) throws NullPointerException, IllegalArgumentException,IllegalStateException{
 		if(activity == null)
 			throw new NullPointerException("The activity cannot be null");
@@ -1576,10 +1596,34 @@ public class Unit extends WorldObject {
 	public void requestActivityFinish(Activity activity){
 		requestActivityFinish(activity, false);
 	}
-
+	/**
+	 * Let the unit request a new activity.
+	 * @param activity The activity to do.
+	 * @post If the unit can interrupt or stop his current activity, he will start the new activity.
+	 * 		| new this.getCurrentActivity() == activity
+	 * @throws NullPointerException When the activity is not effective.
+	 * 	| activity == null
+	 * @throws IllegalArgumentException When the activity is not ordered by this unit or when the activity is already active.
+	 * 	|activity.getUnitId()!=Unit.this.getId()
+	 * 	|activity.isActive()
+	 * @throws IllegalStateException When the unit is not able to do the activity at this moment.
+	 * 	|!this.isDefaultActive() && !activity.isAbleTo()
+	 */
+	/**
+	 * Let this unit finish this activity.
+	 * @param activity The activity to finish.
+	 * @param finishParent Boolean the indicates it is the parent activity to finish.
+	 * @post The unit will do e new activity.
+	 * 		| new this.getCurrentActivity()
+	 * @throws IllegalArgumentException When the activity is not effective, 
+	 * 			or when the activity is not ordered by this unit or when the activity activity is not currently active.
+	 * 		| activity == null || 
+	 * 		| activity.getUnitId()!=Unit.this.getId() || 
+	 * 		| activity!=this.getCurrentActivity() || !activity.isActive())
+	 */
 	public void requestActivityFinish(Activity activity, boolean finishParent) throws IllegalArgumentException{
 		// TODO: maybe change this to reportActivityFinish and check for inactiviy of current activity and then resume previous in stack
-		if(activity == null)
+		if(activity == null) 
 			throw new IllegalArgumentException("Invalid activity.");
 		if(activity.getUnitId()!=Unit.this.getId())
 			throw new IllegalArgumentException("This activity is not bound to this unit.");
@@ -1591,11 +1635,24 @@ public class Unit extends WorldObject {
 			this.activityStack.push(NONE);
 		this.getCurrentActivity().start(isDefault);// Resume previous activity in stack
 	}
-
+	/**
+	 * Method to restart the current activity of this unit.
+	 */
 	public void restartActivity(){
 		restartActivity(false);
 	}
-
+	/**
+	 * Method to restart the current activity of this unit.
+	 * @param restartParent Boolean the indicates it is the parent activity to restart.
+	 * @post If the boolean is true and the current activity is not the parent activity,
+	 * 			this unit will stops his current activity till it is the parent activity.
+	 * 		| if(restartParent && !this.getCurrentActivity().isParentActivity(null))
+	 * 		| 	this.stopCurrentActivity(false);
+	 * 		|	this.restartActivity(true);
+	 * @post Else it will restart its activity.
+	 * 		| else: this.getCurrentActivity().stop()
+	 * 				this.getCurrentActivity().start(this.getCurrentActivity().isDefault())
+	 */
 	public void restartActivity(boolean restartParent){
 		Activity activity = this.getCurrentActivity();
 		boolean isDefault = activity.isDefault();
@@ -1608,13 +1665,19 @@ public class Unit extends WorldObject {
 			activity.start(isDefault);
 		}
 	}
-
+	/**
+	 * Method to stop the current activity of this unit.
+	 * @param finishParent Boolean the indicates it is the parent activity to stop.
+	 * @post This unit will stop his current activity.
+	 *  | new this.getCurrentActivity()
+	 * @throws IllegalStateException
+	 */
 	private void stopCurrentActivity(boolean finishParent) throws IllegalStateException{
 		Activity oldActivity = this.getCurrentActivity();
 		oldActivity.stop();
 		this.activityStack.pop();
-		if(oldActivity.wasSuccessful())
-			Unit.this.addXP(oldActivity.getXp());
+		/*if(oldActivity.wasSuccessful())
+			Unit.this.addXP(oldActivity.getXp());*/
 		if(oldActivity instanceof Rest)
 			restTimer = 0d;// Reset rest timer
 		if(finishParent && oldActivity.isParentActivity(this.getCurrentActivity()))

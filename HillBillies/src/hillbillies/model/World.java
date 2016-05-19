@@ -814,19 +814,22 @@ public class World implements IWorld {
 	 * @param dt The amount of time to advance the game time with.
      */
 	public void advanceTime(double dt){
+		Set<Unit> unitsAT = new HashSet<>(units);
 		unitsByCubePosition.clear();
-		for(Unit unit : units){
-			unit.advanceTime(dt);
-			if(!unitsByCubePosition.containsKey(unit.getPosition().getCubeCoordinates()))
-				unitsByCubePosition.put(unit.getPosition().getCubeCoordinates(), new HashSet<>());
-			unitsByCubePosition.get(unit.getPosition().getCubeCoordinates()).add(unit);
+		for(Unit unit : unitsAT){
+			if(!unit.isTerminated()){
+				unit.advanceTime(dt);
+				if(!unitsByCubePosition.containsKey(unit.getPosition().getCubeCoordinates()))
+					unitsByCubePosition.put(unit.getPosition().getCubeCoordinates(), new HashSet<>());
+				unitsByCubePosition.get(unit.getPosition().getCubeCoordinates()).add(unit);
+			}
 		}
-
 		for(Vector cubePosition : CubeMap.keySet())
 			this.getCube(cubePosition).advanceTime(dt);
-
-		for(Material m : materials){
-			m.advanceTime(dt);
+		Set<Material> materialsAT = new HashSet<>(materials);
+		for(Material m : materialsAT){
+			if (!m.isTerminated())
+				m.advanceTime(dt);
 		}
 	}
 

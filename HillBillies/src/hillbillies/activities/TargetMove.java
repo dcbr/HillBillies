@@ -101,7 +101,14 @@ public class TargetMove extends Move {
                     return;
                 }
             }else{
-                if (this.path.getTarget() != this.leader.getPosition().getCubeCoordinates()){// Leader's position has changed
+            	if (/*this.path!=null && !this.path.hasNext() && */
+            			unit.getWorld().getNeighbouringCubesPositions(unit.getPosition().getCubeCoordinates()).contains(this.leader.getPosition().getCubeCoordinates())){
+            		requestFinish();
+            		return;
+            	}
+            	else if(this.path!=null && !this.path.hasNext())
+            		this.calculatePath(cpos, leader.getPosition().getCubeCoordinates());
+            	else if (!this.path.getTarget().equals(this.leader.getPosition().getCubeCoordinates())){// Leader's position has changed
                     Vector newTarget = leader.getPosition().getCubeCoordinates();
                     if(this.path.contains(newTarget)){
                         this.path.removeFromPath(newTarget);
@@ -114,7 +121,7 @@ public class TargetMove extends Move {
         	Vector nextblub = path.getNext();
             AdjacentMove nextMove = new AdjacentMove(unit, nextblub.difference(cpos), this.isSprinting(), this);
             unit.requestNewActivity(nextMove);
-        }else
+        }else if(this == unit.getCurrentActivity())
             requestFinish();
     }
 

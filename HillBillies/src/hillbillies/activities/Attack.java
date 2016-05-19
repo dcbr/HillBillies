@@ -224,22 +224,24 @@ public class Attack extends Activity{
         return false;
     }
     /**
-     * Check whether other position is an accessible position to to attack to from units position.
+     * Check whether other position is an accessible position to attack too from units position.
+     * @param unit The unit that attacks.
      * @param otherPosition The position to attack another unit.
      * @return True if otherPosition is indeed a accessible position to attack to from  units position
-     *          | if(!unit.getWorld.isCubePassable(otherPosition))
+     *          | if(!unit.getWorld().isCubePassable(otherPosition))
      *          |       result==false
      *          | if(foreach Vector d in nextPosition.difference(fromPosition).decompose() :
-     *          |       unit.getWorld.isCubePassable(unit.getPosition().add(d)) && unit.getWorld.isCubePassable(unit.getPosition().difference(d))
-     *          |           result==true
+     *          |       !unit.getWorld().isCubePassable(unit.getPosition().add(d)) || !unit.getWorld.isCubePassable(otherPosition.difference(d))
+     *          |           result==false
      *          | else
-     *          |       result==false
+     *          |       result==true
      * @throws IllegalArgumentException
      *          When units position or otherPosition are not effective.
      *          | unit.getPosition()==null || nextPosition==null
      */
-    private boolean isAccessible(Vector otherPosition) throws IllegalArgumentException{
+    protected static boolean isAccessible(Unit unit, Vector otherPosition) throws IllegalArgumentException{
     	Vector unitPosition = unit.getPosition().getCubeCoordinates();
+    	otherPosition = otherPosition.getCubeCoordinates();
         if(unitPosition==null || otherPosition==null)
             throw new IllegalArgumentException("The other position must be an effective position in order to check his validity.");
         if(!unit.isValidPosition(otherPosition)) return false;// Check if it's a valid position itself
@@ -248,5 +250,8 @@ public class Attack extends Activity{
             	return false;// Check if surrounding positions are valid too (prevent corner glitch)
         }
         return true;
-    }    
+    }
+    private boolean isAccessible(Vector otherPosition) throws IllegalArgumentException{
+    	return isAccessible(unit,otherPosition);
+    }
 }

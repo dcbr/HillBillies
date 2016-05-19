@@ -1224,7 +1224,7 @@ public class Unit extends WorldObject {
 	 * 		| new.isDoingBehaviour
 	 * @post if this is the default behaviour, set the stateDefault to a new state.
 	 * 		| new.isDoingBehaviour 
-	 * @throws IllegalStateException, IllegalArgumentException
+	 * @throws IllegalArgumentException when the given workPosition is not a valid position to work on.
 	 * 	
 	 */
 	public void work(Vector position) throws IllegalStateException, IllegalArgumentException{

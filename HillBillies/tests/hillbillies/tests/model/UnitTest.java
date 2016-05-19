@@ -13,13 +13,10 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.sun.corba.se.spi.orbutil.threadpool.Work;
-
 import static org.junit.Assert.*;
 
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -29,8 +26,8 @@ import java.util.Set;
  */
 public class UnitTest {
 
-	private static Unit unit, customUnit, testUnit, unitx, unity, unitz;
-	private static World AirWorld;
+	private static Unit unitx, mazeRunner, testUnit, unity, unitz;
+	private static World airWorld, mazeWorld;
 	private final static Set<TerrainChangeListener> listeners = new HashSet<>();
 	private static TerrainChangeListener modelListener = new TerrainChangeListener() {
 
@@ -54,50 +51,65 @@ public class UnitTest {
     	}
     	types[22][23][0] = 1;
     	types[21][22][0] = 2;
-    	types[21][22][0] = 2;
-    	AirWorld = new World(types, modelListener); 
-        unit = new Unit(AirWorld, "Unit", new Vector(25,25,0));
-        customUnit = new Unit(AirWorld, "Custom", new Vector(20,20,0), 50, 50, 50, 100, 100, 100);
+    	types[21][22][1] = 2;
+    	airWorld = new World(types, modelListener);
+    	
+    	int[][][] types2 = new int[50][3][3];
+    	for (int x = 0; x < types2.length; x++) {
+			for (int y = 0; y < types2[x].length; y++) {
+				for (int z = 0; z < types2[x][y].length; z++) {
+					if(y ==2)
+						types2[x][y][z] = 1;
+					else
+						types2[x][y][z] = 0;
+				}
+			}
+    	}
+    	
+    	mazeWorld = new World(types2, modelListener);
     }
 
     @Before
     public void setUp() throws Exception {
-    	for(Unit unit :AirWorld.getUnits())
+    	for(Unit unit : airWorld.getUnits())
     		unit.terminate();
-    	unitx = new Unit(AirWorld,"Unitx", new Vector(23,23,0));
-    	unity = new Unit(AirWorld,"Unity", new Vector(21,23,0));
-    	unitz = new Unit(AirWorld,"Unitz", new Vector(22,22,0),Unit.INITIAL_MAX_STRENGTH,Unit.INITIAL_MAX_AGILITY,Unit.INITIAL_MAX_TOUGHNESS,Unit.INITIAL_MAX_WEIGHT,Unit.getMaxStamina(Unit.INITIAL_MAX_WEIGHT, Unit.INITIAL_MAX_TOUGHNESS), Unit.getMaxHitpoints(Unit.INITIAL_MAX_WEIGHT, Unit.INITIAL_MAX_TOUGHNESS));
-        testUnit = new Unit(AirWorld,"TestUnit", new Vector(0,0,0));
+    	for(Unit unit : mazeWorld.getUnits())
+    		unit.terminate();
+        mazeRunner = new Unit(mazeWorld, "Custom", new Vector(1,1,1), 50, 50, 50, 100, 100, 100);
+    	unitx = new Unit(airWorld,"Unitx", new Vector(23,23,0));
+    	unity = new Unit(airWorld,"Unity", new Vector(21,23,0));
+    	unitz = new Unit(airWorld,"Unitz", new Vector(22,22,0),Unit.INITIAL_MAX_STRENGTH,Unit.INITIAL_MAX_AGILITY,Unit.INITIAL_MAX_TOUGHNESS,Unit.INITIAL_MAX_WEIGHT,Unit.getMaxStamina(Unit.INITIAL_MAX_WEIGHT, Unit.INITIAL_MAX_TOUGHNESS), Unit.getMaxHitpoints(Unit.INITIAL_MAX_WEIGHT, Unit.INITIAL_MAX_TOUGHNESS));
+        testUnit = new Unit(airWorld,"TestUnit", new Vector(0,0,0));
     }
     //TESTING CONSTRUCTORS
     @Test
     public void testConstructor1(){
-        assertEquals(unit.getName(),"Unit");
-        assertTrue(unit.getPosition().equals(new Vector(25.5,25.5,0.5)));
-        assertEquals(unit.getAgility(), Unit.INITIAL_MIN_AGILITY);
-        assertEquals(unit.getStrength(), Unit.INITIAL_MIN_STRENGTH);
-        assertEquals(unit.getToughness(), Unit.INITIAL_MIN_TOUGHNESS);
-        assertEquals(unit.getWeight(), Unit.INITIAL_MIN_WEIGHT);
-        assertEquals(unit.getStamina(), Unit.INITIAL_MIN_STAMINA);
-        assertEquals(unit.getHitpoints(), Unit.INITIAL_MIN_HITPOINTS);
+        assertEquals(unitx.getName(),"Unitx");
+        assertTrue(unitx.getPosition().equals(new Vector(23.5,23.5,0.5)));
+        assertEquals(unitx.getAgility(), Unit.INITIAL_MIN_AGILITY);
+        assertEquals(unitx.getStrength(), Unit.INITIAL_MIN_STRENGTH);
+        assertEquals(unitx.getToughness(), Unit.INITIAL_MIN_TOUGHNESS);
+        assertEquals(unitx.getWeight(), Unit.INITIAL_MIN_WEIGHT);
+        assertEquals(unitx.getStamina(), Unit.INITIAL_MIN_STAMINA);
+        assertEquals(unitx.getHitpoints(), Unit.INITIAL_MIN_HITPOINTS);
     }
     @Test
     public void testConstructor2(){
-        assertEquals(customUnit.getName(),"Custom");
-        assertTrue(customUnit.getPosition().equals(new Vector(20.5,20.5,0.5)));
-        assertEquals(customUnit.getAgility(), 50);
-        assertEquals(customUnit.getStrength(), 50);
-        assertEquals(customUnit.getToughness(), 50);
-        assertEquals(customUnit.getWeight(), 100);
-        assertEquals(customUnit.getStamina(), 100);
-        assertEquals(customUnit.getHitpoints(), 100);
-        assertEquals(customUnit.getOrientation(), Unit.INITIAL_ORIENTATION, Vector.EQUALS_PRECISION);
+        assertEquals(mazeRunner.getName(),"Custom");
+        assertTrue(mazeRunner.getPosition().equals(new Vector(1.5,1.5,1.5)));
+        assertEquals(mazeRunner.getAgility(), 50);
+        assertEquals(mazeRunner.getStrength(), 50);
+        assertEquals(mazeRunner.getToughness(), 50);
+        assertEquals(mazeRunner.getWeight(), 100);
+        assertEquals(mazeRunner.getStamina(), 100);
+        assertEquals(mazeRunner.getHitpoints(), 100);
+        assertEquals(mazeRunner.getOrientation(), Unit.INITIAL_ORIENTATION, Vector.EQUALS_PRECISION);
     }
     @Test
     public void testConstructorRandom1(){
     	Unit Random;
     	for (int i=0; i<50; i++){
-    		Random = new Unit(AirWorld);
+    		Random = new Unit(airWorld);
     		assertTrue(Unit.isValidName(Random.getName()) && 
     				Unit.isValidAgility(Random.getAgility())&&
     		Unit.isValidInitialAgility(Random.getAgility())&&
@@ -119,7 +131,7 @@ public class UnitTest {
     	Unit Random;
     	Set<Long> ids = new HashSet<>();
     	for (int i=0; i<50; i++){
-    		Random = new Unit(AirWorld);
+    		Random = new Unit(airWorld);
     		assertTrue(Unit.isValidName(Random.getName()) && 
     				Unit.isValidAgility(Random.getAgility())&&
     		Unit.isValidInitialAgility(Random.getAgility())&&
@@ -141,7 +153,7 @@ public class UnitTest {
     }
     @Test
     public void testConstructor3(){
-    	Unit testUnit3 = new Unit(AirWorld, "TestUnit II", new Vector(0,0,0),50, 50, 50, 100 );
+    	Unit testUnit3 = new Unit(airWorld, "TestUnit II", new Vector(0,0,0),50, 50, 50, 100 );
         assertEquals(testUnit3.getName(),"TestUnit II");
         assertTrue(testUnit3.getPosition().equals(new Vector(0.5,0.5,0.5)));
         assertEquals(testUnit3.getAgility(), 50);
@@ -178,7 +190,7 @@ public class UnitTest {
     //TESTING POSITION
     @Test(expected = IllegalArgumentException.class)
     public void testConstructorInvalidPosition() throws IllegalArgumentException {
-        Unit n = new Unit(AirWorld, "Name", new Vector(-10,20,30));
+        new Unit(airWorld, "Name", new Vector(-10,20,30));
     }
     
 //    @Test
@@ -196,13 +208,13 @@ public class UnitTest {
      
     @Test
     public void testConstructorInvalidProperties() {
-        Unit n = new Unit(AirWorld, "New", new Vector(20,20,0), 500, 50, 50, 100, 50, 50);// Invalid strength
+        Unit n = new Unit(airWorld, "New", new Vector(20,20,0), 500, 50, 50, 100, 50, 50);// Invalid strength
         assertEquals(n.getStrength(), Unit.INITIAL_MIN_STRENGTH);
-        n = new Unit(AirWorld, "New", new Vector(20,20,0), 50, 500, 50, 100, 50, 50);// Invalid agility
+        n = new Unit(airWorld, "New", new Vector(20,20,0), 50, 500, 50, 100, 50, 50);// Invalid agility
         assertEquals(n.getAgility(), Unit.INITIAL_MIN_AGILITY);
-        n = new Unit(AirWorld, "New", new Vector(20,20,0), 50, 50, 500, 100, 50, 50);// Invalid toughness
+        n = new Unit(airWorld, "New", new Vector(20,20,0), 50, 50, 500, 100, 50, 50);// Invalid toughness
         assertEquals(n.getToughness(), Unit.INITIAL_MIN_TOUGHNESS);
-        n = new Unit(AirWorld, "New", new Vector(20,20,0), 50, 50, 50, -100, 50, 50);// Invalid weight
+        n = new Unit(airWorld, "New", new Vector(20,20,0), 50, 50, 50, -100, 50, 50);// Invalid weight
         assertEquals(n.getWeight(), Unit.getInitialMinWeight(50,50));
     }
     
@@ -354,7 +366,7 @@ public class UnitTest {
     
     @Test
     public void testSetFaction(){
-    	Set<Faction> factions = AirWorld.getFactions();
+    	Set<Faction> factions = airWorld.getFactions();
     	Iterator<Faction> iterator = factions.iterator();
     	while(iterator.hasNext()){
     		Faction f = iterator.next();
@@ -448,7 +460,7 @@ public class UnitTest {
     	testUnit.setWeight(Unit.MAX_WEIGHT);
     	assertTrue(testUnit.getWeight()== Unit.MAX_WEIGHT);
     	int weight = testUnit.getWeight();
-    	new Log(AirWorld,testUnit);
+    	new Log(airWorld,testUnit);
     	assertTrue(testUnit.getWeight()> weight);
     }
     @Test
@@ -463,7 +475,7 @@ public class UnitTest {
     //TESTING BOOLEANS
     @Test
     public void testIsAttacking(){
-    	Unit unita = new Unit(AirWorld,"unita",new Vector(23,21,0));
+    	Unit unita = new Unit(airWorld,"Unita",new Vector(23,21,0));
         assertFalse(unitz.isAttacking());
         try{
         unitz.attack(unitx);
@@ -472,9 +484,8 @@ public class UnitTest {
         }
         unitz.attack(unita);
         assertTrue(unitz.isAttacking());
-        double time = 0;
         while(unitz.isAttacking()){
-            time += 0.2;
+        	assertTrue(unitz.isExecuting(Attack.class));
             unitz.advanceTime(0.2);
         }
         try{unitx.attack(unity);
@@ -490,14 +501,14 @@ public class UnitTest {
     @Test
     public void testCarryingMateriel(){
     	assertFalse(testUnit.isCarryingMaterial());
-    	Log logTest = new Log(AirWorld,testUnit);
+    	Log logTest = new Log(airWorld,testUnit);
     	unitx.setCarriedMaterial(logTest);
     	assertTrue(unitx.isCarryingMaterial() && unitx.isCarryingLog() && !testUnit.isCarryingLog() &&
     			unitx.getNbOwnedMaterials() ==1 && unitx.getMaxNbOwnedMaterials() >=unitx.getNbOwnedMaterials()&&
     			unitx.getCarriedMaterial() instanceof Log && testUnit.getCarriedMaterial() ==null);
     	assertTrue(unitx.getMaxNbOwnedMaterials() >= 0);
     	
-    	Boulder boulderTest = new Boulder(AirWorld,testUnit);
+    	Boulder boulderTest = new Boulder(airWorld,testUnit);
     	try{
     	unitx.setCarriedMaterial(boulderTest);
     	}catch (IllegalArgumentException e){
@@ -509,7 +520,7 @@ public class UnitTest {
     	}catch (NullPointerException e){
     		assertTrue(unitx.isCarryingLog());
     	}
-    	Cube dropCube = AirWorld.getCube(new Vector(0,0,0));
+    	Cube dropCube = airWorld.getCube(new Vector(0,0,0));
     	testUnit.dropCarriedMaterial(dropCube);
     	unitx.dropCarriedMaterial(dropCube);
     	assertFalse(testUnit.isCarryingMaterial() || unitx.isCarryingMaterial());
@@ -523,7 +534,8 @@ public class UnitTest {
     	assertFalse(testUnit.isDefaultActive() || testUnit.getCurrentActivity().isDefault());
     }
     @Test
-    public void testWorkAndFalling(){
+    public void testWorkingAndFalling(){
+    	unitx.setHitpoints(1);
     	unitz.moveToAdjacent(new Vector(0,0,1));
     	unitx.moveToTarget(new Vector(22,22,1));
     	while (unitx.isMoving()||unitz.isMoving() || unitx.isResting() ||unitz.isResting()){
@@ -536,21 +548,149 @@ public class UnitTest {
     		unitx.advanceTime(0.2);
     		unitz.advanceTime(0.2);
     	}
-    	unitx.work(new Vector());
+    	unitx.work(new Vector(21,22,1)); //ze hangen vast aan deze blok
     	while(unitx.isWorking()|| unitx.isResting()){
     		if (unitx.isResting() && !unitx.isInitialRestMode())
-    			unitx.work(new Vector());
+    			unitx.work(new Vector(21,22,1));
     		else
     			assertTrue(unitx.isExecuting(hillbillies.activities.Work.class));
     		unitx.advanceTime(0.2);
     	}
-    	assertTrue(unitx.isFalling() && testUnit.isFalling());
-    	while(unitx.isFalling())
-    		assertTrue(unitx.getCurrentSpeed() == testUnit.getCurrentSpeed());
-    	assertFalse(unitx.isFalling() || testUnit.isFalling() || testUnit.getCurrentSpeed()>0);
+    	unitz.advanceTime(0.0001);
+    	unitx.advanceTime(0.0001);
+    	assertTrue(unitx.isFalling() && unitz.isFalling());
+    	while(unitx.isFalling()){
+    		assertTrue(unitx.getCurrentSpeed() == unitz.getCurrentSpeed());
+    		unitx.advanceTime(0.2);
+    		unitz.advanceTime(0.2);
+    	}
+    	assertFalse(unitx.isFalling() || unitz.isFalling() || unitz.getCurrentSpeed()>0);
+    	assertTrue(unitx.isTerminated());
+    	assertEquals(unitz.getHitpoints(), Unit.getMaxHitpoints(Unit.INITIAL_MAX_WEIGHT, Unit.INITIAL_MAX_TOUGHNESS)-10);
+    	try{unitz.work(new Vector(0,0,0));
+    	}catch (IllegalArgumentException e){
+    		assertFalse(unitz.isWorking());
+    	}
+    	try{
+    		unitz.work(new Vector(21,23,0));
+    	}catch(IllegalStateException e){
+    		assertFalse(unitz.isWorking());
+    	}
+    	unitz.work(new Vector(22,21,0));
+    	while(unitz.isWorking()||unitz.isResting()){
+    		if (unitz.isResting() && !unitz.isInitialRestMode())
+    			unitz.work(new Vector(22,21,1));
+    		unitz.advanceTime(0.2);
+    	}
+    	unitz.work(new Vector(21,22,0));
+    	while(unitz.isWorking()||unitz.isResting()){
+    		if (unitz.isResting() && !unitz.isInitialRestMode())
+    			unitz.work(new Vector(21,22,0));
+    		unitz.advanceTime(0.2);
+    	}
+    	if(!airWorld.getCube(new Vector(21,22,0)).containsLogs())
+    		new Log(airWorld,airWorld.getCube(new Vector(21,22,0)));
+    	assertTrue(airWorld.getCube(new Vector(21,22,0)).containsLogs());
+    	unitz.work(new Vector(21,22,0));
+    	while(unitz.isWorking()||unitz.isResting()){
+    		if (unitz.isResting() && !unitz.isInitialRestMode())
+    			unitz.work(new Vector(21,22,0));
+    		unitz.advanceTime(0.2);
+    	}
+    	assertTrue(unitz.isCarryingLog());
     }
-    		
-    		
+    
+    @Test
+    public void testResting(){
+    	assertFalse(unitx.isResting());
+    	unitx.rest();
+    	assertTrue(unitx.isResting() && unitx.isInitialRestMode());
+    	int hitpoints = unitx.getHitpoints();
+    	int stamina = unitx.getStamina();
+    	while(hitpoints == unitx.getHitpoints() && stamina == unitx.getStamina()){
+    		assertTrue(unitx.isInitialRestMode());
+    		unitx.advanceTime(0.1);
+    	}
+    	while(unitx.isResting()){
+    		assertTrue(unitx.isExecuting(Rest.class));
+    		assertFalse(unitx.isInitialRestMode());
+    		unitx.advanceTime(0.2);
+    	}
+    	hitpoints = unitx.getHitpoints();
+    	unitx.setHitpoints(hitpoints-1);//enkel hitpoints verhogen
+    	unitx.rest();
+    	while(unitx.isResting()){
+    		assertFalse(unitx.getHitpoints() == hitpoints);
+    		assertTrue(unitx.isInitialRestMode());
+    		unitx.advanceTime(0.1);
+    	}
+    	assertFalse(unitx.isInitialRestMode());
+    	stamina = unitx.getStamina();
+    	unitx.setStamina(stamina-1);//enkel stamina verhogen
+    	unitx.rest();
+    	while(unitx.isResting()){
+    		assertFalse(unitx.getStamina() == stamina);
+    		assertTrue(unitx.isInitialRestMode());
+    		unitx.advanceTime(0.1);
+    	}
+    	assertFalse(unitx.isInitialRestMode());
+    	try{
+    		unitx.rest();
+    	}catch (IllegalStateException e){
+    		assertFalse(unitx.isResting());
+    	}
+    }
+    @Test
+    public void testMoving(){
+        // MoveToAdjacent
+        Vector direction = new Vector(1,0,0);
+        Vector target = unitx.getPosition().add(direction);
+        unitx.moveToAdjacent(direction);
+        assertTrue(unitx.isMoving());
+        while(!unitx.getPosition().equals(target))
+            unitx.advanceTime(0.2);
+        assertTrue(unitx.getPosition().equals(target));
+
+        // MoveToTarget
+        double speed = unitx.getCurrentSpeed();
+        target = new Vector(15,15,0);
+        unitx.moveToTarget(target);
+        assertTrue(unitx.isMoving());
+        while(unitx.isMoving() || unitx.isResting()){
+    		if (unitx.isResting() && !unitx.isInitialRestMode())
+    			unitx.moveToTarget(target);
+    		unitx.advanceTime(0.2);
+        }
+        assertTrue(unitx.getPosition().equals(target.add(0.5)));
+        try{
+        	unitx.sprint();
+        }catch(IllegalStateException e){
+        	assertFalse(unitx.isSprinting());
+        }
+        unitx.moveToTarget(new Vector(20,20,0));
+        assertTrue(unitx.isMoving());
+        unitx.sprint();
+        assertTrue(unitx.isSprinting());
+        while(!unitx.getPosition().equals(new Vector(20,20,0).add(0.5))|| unitx.isResting()){
+    		if (unitx.isResting() && !unitx.isInitialRestMode())
+    			unitx.moveToTarget(new Vector(20,20,0));
+        	unitx.advanceTime(0.2);
+        }
+        assertTrue(speed < unitx.getCurrentSpeed());
+        unitx.stopSprint();
+        assertFalse(unitx.isSprinting());
+        unitx.advanceTime(0.2);
+        assertTrue(speed >= unitx.getCurrentSpeed());
+        
+    }
+    @Test
+    public void tesIsTerminated(){//ook bij falling al gebruikt
+    	assertFalse(unitx.isTerminated());
+    	unitx.terminate();
+    	assertTrue(unitx.getFaction() == null && unitx.getHitpoints() == 0);
+    	unitx.setHitpoints(10);
+    	System.out.println(unitx.getHitpoints());
+    }
     
     
 /*    @Test

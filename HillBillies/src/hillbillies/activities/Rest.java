@@ -65,6 +65,9 @@ public class Rest extends Activity {
             int newHitpoints = unit.getHitpoints() + extraHitpoints;
             double newRestHitpoints = restHitpoints + extraRestHitpoints;
             if(newHitpoints>=maxHp) {
+            	if(maxSt==unit.getStamina()){
+            		this.requestFinish();
+            	}
                 newHitpoints = maxHp;
                 double neededExtraRestHitpoints = maxHp - unit.getHitpoints() - restHitpoints % 1;
                 int neededTicks = (int)Math.ceil(neededExtraRestHitpoints/this.getRestHitpointsGain());
@@ -99,7 +102,7 @@ public class Rest extends Activity {
      */
     @Override
     public boolean isAbleTo() {
-        return !unit.isAttacking();
+        return !unit.isAttacking() && (unit.getHitpoints()!=Unit.getMaxHitpoints(unit.getWeight(), unit.getToughness()) || unit.getStamina()!=Unit.getMaxStamina(unit.getWeight(), unit.getToughness()));
     }
 
     /**

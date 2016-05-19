@@ -93,7 +93,7 @@ public class Work extends Activity {
      */
     @Override
     public boolean isAbleTo() {
-        return !unit.isInitialRestMode() && !unit.isAttacking();
+        return !unit.isInitialRestMode() && !unit.isAttacking() && this.isAccessible(workCube.getPosition());
     }
 
     /**
@@ -141,5 +141,39 @@ public class Work extends Activity {
         return workCube.getWorld()==unit.getWorld() &&
                 (unit.getPosition().getCubeCoordinates().equals(workCube.getPosition()) ||
                         unit.getWorld().getNeighbouringCubesPositions(unit.getPosition().getCubeCoordinates()).contains(workCube.getPosition()));
+    }
+    /**
+     * Check whether a position is an accessible position to work on to from units position.
+     * @param unit The working unit.
+     * @param position The position to work on.
+     * @return True if position is indeed a accessible position to work on from the units position
+     *          | if(foreach Vector d in nextPosition.difference(fromPosition).decompose() :
+     *          |       !unit.getWorld().isCubePassable(unit.getPosition().add(d)) || !unit.getWorld.isCubePassable(position.difference(d))
+     *          |			where unit.getPosition().add(d) != position && unit.getPosition() != position && d!=Vector(0,0,0)
+     *          |           	result==false
+     *          | else
+     *          |       result==true
+     * @throws IllegalArgumentException
+     *          When units position or otherPosition are not effective.
+     *          | unit.getPosition()==null || nextPosition==null
+     */
+    protected static boolean isAccessible(Unit unit, Vector position) throws IllegalArgumentException{
+    	Vector unitPosition = unit.getPosition().getCubeCoordinates();
+    	position = position.getCubeCoordinates();
+        if(unitPosition==null || position==null)
+            throw new IllegalArgumentException("The other position must be an effective position in order to check his validity.");
+        //if(unit.getWorld().isCubePassable(position)) return false;// Check if it's a valid position itself
+        for(Vector d : position.difference(unitPosition).decompose()){
+        	if(!d.equals(new Vector(0,0,0))){
+        		Vector pos1 = unitPosition.add(d);
+        		Vector pos2 = position.difference(d);
+        		if(!(pos1.equals(position) || unit.getWorld().isCubePassable(pos1)) ||!(pos2.equals(unitPosition) || unit.getWorld().isCubePassable(pos2)))
+        			return false;// Check if surrounding positions are valid too (prevent corner glitch)
+        	}
+        }	
+        return true;
+    }
+    private boolean isAccessible(Vector position) throws IllegalArgumentException{
+    	return isAccessible(unit, position);
     }
 }

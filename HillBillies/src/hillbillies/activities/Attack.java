@@ -240,10 +240,10 @@ public class Attack extends Activity{
      *          | unit.getPosition()==null || nextPosition==null
      */
     protected static boolean isAccessible(Unit unit, Vector otherPosition) throws IllegalArgumentException{
+        if(unit==null || otherPosition==null)
+            throw new IllegalArgumentException("The other position must be an effective position in order to check his validity.");
     	Vector unitPosition = unit.getPosition().getCubeCoordinates();
     	otherPosition = otherPosition.getCubeCoordinates();
-        if(unitPosition==null || otherPosition==null)
-            throw new IllegalArgumentException("The other position must be an effective position in order to check his validity.");
         if(!unit.isValidPosition(otherPosition)) return false;// Check if it's a valid position itself
         for(Vector d : otherPosition.difference(unitPosition).decompose()){
             if(!unit.getWorld().isCubePassable(unitPosition.add(d)) || !unit.getWorld().isCubePassable((otherPosition.difference(d)))) 

@@ -68,8 +68,6 @@ public interface IWorld {
 
     public Cube getCube(Vector position);
 
-    public void removeUnit(Unit unit);
-
     public boolean hasAsFaction(@Raw Faction faction);
 
     public Set<Log> getLogs(boolean inCube);

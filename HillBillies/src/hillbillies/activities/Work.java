@@ -158,11 +158,11 @@ public class Work extends Activity {
      *          | unit.getPosition()==null || nextPosition==null
      */
     protected static boolean isAccessible(Unit unit, Vector position) throws IllegalArgumentException{
+        if(unit==null || position==null)
+            throw new IllegalArgumentException("The other position must be an effective position in order to check his validity.");
     	Vector unitPosition = unit.getPosition().getCubeCoordinates();
     	position = position.getCubeCoordinates();
-        if(unitPosition==null || position==null)
-            throw new IllegalArgumentException("The other position must be an effective position in order to check his validity.");
-        //if(unit.getWorld().isCubePassable(position)) return false;// Check if it's a valid position itself
+
         for(Vector d : position.difference(unitPosition).decompose()){
         	if(!d.equals(new Vector(0,0,0))){
         		Vector pos1 = unitPosition.add(d);

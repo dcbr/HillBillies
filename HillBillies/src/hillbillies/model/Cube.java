@@ -44,13 +44,6 @@ public class Cube extends WorldObject {
             if(this.collapseTime<=0d){
                 this.collapseTime = -1;
 
-                if(randInt(0, 99) < 25){
-                    if(this.getTerrain() == Terrain.ROCK)
-                        new Boulder((World)this.getWorld(), this);
-                    if(this.getTerrain() == Terrain.WOOD)
-                        new Log((World)this.getWorld(), this);
-                }
-
                 this.setTerrain(Terrain.AIR);
             }
         }
@@ -136,6 +129,14 @@ public class Cube extends WorldObject {
             for(Material material : this.ownedMaterials)
                 material.terminate();
             this.ownedMaterials.clear();
+        }
+        if(oldTerrain!=null && !oldTerrain.isPassable() && terrain.isPassable()){// Cube collapsed
+            if(randInt(0, 99) < 25){
+                if(oldTerrain == Terrain.ROCK)
+                    new Boulder((World)this.getWorld(), this);
+                if(oldTerrain == Terrain.WOOD)
+                    new Log((World)this.getWorld(), this);
+            }
         }
         this.terrainChangeListener.accept(oldTerrain, this);
     }

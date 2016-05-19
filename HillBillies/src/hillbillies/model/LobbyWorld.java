@@ -128,11 +128,6 @@ public class LobbyWorld implements IWorld {
 
 
 	@Override
-	public void removeUnit(Unit unit){
-		throw new NoSuchMethodError("This method is not supported by the lobby.");
-	}
-
-	@Override
 	public boolean hasAsFaction(@Raw Faction faction) {
 		return this.factions.contains(faction);
 	}

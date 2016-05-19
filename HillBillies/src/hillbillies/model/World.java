@@ -246,10 +246,6 @@ public class World implements IWorld {
 					CubeMap.put(position, cube);
 					if (terrain == Terrain.WORKSHOP)
 						this.workshops.add(cube);
-
-					/*if (cube.isPassable()) {
-						this.passableList.add(position);
-					}*/
 				}
 			}
 		}
@@ -260,13 +256,13 @@ public class World implements IWorld {
 	 * any WorldObject.
 	 *
 	 * @param position The position to check.
-	 * @return True when each coordinate of position is within the predefined bounds
-	 * 			of getMinPosition() and getMaxPosition()
-	 * | result == position.isInBetweenStrict(getMinPosition(), getMaxPosition())
+	 * @return True when position is effective and each coordinate of position is
+	 * 			within the predefined bounds of getMinPosition() and getMaxPosition()
+	 * | result == position!= null && position.isInBetweenStrict(getMinPosition(), getMaxPosition())
 	 */
 	@Override
 	public boolean isValidPosition(Vector position){
-		return position.isInBetweenStrict(this.getMinPosition(), this.getMaxPosition());
+		return position!=null && position.isInBetweenStrict(this.getMinPosition(), this.getMaxPosition());
 	}
 
 	/**
@@ -543,25 +539,6 @@ public class World implements IWorld {
 	}
 
 	/**
-	 * Remove the given unit from the set of units of this world.
-	 *
-	 * @param unit
-	 * The unit to be removed.
-	 * @pre This world has the given unit as one of
-	 * its units. And the given unit is terminated.
-	 * | this.hasAsUnit(unit) &&
-	 * | unit.isTerminated()
-	 * @post This world no longer has the given unit as
-	 * one of its units.
-	 * | ! new.hasAsUnit(unit)
-	 */
-	@Raw
-	public void removeUnit(Unit unit) {// TODO: remove this method?
-		assert this.hasAsUnit(unit) && unit.isTerminated();
-		units.remove(unit);
-	}
-
-	/**
 	 * @return A set containing all the units associated to this world.
 	 * 			| foreach(Unit u in result : this.hasAsUnit(u))
 	 */
@@ -581,12 +558,14 @@ public class World implements IWorld {
 	/**
 	 * Check whether the cube with given cubeCoordinates is passable or not.
 	 * @param cubeCoordinates The cubeCoordinates of the cube to check
+	 * @pre The given cubeCoordinates must be valid cube coordinates.
+	 * 		| cubeCoordinates.equals(cubeCoordinates.getCubeCoordinates())
 	 * @return True when the cube corresponding to the given cubeCoordinates
 	 * 			is passable.
 	 * 			| result == this.getCube(cubeCoordinates).isPassable()
      */
 	@Override
-	public boolean isCubePassable(Vector cubeCoordinates){
+	public boolean isCubePassable(Vector cubeCoordinates) throws IllegalArgumentException{
 		return this.getCube(cubeCoordinates).isPassable();
 	}
 
@@ -631,6 +610,8 @@ public class World implements IWorld {
 	 * Get the Cube at the corresponding position.
 	 * @param cubeCoordinates The position of the cube. This position must be
 	 *                        given in cube coordinates!
+	 * @pre The given cubeCoordinates must be valid cube coordinates.
+	 * 		| cubeCoordinates.equals(cubeCoordinates.getCubeCoordinates())
 	 * @return The Cube associated with this position
 	 * @throws IllegalArgumentException
 	 * 			When the given position is not a valid position in this World.
@@ -648,15 +629,20 @@ public class World implements IWorld {
 	 * @param cubeCoordinates The coordinates of the cube of which the
 	 *                        directly adjacent cubes should be returned.
 	 *                        These coordinates must be cube coordinates!
+	 * @pre The given cubeCoordinates must be valid cube coordinates.
+	 * 		| cubeCoordinates.equals(cubeCoordinates.getCubeCoordinates())
 	 * @effect Create a new HashSet and fill it with the directly adjacent
 	 * 			cubes of the cube with given cubeCoordinates.
 	 * 			| Set<Cube> result = new HashSet<>();
 	 * 			| getDirectlyAdjacentCubesSatisfying(result, cubeCoordinates, cube -> true, cube -> cube)
 	 * @return A set containing the directly adjacent cubes of the cube
 	 * 			with the given cubeCoordinates.
+	 * @throws NullPointerException
+	 * 			When the given cubeCoordinates are not effective
+	 * 			| cubeCoordinates == null
      */
 	@Override
-	public Set<Cube> getDirectlyAdjacentCubes(Vector cubeCoordinates){
+	public Set<Cube> getDirectlyAdjacentCubes(Vector cubeCoordinates) throws NullPointerException{
 		Set<Cube> result = new HashSet<>(NB_DIRECTLY_ADJACENT_DIRECTIONS);
 		this.getDirectlyAdjacentCubesSatisfying(result, cubeCoordinates, cube -> true, cube -> cube);
 		return result;
@@ -668,14 +654,19 @@ public class World implements IWorld {
 	 * @param cubeCoordinates The coordinates of the cube of which the
 	 *                        neighbouring cubes should be returned.
 	 *                        These coordinates must be cube coordinates!
+	 * @pre The given cubeCoordinates must be valid cube coordinates.
+	 * 		| cubeCoordinates.equals(cubeCoordinates.getCubeCoordinates())
 	 * @effect Create a new HashSet and fill it with the neighbouring
 	 * 			cubes of the cube with given cubeCoordinates.
 	 * 			| Set<Cube> result = new HashSet<>();
 	 * 			| getNeighbouringCubesSatisfying(result, cubeCoordinates, cube -> true, cube -> cube)
 	 * @return A set containing the neighbouring cubes of the cube
 	 * 			with the given cubeCoordinates.
+	 * @throws NullPointerException
+	 * 			When the given cubeCoordinates are not effective
+	 * 			| cubeCoordinates == null
 	 */
-	public Set<Cube> getNeighbouringCubes(Vector cubeCoordinates){
+	public Set<Cube> getNeighbouringCubes(Vector cubeCoordinates) throws NullPointerException{
 		Set<Cube> result = new HashSet<>(NB_NEIGHBOURING_DIRECTIONS);
 		this.getNeighbouringCubesSatisfying(result, cubeCoordinates, cube -> true, cube -> cube);
 		return result;
@@ -691,6 +682,8 @@ public class World implements IWorld {
 	 *                  cubes satisfying this condition will be added to the resulting collection.
 	 * @param mapper The mapper used to map the resulting adjacent cubes to the custom Type of the given collection
 	 * @param <T> The type of the resulting collection after mapping it.
+	 * @pre The given cubeCoordinates must be valid cube coordinates.
+	 * 		| cubeCoordinates.equals(cubeCoordinates.getCubeCoordinates())
      * @post The given collection contains valid directly adjacent cubes satisfying condition.
 	 * 			| foreach(new T element in collection)
 	 * 			|	exists(Cube c | isValidPosition(c.getPosition()) && condition.test(c) &&
@@ -698,9 +691,13 @@ public class World implements IWorld {
 	 * 			|			cubeCoordinates.add(adjDirection).equals(c.getPosition())
 	 * 			|		)
 	 * 			|	)
+	 * @throws NullPointerException
+	 * 			When one of the given parameters is not effective
+	 * 			| collection == null || cubeCoordinates == null || condition == null || mapper == null
      */
 	@Override
-	public <T> void getDirectlyAdjacentCubesSatisfying(Collection<T> collection, Vector cubeCoordinates, Predicate<Cube> condition, Function<Cube, T> mapper){
+	public <T> void getDirectlyAdjacentCubesSatisfying(Collection<T> collection, Vector cubeCoordinates, Predicate<Cube> condition, Function<Cube, T> mapper)
+			throws NullPointerException{
 		for(Vector adjacentDirection : DIRECTLY_ADJACENT_DIRECTIONS) {
 			Vector adjacentPos = cubeCoordinates.add(adjacentDirection);
 			if (isValidPosition(adjacentPos) && condition.test(this.getCube(adjacentPos)))
@@ -719,6 +716,8 @@ public class World implements IWorld {
 	 * @param mapper The mapper used to map the resulting neighbouring cubes to the custom Type of the
 	 *               given collection
 	 * @param <T> The type of the resulting collection after mapping it.
+	 * @pre The given cubeCoordinates must be valid cube coordinates.
+	 * 		| cubeCoordinates.equals(cubeCoordinates.getCubeCoordinates())
 	 * @post The given collection contains valid neighbouring cubes satisfying condition.
 	 * 			| foreach(new T element in collection)
 	 * 			|	exists(Cube c | isValidPosition(c.getPosition()) && condition.test(c) &&
@@ -726,9 +725,13 @@ public class World implements IWorld {
 	 * 			|			cubeCoordinates.add(neighbouringDirection).equals(c.getPosition())
 	 * 			|		)
 	 * 			|	)
+	 * @throws NullPointerException
+	 * 			When one of the given parameters is not effective
+	 * 			| collection == null || cubeCoordinates == null || condition == null || mapper == null
 	 */
 	@Override
-	public <T> void getNeighbouringCubesSatisfying(Collection<T> collection, Vector cubeCoordinates, Predicate<Cube> condition, Function<Cube, T> mapper){
+	public <T> void getNeighbouringCubesSatisfying(Collection<T> collection, Vector cubeCoordinates, Predicate<Cube> condition, Function<Cube, T> mapper)
+			throws NullPointerException{
 		for(Vector neighbouringDirection : NEIGHBOURING_DIRECTIONS) {
 			Vector neighbouringPos = cubeCoordinates.add(neighbouringDirection);
 			if (isValidPosition(neighbouringPos) && condition.test(this.getCube(neighbouringPos)))
@@ -743,15 +746,20 @@ public class World implements IWorld {
 	 *                        directly adjacent cubes' positions should be
 	 *                        returned.
 	 *                        These coordinates must be cube coordinates!
+	 * @pre The given cubeCoordinates must be valid cube coordinates.
+	 * 		| cubeCoordinates.equals(cubeCoordinates.getCubeCoordinates())
 	 * @effect Create a new ArrayList and fill it with the directly adjacent
 	 * 			cubes' positions of the cube with given cubeCoordinates.
 	 * 			| List<Cube> result = new ArrayList<>();
 	 * 			| getDirectlyAdjacentCubesSatisfying(result, cubeCoordinates, cube -> true, WorldObject::getPosition)
 	 * @return A list containing the directly adjacent cubes' positions of
 	 * 			the cube with the given cubeCoordinates.
+	 * @throws NullPointerException
+	 * 			When the given cubeCoordinates are not effective
+	 * 			| cubeCoordinates == null
 	 */
 	@Override
-	public List<Vector> getDirectlyAdjacentCubesPositions(Vector cubeCoordinates){// TODO: geeft nullpointerException
+	public List<Vector> getDirectlyAdjacentCubesPositions(Vector cubeCoordinates) throws NullPointerException{
 		List<Vector> adjacentCubes = new ArrayList<>(NB_DIRECTLY_ADJACENT_DIRECTIONS);
 		this.getDirectlyAdjacentCubesSatisfying(adjacentCubes, cubeCoordinates, cube -> true, WorldObject::getPosition);
 		return adjacentCubes;
@@ -764,14 +772,19 @@ public class World implements IWorld {
 	 *                        neighbouring cubes' positions should be
 	 *                        returned.
 	 *                        These coordinates must be cube coordinates!
+	 * @pre The given cubeCoordinates must be valid cube coordinates.
+	 * 		| cubeCoordinates.equals(cubeCoordinates.getCubeCoordinates())
 	 * @effect Create a new ArrayList and fill it with the neighbouring
 	 * 			cubes' positions of the cube with given cubeCoordinates.
 	 * 			| List<Cube> result = new ArrayList<>();
 	 * 			| getNeighbouringCubesSatisfying(result, cubeCoordinates, cube -> true, WorldObject::getPosition)
 	 * @return A list containing the neighbouring cubes' positions of
 	 * 			the cube with the given cubeCoordinates.
+	 * @throws NullPointerException
+	 * 			When the given cubeCoordinates are not effective
+	 * 			| cubeCoordinates == null
 	 */
-	public List<Vector> getNeighbouringCubesPositions(Vector cubeCoordinates){
+	public List<Vector> getNeighbouringCubesPositions(Vector cubeCoordinates) throws NullPointerException{
 		List<Vector> neighbouringCubes = new ArrayList<>(NB_NEIGHBOURING_DIRECTIONS);
 		this.getNeighbouringCubesSatisfying(neighbouringCubes, cubeCoordinates, cube -> true, WorldObject::getPosition);
 		return neighbouringCubes;
@@ -788,8 +801,11 @@ public class World implements IWorld {
 	 * 			| else if(for any Cube c in this.getDirectlyAdjacentCubes(position.getCubeCoordinates()) :
 	 * 			|			!c.isPassable()) result == true
 	 * 			| else result == false
+	 * @throws NullPointerException
+	 * 			When the given position is not effective
+	 * 			| position == null
      */
-	public boolean isAdjacentSolid(Vector position){
+	public boolean isAdjacentSolid(Vector position) throws NullPointerException{
 		if(position.cubeZ() == 0)
 			return true;
 		Collection<Cube> solidAdjacentCubes = new ArrayList<>();
@@ -810,8 +826,11 @@ public class World implements IWorld {
 	 * 			| else if(!this.getCube(position.getCubeCoordinates().add(new Vector(0,0,-1))).isPassable())
 	 * 			|	result == true
 	 * 			| else result == false
+	 * @throws NullPointerException
+	 * 			When the given position is not effective
+	 * 			| position == null
      */
-	public boolean isLowerSolid(Vector position){
+	public boolean isLowerSolid(Vector position) throws NullPointerException{
 		if(position.cubeZ() == 0)
 			return true;
 		if(!this.getCube(position.getCubeCoordinates().add(new Vector(0,0,-1))).isPassable())
@@ -856,9 +875,12 @@ public class World implements IWorld {
 	 * @return A set containing all units whose position lies inside
 	 * 			the given cube's position.
 	 * 			| foreach(Unit u in result : u.getPosition().getCubeCoordinates() == cube.getPosition())
+	 * @throws NullPointerException
+	 * 			When the given cube is not effective
+	 * 			| cube == null
      */
 	@Override
-	public Set<Unit> getUnitsInCube(Cube cube){
+	public Set<Unit> getUnitsInCube(Cube cube) throws NullPointerException{
 		return unitsByCubePosition.getOrDefault(cube.getPosition(), new HashSet<>());
 	}
 
@@ -987,27 +1009,8 @@ public class World implements IWorld {
 	 * | new.hasAsMaterial(material)
 	 */
 	public void addMaterial(@Raw Material material) {
-		assert(material != null) && (material.getWorld() == this);
+		assert (material != null) && (material.getWorld() == this);
 		materials.add(material);
-	}
-
-	/**
-	 * Remove the given material from the set of materials of this world.
-	 *
-	 * @param material
-	 * The material to be removed.
-	 * @pre This world has the given material as one of
-	 * its materials, and the given material is terminated.
-	 * | this.hasAsMaterial(material) &&
-	 * | (material.isTerminated())
-	 * @post This world no longer has the given material as
-	 * one of its materials.
-	 * | ! new.hasAsMaterial(material)
-	 */
-	@Raw
-	public void removeMaterial(Material material) {// TODO: remove this?
-		assert this.hasAsMaterial(material) && (material.isTerminated());
-		materials.remove(material);
 	}
 
 	/**

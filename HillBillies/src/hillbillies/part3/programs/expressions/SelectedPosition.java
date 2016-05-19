@@ -6,8 +6,9 @@ package hillbillies.part3.programs.expressions;
 import hillbillies.utils.Vector;
 
 /**
- * @author kenneth
- *
+ * Class representing the SelectedPosition Vector Expression
+ * @author Kenneth & Bram
+ * @version 1.0
  */
 public class SelectedPosition extends Expression<Vector> {
 
@@ -15,7 +16,7 @@ public class SelectedPosition extends Expression<Vector> {
 	 * 
 	 */
 	public SelectedPosition() {
-		super();
+		super(Vector.class);
 	}
 
 	@Override

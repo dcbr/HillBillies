@@ -3,8 +3,9 @@ package hillbillies.part3.programs.expressions;
 import hillbillies.utils.Vector;
 
 /**
- * @author kenneth
- *
+ * Class representing the Here Vector Expression
+ * @author Kenneth & Bram
+ * @version 1.0
  */
 public class HerePosition extends Expression<Vector> {
 
@@ -12,7 +13,7 @@ public class HerePosition extends Expression<Vector> {
      *
      */
     public HerePosition() {
-        super();
+        super(Vector.class);
     }
 
     @Override

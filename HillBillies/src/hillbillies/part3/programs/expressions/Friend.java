@@ -8,8 +8,9 @@ import hillbillies.model.Unit;
 
 
 /**
- * @author kenneth
- *
+ * Class representing the Friend Unit Expression
+ * @author Kenneth & Bram
+ * @version 1.0
  */
 public class Friend extends Expression<Unit> {
 
@@ -17,7 +18,7 @@ public class Friend extends Expression<Unit> {
 	 * 
 	 */
 	public Friend() {
-		super();
+		super(Unit.class);
 	}
 
 	@Override

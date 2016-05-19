@@ -3,8 +3,9 @@ package hillbillies.part3.programs.expressions;
 import hillbillies.utils.Vector;
 
 /**
- * @author kenneth
- *
+ * Class representing the IsPassable Boolean Expression
+ * @author Kenneth & Bram
+ * @version 1.0
  */
 public class IsPassable extends UnaryExpression<Vector, Boolean> {
 
@@ -12,7 +13,7 @@ public class IsPassable extends UnaryExpression<Vector, Boolean> {
 	 * 
 	 */
 	public IsPassable(Expression<Vector> position) throws IllegalArgumentException {
-		super(position);
+		super(Boolean.class, Vector.class, position);
 	}
 
 	/**

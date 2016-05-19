@@ -9,8 +9,9 @@ import hillbillies.model.Unit;
 
 
 /**
- * @author kenneth
- *
+ * Class representing the Enemy Unit Expression
+ * @author Kenneth & Bram
+ * @version 1.0
  */
 public class Enemy extends Expression<Unit> {
 
@@ -18,7 +19,7 @@ public class Enemy extends Expression<Unit> {
 	 * 
 	 */
 	public Enemy() {
-		super();
+		super(Unit.class);
 	}
 
 	@Override
@@ -36,4 +37,5 @@ public class Enemy extends Expression<Unit> {
 			this.getRunner().stop();
 		return NearestUnit;
 	}
+
 }

@@ -15,6 +15,8 @@ public class While extends Statement {
 
     public While(Expression<Boolean> condition, Statement body) throws IllegalArgumentException{
         super(condition, body);
+        if(!condition.checkType(Boolean.class))
+            throw new IllegalArgumentException("The given condition Expression is not of the generic type Boolean.");
         this.condition = condition;
         this.body = body;
     }

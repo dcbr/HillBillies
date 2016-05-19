@@ -7,8 +7,9 @@ import hillbillies.model.Cube;
 import hillbillies.utils.Vector;
 
 /**
- * @author kenneth
- *
+ * Class representing the WorkshopPosition Vector Expression
+ * @author Kenneth & Bram
+ * @version 1.0
  */
 public class WorkshopPosition extends Expression<Vector> {
 
@@ -16,7 +17,7 @@ public class WorkshopPosition extends Expression<Vector> {
 	 * 
 	 */
 	public WorkshopPosition() {
-		super();
+		super(Vector.class);
 	}
 
 	@Override

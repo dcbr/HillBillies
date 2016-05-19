@@ -7,8 +7,11 @@ import hillbillies.part3.programs.Command;
  */
 public abstract class Expression<T> extends Command<T>{
 
-    public Expression(Expression<?>... subExpressions) throws IllegalArgumentException {// Expressions can only have other expressions as their children
+    private final Class<T> type;
+
+    public Expression(Class<T> type, Expression<?>... subExpressions) throws IllegalArgumentException {// Expressions can only have other expressions as their children
         super(subExpressions);
+        this.type = type;
     }
 
     @Override
@@ -22,5 +25,9 @@ public abstract class Expression<T> extends Command<T>{
     }
 
     public abstract T evaluate() throws NullPointerException;
+
+    public boolean checkType(Class<T> type){
+        return this.type==null || type.isAssignableFrom(this.type);
+    }
 
 }

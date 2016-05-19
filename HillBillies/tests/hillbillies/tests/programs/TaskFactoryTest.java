@@ -9,6 +9,7 @@ import hillbillies.part3.programs.statements.Print;
 import hillbillies.part3.programs.statements.While;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 /**
@@ -17,6 +18,13 @@ import org.junit.Test;
  * @version 1.0
  */
 public class TaskFactoryTest {
+
+    private static TaskFactory f;
+
+    @BeforeClass
+    public static void setUpClass(){
+        f = new TaskFactory();
+    }
 
     @Before
     public void setUp() throws Exception {
@@ -40,10 +48,13 @@ public class TaskFactoryTest {
 
     @Test
     public void createWhile() throws Exception {
-        TaskFactory f = new TaskFactory();
-        f.createWhile(new HerePosition(),new Print(new True()), null);// Dit gaat wel, maar gaat classcastException throwen zodra het wordt uitgevoerd
         //new While(new HerePosition(),new Print(new True()));// Dit lukt niet
         new While(new False(),new Print(new False()));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void createWhileIllegal() throws IllegalArgumentException{
+        f.createWhile(new HerePosition(),new Print(new True()), null);// Dit gaat wel, maar gaat illegalArgumentException throwen
     }
 
     @Test

@@ -4,8 +4,9 @@ import hillbillies.utils.Vector;
 
 
 /**
- * @author kenneth
- *
+ * Class representing the LiteralPosition Vector Expression
+ * @author Kenneth & Bram
+ * @version 1.0
  */
 public class LiteralPosition extends Expression<Vector> {
 
@@ -14,7 +15,7 @@ public class LiteralPosition extends Expression<Vector> {
 	 * 
 	 */
 	public LiteralPosition(int x, int y, int z) {
-		super();
+		super(Vector.class);
 		this.position = new Vector(x,y,z);
 	}
 

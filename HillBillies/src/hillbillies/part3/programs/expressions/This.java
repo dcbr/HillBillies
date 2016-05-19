@@ -5,8 +5,9 @@ import hillbillies.model.Unit;
 
 
 /**
- * @author kenneth
- *
+ * Class representing the This Unit Expression
+ * @author Kenneth & Bram
+ * @version 1.0
  */
 public class This extends Expression<Unit> {
 
@@ -14,7 +15,7 @@ public class This extends Expression<Unit> {
 	 * 
 	 */
 	public This() {
-		super();
+		super(Unit.class);
 	}
 
 	@Override

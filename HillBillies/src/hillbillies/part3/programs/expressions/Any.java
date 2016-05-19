@@ -7,8 +7,9 @@ import hillbillies.model.Unit;
 
 
 /**
- * @author kenneth
- *
+ * Class representing the Any Unit Expression
+ * @author Kenneth & Bram
+ * @version 1.0
  */
 public class Any extends Expression<Unit> {
 
@@ -16,7 +17,7 @@ public class Any extends Expression<Unit> {
 	 * 
 	 */
 	public Any(){
-		super();
+		super(Unit.class);
 	}
 
 	@Override

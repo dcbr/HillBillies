@@ -7,8 +7,9 @@ import hillbillies.model.Log;
 import hillbillies.utils.Vector;
 
 /**
- * @author kenneth
- *
+ * Class representing the LogPosition Vector Expression
+ * @author Kenneth & Bram
+ * @version 1.0
  */
 public class LogPosition extends Expression<Vector> {
 
@@ -16,7 +17,7 @@ public class LogPosition extends Expression<Vector> {
 	 * 
 	 */
 	public LogPosition() {
-		super();
+		super(Vector.class);
 	}
 
 	@Override

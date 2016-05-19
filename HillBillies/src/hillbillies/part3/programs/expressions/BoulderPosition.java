@@ -7,8 +7,9 @@ import hillbillies.model.Boulder;
 import hillbillies.utils.Vector;
 
 /**
- * @author kenneth
- *
+ * Class representing the Boulder Vector Expression
+ * @author Kenneth & Bram
+ * @version 1.0
  */
 public class BoulderPosition extends Expression<Vector> {
 
@@ -16,7 +17,7 @@ public class BoulderPosition extends Expression<Vector> {
 	 * 
 	 */
 	public BoulderPosition() {
-		super();
+		super(Vector.class);
 	}
 
 	@Override

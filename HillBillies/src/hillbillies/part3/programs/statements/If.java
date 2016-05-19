@@ -12,6 +12,8 @@ public class If extends Statement {
 
     public If(Expression<Boolean> condition, Statement ifBody) throws IllegalArgumentException{
         super(condition, ifBody);
+        if(!condition.checkType(Boolean.class))
+            throw new IllegalArgumentException("The given condition Expression is not of the generic type Boolean.");
         this.condition = condition;
         this.ifBody = ifBody;
     }

@@ -16,6 +16,8 @@ public class WorkAt extends Statement{
 	 */
 	public WorkAt(Expression<Vector> position) throws IllegalArgumentException {
 		super(position);
+		if(!position.checkType(Vector.class))
+			throw new IllegalArgumentException("The given position Expression is not of the generic type Vector.");
 		this.position = position;
 	}
 	@Override

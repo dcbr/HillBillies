@@ -13,7 +13,7 @@ public class IsSolid extends UnaryExpression<Vector, Boolean> {
 	 * 
 	 */
 	public IsSolid(Expression<Vector> position) throws IllegalArgumentException {
-		super(position);
+		super(Boolean.class, Vector.class, position);
 	}
 
 	/**

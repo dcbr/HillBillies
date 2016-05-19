@@ -3,11 +3,10 @@
  */
 package hillbillies.part3.programs.expressions;
 
-import hillbillies.part3.programs.SourceLocation;
-
 /**
- * @author kenneth
- *
+ * Class representing the And Boolean Expression
+ * @author Kenneth & Bram
+ * @version 1.0
  */
 public class And extends BinaryExpression<Boolean, Boolean, Boolean> {
 
@@ -15,13 +14,12 @@ public class And extends BinaryExpression<Boolean, Boolean, Boolean> {
      *
      */
     public And(Expression<Boolean> left, Expression<Boolean> right) throws IllegalArgumentException{
-        super(left, right);
+        super(Boolean.class, Boolean.class, left, Boolean.class, right);
     }
 
     @Override
     protected Boolean combine(Boolean leftValue, Boolean rightValue) {
         return leftValue && rightValue;
     }
-
 
 }

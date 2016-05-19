@@ -17,6 +17,8 @@ public class AttackUnit extends Statement{
 	 */
 	public AttackUnit(Expression<Unit> unit) throws IllegalArgumentException {
 		super(unit);
+		if(!unit.checkType(Unit.class))
+			throw new IllegalArgumentException("The given unit Expression is not of the generic type Unit.");
 		this.unit = unit;
 	}
 

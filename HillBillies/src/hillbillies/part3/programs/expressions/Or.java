@@ -3,11 +3,11 @@
  */
 package hillbillies.part3.programs.expressions;
 
-import hillbillies.part3.programs.SourceLocation;
 
 /**
- * @author kenneth
- *
+ * Class representing the Or Boolean Expression
+ * @author Kenneth & Bram
+ * @version 1.0
  */
 public class Or extends BinaryExpression<Boolean, Boolean, Boolean> {
 
@@ -15,7 +15,7 @@ public class Or extends BinaryExpression<Boolean, Boolean, Boolean> {
      *
      */
     public Or(Expression<Boolean> left, Expression<Boolean> right) throws IllegalArgumentException {
-        super(left, right);
+        super(Boolean.class, Boolean.class, left, Boolean.class, right);
     }
 
     @Override

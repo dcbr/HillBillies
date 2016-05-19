@@ -18,7 +18,7 @@ public class NextToPosition extends UnaryExpression<Vector, Vector> {
 	 * 
 	 */
 	public NextToPosition(Expression<Vector> position) throws IllegalArgumentException {
-		super(position);
+		super(Vector.class, Vector.class, position);
 	}
 
 	/**

@@ -15,7 +15,7 @@ public class PositionOfUnit extends UnaryExpression<Unit, Vector> {
 	 * 
 	 */
 	public PositionOfUnit(Expression<Unit> unit) throws IllegalArgumentException {
-		super(unit);
+		super(Vector.class, Unit.class, unit);
 	}
 
 	/**

@@ -1,11 +1,10 @@
 package hillbillies.part3.programs.expressions;
 
-import hillbillies.part3.programs.SourceLocation;
 
 /**
- * 
- * @author kenneth
- *
+ * Class representing the ReadVariable Expression
+ * @author Kenneth & Bram
+ * @version 1.0
  */
 public class ReadVariable<T> extends Expression<T> {
 	private final String variableName;
@@ -14,7 +13,7 @@ public class ReadVariable<T> extends Expression<T> {
 	 * @param variableName
 	 */
 	public ReadVariable(String variableName) {
-		super();
+		super(null);
 		this.variableName = variableName;
 	}
 

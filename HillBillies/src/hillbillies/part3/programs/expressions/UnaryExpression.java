@@ -7,8 +7,10 @@ public abstract class UnaryExpression<E, T> extends Expression<T> {
 
     private Expression<E> expression;
 
-    public UnaryExpression(Expression<E> expression) throws IllegalArgumentException {
-        super(expression);
+    public UnaryExpression(Class<T> resultType, Class<E> subType, Expression<E> expression) throws IllegalArgumentException {
+        super(resultType, expression);
+        if(!expression.checkType(subType))
+            throw new IllegalArgumentException("The given sub Expression's generic type does not correspond to this UnaryExpression's generic subType.");
         this.expression = expression;
     }
 

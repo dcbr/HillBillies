@@ -153,6 +153,11 @@ public class LobbyWorld implements IWorld {
 	}
 
 	@Override
+	public int getNbUnits() {
+		throw new NoSuchMethodError("This method is not supported by the lobby.");
+	}
+
+	@Override
 	public Set<Cube> getWorkshops() {
 		return null;
 	}

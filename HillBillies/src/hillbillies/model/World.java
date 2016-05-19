@@ -187,7 +187,7 @@ public class World implements IWorld {
 	/**
 	 * Variable referencing a connectedToBorder instance.
 	 */
-	public final ConnectedToBorder connectedToBorder;
+	private final ConnectedToBorder connectedToBorder;
 
 	/**
 	 * Initialize this new World with given Terrain Matrix and terrainChangeListener.
@@ -210,6 +210,10 @@ public class World implements IWorld {
 	 * 			| this.getNbCubesZ() == terrainTypes[0][0].length
 	 * @post This new world has no materials yet.
 	 * 		| new.getNbMaterials() == 0
+	 * @post This new world has no factions yet.
+	 * 		| new.getNbFactions() == 0
+	 * @post This new world has no units yet.
+	 * 		| new.getNbUnits() == 0
 	 * @post The terrainChangeListener of this world is set to the given terrainChangeListener
 	 * 			| this.terrainChangeListener = terrainChangeListener
 	 * @throws IllegalArgumentException
@@ -293,6 +297,7 @@ public class World implements IWorld {
 	public Vector getMinPosition(){
 		return new Vector(Cube.CUBE_SIDE_LENGTH * 0, Cube.CUBE_SIDE_LENGTH * 0, Cube.CUBE_SIDE_LENGTH * 0);
 	}
+
 	/**
 	 * Get the maximum position in this world.
      */
@@ -375,7 +380,7 @@ public class World implements IWorld {
 	 * @post This world has the given faction as one of its factions.
 	 * | new.hasAsFaction(faction)
 	 */
-	public void addFaction(Faction faction) {
+	private void addFaction(Faction faction) {
 		assert canHaveAsFaction(faction) && this.getNbFactions()<MAX_FACTIONS;
 		this.factions.add(faction);
 	}
@@ -414,8 +419,12 @@ public class World implements IWorld {
 	 * 			behaviour mode set to the given value of enableDefaultBehavior.
 	 * 			| result.getWorld() == this
 	 * 			| result.isDefaultActive() == enableDefaultBehavior
+	 * @throws IllegalStateException
+	 * 			When this world has no available spawn positions. (All cubes
+	 * 			are solid)
+	 * 			| foreach(Cube c : if(c.getWorld()==this) !c.isPassable())
 	 */
-	public Unit spawnUnit(boolean enableDefaultBehavior){
+	public Unit spawnUnit(boolean enableDefaultBehavior) throws IllegalStateException{
 		// addUnit is called inside Unit's constructor
 		Unit unit = new Unit(this);
 		if(enableDefaultBehavior)
@@ -428,11 +437,11 @@ public class World implements IWorld {
 	 *
 	 * @param unit
 	 * The unit to be added.
-	 * @pre The given unit is effective and already references
-	 * this world. And this world has not the maximum number
-	 * of units yet.
+	 * @pre The given unit is effective and is not yet terminated
+	 * and already references this world. And this world has not
+	 * reached the maximum number of units yet.
 	 * | (unit != null) && (unit.getWorld() == this) &&
-	 * | this.getNbUnits() < MAX_UNITS
+	 * | && (!unit.isTerminated()) && this.getNbUnits() < MAX_UNITS
 	 * @post This world has the given unit as one of its units.
 	 * | new.hasAsUnit(unit)
 	 * @post The given unit is added to a proper faction of this
@@ -447,7 +456,7 @@ public class World implements IWorld {
 	 * 		 | unit.getFaction() == f
 	 */
 	@Override
-	public void addUnit(Unit unit){
+	public void addUnit(@Raw Unit unit){
 		assert canHaveAsUnit(unit) && this.getNbUnits()<MAX_UNITS;
 		// Bind unit to this world
 		unit.setWorld(this);
@@ -485,13 +494,15 @@ public class World implements IWorld {
 	 * @param unit
 	 * The unit to check.
 	 * @return True if and only if the given unit is effective
-	 * and not terminated.
+	 * and not terminated. And if the unit references this world.
 	 * | result ==
-	 * | (unit != null)
+	 * | (unit != null) &&
+	 * | !unit.isTerminated() &&
+	 * | (unit.getWorld() == this)
 	 */
 	@Raw
 	public boolean canHaveAsUnit(Unit unit) {
-		return (unit != null) && !unit.isTerminated();
+		return (unit != null) && !unit.isTerminated() && unit.getWorld()==this;
 	}
 
 	/**
@@ -545,7 +556,7 @@ public class World implements IWorld {
 	 * | ! new.hasAsUnit(unit)
 	 */
 	@Raw
-	public void removeUnit(Unit unit) {
+	public void removeUnit(Unit unit) {// TODO: remove this method?
 		assert this.hasAsUnit(unit) && unit.isTerminated();
 		units.remove(unit);
 	}
@@ -814,22 +825,28 @@ public class World implements IWorld {
 	 * @param dt The amount of time to advance the game time with.
      */
 	public void advanceTime(double dt){
-		Set<Unit> unitsAT = new HashSet<>(units);
+		Iterator<Unit> unitsIterator = units.iterator();
 		unitsByCubePosition.clear();
-		for(Unit unit : unitsAT){
+		while(unitsIterator.hasNext()){
+			Unit unit = unitsIterator.next();
 			if(!unit.isTerminated()){
 				unit.advanceTime(dt);
 				if(!unitsByCubePosition.containsKey(unit.getPosition().getCubeCoordinates()))
 					unitsByCubePosition.put(unit.getPosition().getCubeCoordinates(), new HashSet<>());
 				unitsByCubePosition.get(unit.getPosition().getCubeCoordinates()).add(unit);
-			}
+			}else
+				unitsIterator.remove();
 		}
 		for(Vector cubePosition : CubeMap.keySet())
 			this.getCube(cubePosition).advanceTime(dt);
-		Set<Material> materialsAT = new HashSet<>(materials);
-		for(Material m : materialsAT){
+
+		Iterator<Material> materialsIterator = materials.iterator();
+		while(materialsIterator.hasNext()){
+			Material m = materialsIterator.next();
 			if (!m.isTerminated())
 				m.advanceTime(dt);
+			else
+				materialsIterator.remove();
 		}
 	}
 
@@ -859,7 +876,8 @@ public class World implements IWorld {
 		int y = (int)cube.getPosition().Y();
 		int z = (int)cube.getPosition().Z();
 		if(oldTerrain!=null) {// Notify terrainChangeListener and units of change
-			terrainChangeListener.notifyTerrainChanged(x, y, z);
+			if(terrainChangeListener!=null)
+				terrainChangeListener.notifyTerrainChanged(x, y, z);
 
 			for(Unit unit : units)
 				unit.notifyTerrainChange(oldTerrain, cube);
@@ -875,6 +893,26 @@ public class World implements IWorld {
 		}
 		else if (!cube.isPassable() && (oldTerrain==null || oldTerrain.isPassable()))
 			connectedToBorder.changePassableToSolid(x, y, z);
+	}
+
+	/**
+	 * Returns whether the cube at the given position is a solid cube that is
+	 * connected to a border of the world through other directly adjacent solid
+	 * cubes.
+	 *
+	 * @note The result is pre-computed, so this query returns immediately.
+	 *
+	 * @param x
+	 *            The x-coordinate of the cube to test
+	 * @param y
+	 *            The y-coordinate of the cube to test
+	 * @param z
+	 *            The z-coordinate of the cube to test
+	 * @return true if the cube is connected; false otherwise
+	 * @see ConnectedToBorder#isSolidConnectedToBorder(int, int, int)
+	 */
+	public boolean isSolidConnectedToBorder(int x, int y, int z){
+		return this.connectedToBorder.isSolidConnectedToBorder(x, y, z);
 	}
 	
 	/**
@@ -967,7 +1005,7 @@ public class World implements IWorld {
 	 * | ! new.hasAsMaterial(material)
 	 */
 	@Raw
-	public void removeMaterial(Material material) {
+	public void removeMaterial(Material material) {// TODO: remove this?
 		assert this.hasAsMaterial(material) && (material.isTerminated());
 		materials.remove(material);
 	}

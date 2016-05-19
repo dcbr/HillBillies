@@ -1,16 +1,16 @@
 package hillbillies.tests.programs;
 
-import hillbillies.part3.programs.expressions.Expression;
-import hillbillies.part3.programs.TaskFactory;
-import hillbillies.part3.programs.expressions.False;
-import hillbillies.part3.programs.expressions.HerePosition;
-import hillbillies.part3.programs.expressions.True;
-import hillbillies.part3.programs.statements.Print;
-import hillbillies.part3.programs.statements.While;
+import hillbillies.model.*;
+import hillbillies.part3.programs.*;
+import hillbillies.part3.programs.expressions.*;
+import hillbillies.part3.programs.statements.*;
+import hillbillies.utils.Vector;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import static hillbillies.tests.util.TestHelper.advanceTimeFor;
 
 /**
  * Test class for the TaskFactory class
@@ -20,15 +20,29 @@ import org.junit.Test;
 public class TaskFactoryTest {
 
     private static TaskFactory f;
+    private static World w;
+    private static Unit u;
+    private static Statement defaultActivity;
+    private Task t;
 
     @BeforeClass
     public static void setUpClass(){
         f = new TaskFactory();
+        int[][][] terrain = new int[3][3][10];
+        for(int i=1;i<8;i+=2) {
+            terrain[1][1][i] = Terrain.ROCK.getId();
+            terrain[1][1][i+1] = Terrain.WOOD.getId();
+        }
+        terrain[1][1][0] = Terrain.WORKSHOP.getId();
+        w = new World(terrain, null);
+        u = new Unit(w, "Unit", new Vector(0,0,0));
+        defaultActivity = new Print(new LiteralPosition(0,0,0));
     }
 
     @Before
     public void setUp() throws Exception {
-
+        t = new Task("test", 100, defaultActivity, new int[]{1,1,0});
+        u.getFaction().getScheduler().addTask(t);
     }
 
     @After
@@ -50,6 +64,14 @@ public class TaskFactoryTest {
     public void createWhile() throws Exception {
         //new While(new HerePosition(),new Print(new True()));// Dit lukt niet
         new While(new False(),new Print(new False()));
+
+        Expression<Boolean> condition = f.createIsAlive(f.createThis(null),null);
+        Statement body = f.createPrint(new LiteralPosition(0,0,0),null);
+        Statement whileStmt = f.createWhile(condition, body, null);
+        t = new Task("task", 100, whileStmt, new int[]{0,0,0});
+        u.getFaction().getScheduler().schedule(t, u);
+
+        advanceTimeFor(w, 1);
     }
 
     @Test(expected = IllegalArgumentException.class)

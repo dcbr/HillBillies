@@ -182,7 +182,7 @@ public class Facade implements IFacade {
     public boolean isSolidConnectedToBorder(World world, int x, int y, int z) throws ModelException {
         if(world==null)
             throw new ModelException("The given world is not effective.");
-        return world.connectedToBorder.isSolidConnectedToBorder(x,y,z);
+        return world.isSolidConnectedToBorder(x,y,z);
     }
 
     /**
@@ -203,6 +203,8 @@ public class Facade implements IFacade {
             return world.spawnUnit(enableDefaultBehavior);
         }catch(IllegalStateException e){
         	throw new ModelException("There are no passable cubes in this world", e);
+        }catch(IllegalArgumentException e){
+            throw new ModelException("The world has reached its maximum number of allowed units.", e);
         }
     }
 

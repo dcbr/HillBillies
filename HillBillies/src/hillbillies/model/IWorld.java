@@ -78,6 +78,8 @@ public interface IWorld {
 
     public Set<Unit> getUnits();
 
+    public int getNbUnits();
+
     public Set<Cube> getWorkshops();
 
     public <T> void getNeighbouringCubesSatisfying(Collection<T> collection, Vector cubeCoordinates, Predicate<Cube> condition, Function<Cube, T> mapper);

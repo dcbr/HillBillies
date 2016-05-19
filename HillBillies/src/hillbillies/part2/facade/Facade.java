@@ -15,6 +15,7 @@ import java.util.Set;
  * @version 1.0
  *
  */
+@Deprecated
 public class Facade implements IFacade {
     /**
      * Create a new world of the given size and with the given terrain. To keep
@@ -156,7 +157,7 @@ public class Facade implements IFacade {
      */
     @Override
     public boolean isSolidConnectedToBorder(World world, int x, int y, int z) throws ModelException {
-        return world.connectedToBorder.isSolidConnectedToBorder(x,y,z);
+        return world.isSolidConnectedToBorder(x,y,z);
     }
 
     /**

@@ -172,6 +172,18 @@ public class UnitTest {
         assertEquals(testUnit3.getHitpoints(), Unit.getMaxHitpoints(testUnit3.getWeight(), testUnit3.getToughness()));
         assertEquals(testUnit3.getOrientation(), Unit.INITIAL_ORIENTATION, Vector.EQUALS_PRECISION);
     }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testConstructorInvalid(){
+        new Unit(airWorld, "blub", new Vector(0,0,0));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testConstructorInvalid2(){
+        while(airWorld.getNbUnits()<World.MAX_UNITS)
+            airWorld.spawnUnit(false);
+        new Unit(airWorld, "Blub", new Vector(0,0,0));
+    }
     
     //TESTING NAMES
     @Test

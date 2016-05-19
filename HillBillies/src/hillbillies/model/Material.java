@@ -240,7 +240,6 @@ public class Material implements IWorldObject {
     @Override
     public void terminate() {
         this.isTerminated = true;
-        this.getWorld().removeMaterial(this);
         WorldObject oldOwner = this.getOwner();
         this.setOwner(null);
         oldOwner.removeOwnedMaterial(this);

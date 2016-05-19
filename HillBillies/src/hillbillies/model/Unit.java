@@ -967,9 +967,15 @@ public class Unit extends WorldObject {
 	 * @post   The hitpoints of this new unit is equal to the given
 	 *         hitpoints.
 	 *       | new.getHitpoints() == hitpoints
+	 * @throws IllegalArgumentException
+	 * 			When the given name is invalid or the given world has
+	 * 			reached its maximum number of units.
+	 * 			| !isValidName(name) || world.getNbUnits() >= world.MAX_UNITS
 	 */
 	public Unit(IWorld world, String name, Vector position, int strength, int agility, int toughness, int weight, int stamina, int hitpoints) throws IllegalArgumentException {
 		super(world, position.add(Cube.CUBE_SIDE_LENGTH/2));
+		/*if(world.getNbUnits() >= world.MAX_UNITS) // TODO
+			throw new IllegalArgumentException("The given world has reached its maximum number of units.");*/
 		world.addUnit(this);
 
 		this.Id = ID;
@@ -1309,7 +1315,7 @@ public class Unit extends WorldObject {
 	 * 			| this.getCarriedMaterial().setOwner(dropCube)
 	 * 			| this.removeOwnedMaterial(this.getCarriedMaterial());
 	 *			| dropCube.addOwnedMaterial(this.getCarriedMaterial());
-	 * @throws NullpointerException when dropCube is null
+	 * @throws NullPointerException when dropCube is null
 	 * 		| dropCube == null
 	 */
 	public void dropCarriedMaterial(Cube dropCube) throws NullPointerException{
@@ -1338,7 +1344,6 @@ public class Unit extends WorldObject {
 	    this.isTerminated = true;
 		this.setHitpoints(0);
 		this.dropCarriedMaterial(this.getWorld().getCube(getPosition().getCubeCoordinates()));
-		this.getWorld().removeUnit(this);// TODO: fix iterator problem
 		Faction f = this.getFaction();
 		this.faction = null;
 		f.removeUnit(this);

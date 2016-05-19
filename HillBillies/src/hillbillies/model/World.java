@@ -740,7 +740,7 @@ public class World implements IWorld {
 	 * 			the cube with the given cubeCoordinates.
 	 */
 	@Override
-	public List<Vector> getDirectlyAdjacentCubesPositions(Vector cubeCoordinates){
+	public List<Vector> getDirectlyAdjacentCubesPositions(Vector cubeCoordinates){// TODO: geeft nullpointerException
 		List<Vector> adjacentCubes = new ArrayList<>(NB_DIRECTLY_ADJACENT_DIRECTIONS);
 		this.getDirectlyAdjacentCubesSatisfying(adjacentCubes, cubeCoordinates, cube -> true, WorldObject::getPosition);
 		return adjacentCubes;

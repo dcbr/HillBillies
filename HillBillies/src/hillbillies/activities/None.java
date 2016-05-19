@@ -139,7 +139,7 @@ public class None extends Activity {
             }
         }
         if (activity == 2) {
-            List<Vector> workPositions = unit.getWorld().getDirectlyAdjacentCubesPositions(unit.getPosition()); //TODO: geeft nullpointerException bij hillbillies.model.World.getDirectlyAdjacentCubesSatisfying(World.java:696)
+            List<Vector> workPositions = unit.getWorld().getDirectlyAdjacentCubesPositions(unit.getPosition().getCubeCoordinates()); //TODO: geeft nullpointerException bij hillbillies.model.World.getDirectlyAdjacentCubesSatisfying(World.java:696)
             workPositions.add(unit.getPosition());																// daar wordt er een cube gemapt, terwijl vector gevraagd is?
             workPositions.removeIf(position -> Work.isAccessible(unit, position));
             unit.work(workPositions.get(randInt(0,workPositions.size()-1)));

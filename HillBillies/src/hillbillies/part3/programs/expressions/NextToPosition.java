@@ -35,7 +35,7 @@ public class NextToPosition extends UnaryExpression<Vector, Vector> {
 		Set<Cube> positions = new HashSet<>();
 		this.getRunner().getExecutingWorld().getNeighbouringCubesSatisfying(
 				positions,
-				position,
+				position.getCubeCoordinates(),
 				cube -> this.getRunner().getExecutingUnit().isValidPosition(cube.getPosition()),
 				cube -> cube
 		);

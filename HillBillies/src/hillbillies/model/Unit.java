@@ -1038,6 +1038,8 @@ public class Unit extends WorldObject {
 	 */
 	@Override
 	public void advanceTime(double dt){
+		if(isTerminated())
+			return;
 		if(dt<0 || dt>0.2)
 			throw new IllegalArgumentException("The parameter dt must be in the range [0;0.2]");
 		// Defensively without documentation

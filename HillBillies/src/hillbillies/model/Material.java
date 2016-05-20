@@ -28,7 +28,7 @@ public class Material implements IWorldObject {
     /**
      * Constant reflecting the maximum weight of each Material.
      */
-    public static final int MAX_WEIGHT = 10;
+    public static final int MAX_WEIGHT = 50;
 
     /**
      * Variable registering the world this Material belongs to.
@@ -68,17 +68,26 @@ public class Material implements IWorldObject {
      * 		| ! isValidOwner(owner)
      * @throws IllegalStateException When the owner has reached its maximum number of owned Materials
      * | owner.getMaxNbOwnedMaterials()!=-1 && owner.getNbOwnedMaterials()>=getMaxNbOwnedMaterials()
+     * @throws NullPointerException When the world is not an effective world 
+     * 			or when the owner is not effective.
+     * |world == null || owner == null
      */
-    public Material(World world, WorldObject owner) throws IllegalArgumentException{
-        this.world = world;
-        world.addMaterial(this);
+    public Material(World world, WorldObject owner) throws IllegalArgumentException, IllegalStateException, NullPointerException{
+        if(world == null)
+        	throw new NullPointerException("The given world is not effective");
+        if(owner == null)
+        	throw new NullPointerException("The given owner is not effective");
+    	this.world = world;
         this.setOwner(owner);
+        world.addMaterial(this);
         owner.addOwnedMaterial(this);
         this.weight = randInt(MIN_WEIGHT, MAX_WEIGHT);
     }
 
     @Override
     public void advanceTime(double dt) {
+    	if (isTerminated())
+    		return;
         if(!this.hasValidPosition() && this.getOwner()!=null){
             this.fallingPosition = this.getPosition();
             WorldObject owner = this.getOwner();
@@ -114,13 +123,15 @@ public class Material implements IWorldObject {
      * @post The owner of this new Material is equal to the given owner.
      * | new.getOwner() == owner
      * @throws IllegalArgumentException
-     * The given owner is not a valid owner for any Material.
+     * The given owner is not a valid owner for this material.
      * | ! isValidOwner(getOwner())
      */
     @Raw
     public void setOwner(WorldObject owner) throws IllegalArgumentException {
+    	if(isTerminated())
+    		throw new IllegalArgumentException("This Material is terminated");
         if (! isValidOwner(owner))
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("The given owner is not valid for this Material");
         if(this.getOwner() != null)
         	this.getOwner().removeOwnedMaterial(this);
         this.owner = owner;
@@ -165,6 +176,8 @@ public class Material implements IWorldObject {
 
     /**
      * Return the weight of this Material.
+     * @return The weight is a valid weight for any material.
+     * |canHaveAsWeight(result)
     */
     @Basic
     @Raw
@@ -183,10 +196,11 @@ public class Material implements IWorldObject {
      * @param owner
      * The owner to check.
      * @return
-     * | result == (owner==null || owner.getWorld()==this.world)
+     * | result == (owner==null || owner.getWorld()==this.world) && 
+     * 	|	(!this.isTerminated() || !owner.isTerminated())
      */
     public boolean isValidOwner(WorldObject owner) {
-        return owner == null || owner.getWorld() == this.world;
+        return (owner == null || owner.getWorld() == this.world) && !(this.isTerminated() || owner != null && owner.isTerminated());
     }
 
     /**
@@ -195,16 +209,16 @@ public class Material implements IWorldObject {
      * @param weight
      * The weight to check.
      * @return
-     * | result == (10 <= weight <= 50)
+     * | result == (MIN_WEIGHT <= weight <= MAX_WEIGHT)
      */
     @Raw
-    public boolean canHaveAsWeight(int weight) {
-        return 10 <= weight && weight <= 50;
+    public static boolean canHaveAsWeight(int weight) {
+        return MIN_WEIGHT <= weight && weight <= MAX_WEIGHT;
     }
 
     /**
      * Check whether this Material has a valid position.
-     * @return True when the material is owned by a Unit or
+     * @return True when the material is owned by a Unit or by nothing or
      *          its position is valid.
      *          | result == (this.getOwner() instanceof Unit) ||
      *          |               isValidPosition(this.getPosition())
@@ -235,15 +249,20 @@ public class Material implements IWorldObject {
      *
      * @post This Material is terminated.
      * | new.isTerminated()
-     * @post ...
-     * | ...
+     * @post The owner's number of materials is decreased by 1.
+     * | new.getOwner().getNbOwnedMaterials()
+     * @post This material has no longer an owner.
+     * | new.getOwner() == null
      */
     @Override
     public void terminate() {
-        this.isTerminated = true;
-        WorldObject oldOwner = this.getOwner();
-        this.setOwner(null);
-        oldOwner.removeOwnedMaterial(this);
+    	if(!this.isTerminated()){
+    		WorldObject oldOwner = this.getOwner();
+    		this.setOwner(null);
+    		this.isTerminated = true;
+    		if (oldOwner != null)
+    			oldOwner.removeOwnedMaterial(this);
+    	}
     }
     /**
      * Return a boolean indicating whether or not this Material

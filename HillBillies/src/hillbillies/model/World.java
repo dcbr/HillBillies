@@ -199,21 +199,21 @@ public class World implements IWorld {
 	 * 			a Cube in this World is changed.
 	 * @post The world is constructed based on the terrain types inside the Terrain
 	 * 		 Matrix.
-	 * 		 | for(int i=0;i<terrainTypes.length;i++)
-	 * 		 |		for(int j=0;j<terrainTypes[i].length;j++)
-	 * 		 |			for(int k=0;k<terrainTypes[i][j].length;k++)
-	 * 		 |				this.getCube(new Vector(i,j,k).multiply(Cube.CUBE_SIDE_LENGTH)).getTerrain() ==
-	 * 		 |				Terrain.fromId(terrainTypes[i][j][k])
+	 * 			| for(int i=0;i<terrainTypes.length;i++)
+	 * 		 	|		for(int j=0;j<terrainTypes[i].length;j++)
+	 * 		 	|			for(int k=0;k<terrainTypes[i][j].length;k++)
+	 * 		 	|				this.getCube(new Vector(i,j,k).multiply(Cube.CUBE_SIDE_LENGTH)).getTerrain() ==
+	 * 		 	|				Terrain.fromId(terrainTypes[i][j][k])
 	 * @post The dimensions of this world are set based on the given terrain matrix
 	 * 			| this.getNbCubesX() == terrainTypes.length
 	 * 			| this.getNbCubesY() == terrainTypes[0].length
 	 * 			| this.getNbCubesZ() == terrainTypes[0][0].length
 	 * @post This new world has no materials yet.
-	 * 		| new.getNbMaterials() == 0
+	 * 			| new.getNbMaterials() == 0
 	 * @post This new world has no factions yet.
-	 * 		| new.getNbFactions() == 0
+	 * 			| new.getNbFactions() == 0
 	 * @post This new world has no units yet.
-	 * 		| new.getNbUnits() == 0
+	 * 			| new.getNbUnits() == 0
 	 * @post The terrainChangeListener of this world is set to the given terrainChangeListener
 	 * 			| this.terrainChangeListener = terrainChangeListener
 	 * @throws IllegalArgumentException
@@ -221,9 +221,13 @@ public class World implements IWorld {
 	 * 			| terrainTypes[i].length != terrainTypes[j].length for some i and j element of [0;terrainTypes.length]
 	 * 			| OR
 	 * 			| terrainTypes[i][j].length != terrainTypes[i][k].length for some k and l element of [0;terrainTypes[i].length]
+	 * @throws NullPointerException When the given terrainTypes are not effective.
+	 * 			| terrainTypes == null
 	 */
 	public World(int[][][] terrainTypes, TerrainChangeListener terrainChangeListener)
-			throws IllegalArgumentException {
+			throws IllegalArgumentException, NullPointerException {
+		if(terrainTypes == null)
+			throw new NullPointerException("The given terrainTypes are not effective.");
 		this.terrainChangeListener = terrainChangeListener;
 		this.NbCubesX = terrainTypes.length;
 		this.NbCubesY = terrainTypes[0].length;
@@ -458,9 +462,9 @@ public class World implements IWorld {
 		unit.setWorld(this);
 		units.add(unit);
 		Vector position = unit.getPosition().getCubeCoordinates();
-		if(!unitsByCubePosition.containsKey(unit.getPosition().getCubeCoordinates()))
-			unitsByCubePosition.put(unit.getPosition().getCubeCoordinates(), new HashSet<>());
-		unitsByCubePosition.get(unit.getPosition().getCubeCoordinates()).add(unit);
+		if(!unitsByCubePosition.containsKey(position))
+			unitsByCubePosition.put(position, new HashSet<>());
+		unitsByCubePosition.get(position).add(unit);
 		Faction f;
 		if(this.factions.size()<MAX_FACTIONS) {
 			f = new Faction();

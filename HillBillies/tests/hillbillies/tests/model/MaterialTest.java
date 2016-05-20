@@ -70,18 +70,22 @@ public class MaterialTest {
 		assertTrue(new Material(airWorld,airWorld.getCube(nullPosition)).getOwner() == airWorld.getCube(nullPosition));
 	}
 	
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class)//different world
 	public void testInvalidMaterialConstructor() throws IllegalArgumentException{
 		new Material(otherWorld,airWorld.getCube(nullPosition));
 	}
 	
-	@Test(expected = IllegalStateException.class)
+	@Test(expected = IllegalStateException.class)//nb >max
 	public void testInvalidMaterialConstructor2() throws IllegalArgumentException{
 		while(testUnit.getNbOwnedMaterials()!=testUnit.getMaxNbOwnedMaterials())
 			new Material(airWorld,testUnit);
 		new Material(airWorld,testUnit);
 	}
 	
+	@Test(expected = NullPointerException.class)//null
+	public void testInvalidMaterialConstructor3() throws NullPointerException{
+		new Material(null, null);
+	}
 	
 	@Test
 	public void testAdvanceTime() {
@@ -118,37 +122,61 @@ public class MaterialTest {
 
 	@Test
 	public void testGetWorld() {
-		fail("Not yet implemented");
+		assertTrue((new Material(airWorld, testUnit)).getWorld() == airWorld);
+		assertTrue((new Material(airWorld,airWorld.getCube(nullPosition))).getWorld() == airWorld);	
 	}
 
 	@Test
-	public void testGetOwner() {
-		fail("Not yet implemented");
+	public void testGetOwner() {		
+	assertTrue((new Material(airWorld, testUnit)).getOwner() == testUnit);
+	assertTrue((new Material(airWorld,airWorld.getCube(nullPosition))).getOwner() == airWorld.getCube(nullPosition));
+	Material m = new Material(airWorld, airWorld.getCube(new Vector (0,0,2)));
+	m.advanceTime(0.01);
+	assertTrue(m.getOwner() == null);
 	}
 
 	@Test
 	public void testGetWeight() {
-		fail("Not yet implemented");
+		for(int i = 0; i<30; i++){
+			assertTrue(Material.canHaveAsWeight(new Material(airWorld,airWorld.getCube(nullPosition)).getWeight()));
+		}
+		int m = testMaterial.getWeight();
+		m += 1;
+		assertFalse(m == testMaterial.getWeight());
 	}
 
 	@Test
 	public void testIsValidOwner() {
-		fail("Not yet implemented");
+		assertFalse(testMaterial.isValidOwner(otherWorld.getCube(nullPosition)));
+		assertTrue(testMaterial.isValidOwner(null));
+		testUnit.terminate();
+		assertFalse(testMaterial.isValidOwner(testUnit));
 	}
 
 	@Test
 	public void testCanHaveAsWeight() {
-		fail("Not yet implemented");
+		assertTrue(Material.canHaveAsWeight(Material.MAX_WEIGHT));
+		assertTrue(Material.canHaveAsWeight(Material.MIN_WEIGHT));
+		assertFalse(Material.canHaveAsWeight(Material.MAX_WEIGHT+1));
+		assertFalse(Material.canHaveAsWeight(Material.MIN_WEIGHT-1));
 	}
 
 	@Test
 	public void testTerminate() {
-		fail("Not yet implemented");
+		int nb = airWorld.getCube(nullPosition).getNbOwnedMaterials();
+		testMaterial.terminate();
+		assertTrue(testMaterial.isTerminated());
+		assertTrue(nb > airWorld.getCube(nullPosition).getNbOwnedMaterials());
+		assertTrue(testMaterial.getOwner() == null);
+		testMaterial.advanceTime(dt);
+		
 	}
 
 	@Test
 	public void testIsTerminated() {
-		fail("Not yet implemented");
+		assertFalse(testMaterial.isTerminated());
+		testMaterial.terminate();
+		assertTrue(testMaterial.isTerminated());
 	}
 
 }

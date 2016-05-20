@@ -511,13 +511,15 @@ public class UnitTest {
         }
         try{unitx.attack(unity);
         }catch (IllegalStateException e){
-        	assertFalse(unitx.isAttacking());
+        	
         }
+        assertFalse(unitx.isAttacking());
         try{
         unitx.defend(unitz);
         }catch (IllegalArgumentException e){
-        	assertFalse(unitx.isAttacking() && unitz.isAttacking());
+        	
         }
+        assertFalse(unitx.isAttacking() && unitz.isAttacking());
     }
     @Test
     public void testCarryingMateriel(){
@@ -533,14 +535,16 @@ public class UnitTest {
     	try{
     	unitx.setCarriedMaterial(boulderTest);
     	}catch (IllegalArgumentException e){
-    		assertTrue(unitx.isCarryingLog() && !unitx.isCarryingBoulder() && testUnit.isCarryingBoulder() &&
-    				testUnit.getCarriedMaterial() instanceof Boulder);
+    		
     	}
+    	assertTrue(unitx.isCarryingLog() && !unitx.isCarryingBoulder() && testUnit.isCarryingBoulder() &&
+				testUnit.getCarriedMaterial() instanceof Boulder);
     	try{
     	unitx.dropCarriedMaterial(null);
     	}catch (NullPointerException e){
-    		assertTrue(unitx.isCarryingLog());
+    		
     	}
+    	assertTrue(unitx.isCarryingLog());
     	Cube dropCube = airWorld.getCube(new Vector(0,0,0));
     	testUnit.dropCarriedMaterial(dropCube);
     	unitx.dropCarriedMaterial(dropCube);
@@ -590,13 +594,15 @@ public class UnitTest {
     	assertEquals(unitz.getHitpoints(), Unit.getMaxHitpoints(Unit.INITIAL_MAX_WEIGHT, Unit.INITIAL_MAX_TOUGHNESS)-10);
     	try{unitz.work(new Vector(0,0,0));
     	}catch (IllegalArgumentException e){
-    		assertFalse(unitz.isWorking());
+    		
     	}
+    	assertFalse(unitz.isWorking());
     	try{
     		unitz.work(new Vector(21,23,0));
     	}catch(IllegalStateException e){
-    		assertFalse(unitz.isWorking());
+    		
     	}
+    	assertFalse(unitz.isWorking());
     	unitz.work(new Vector(22,21,0));
     	while(unitz.isWorking()||unitz.isResting()){
     		if (unitz.isResting() && !unitz.isInitialRestMode())
@@ -658,8 +664,9 @@ public class UnitTest {
     	try{
     		unitx.rest();
     	}catch (IllegalStateException e){
-    		assertFalse(unitx.isResting());
+    		
     	}
+    	assertFalse(unitx.isResting());
     }
     @Test
     public void testMoving(){
@@ -686,8 +693,9 @@ public class UnitTest {
         try{
         	unitx.sprint();
         }catch(IllegalStateException e){
-        	assertFalse(unitx.isSprinting());
+        	
         }
+        assertFalse(unitx.isSprinting());
         unitx.moveToTarget(new Vector(20,20,0));
         assertTrue(unitx.isMoving());
         unitx.sprint();
@@ -740,8 +748,9 @@ public class UnitTest {
     	assertTrue(unitx.isResting());
     	try{unitx.requestNewActivity(unitx.NONE);
     	}catch(IllegalStateException e){
-    		assertTrue(unitx.isResting());
+    		
     	}
+    	assertTrue(unitx.isResting());
     	while(unitx.isInitialRestMode())
     		unitx.advanceTime(0.2);
     	unitx.requestActivityFinish(unitx.REST);

@@ -52,13 +52,6 @@ public class UnitTest {
     @BeforeClass
     public static void setUpClass() {
     	int[][][] types = new int[25][25][3];
-    	for (int x = 0; x < types.length; x++) {
-			for (int y = 0; y < types[x].length; y++) {
-				for (int z = 0; z < types[x][y].length; z++) {
-					types[x][y][z] = 0;// A test world that only have air as type
-				}
-			}
-    	}
     	types[22][23][0] = 1;
     	types[21][22][0] = 2;
     	types[21][22][1] = 2;
@@ -716,10 +709,6 @@ public class UnitTest {
     	assertFalse(unitx.isTerminated());
     	unitx.terminate();
     	assertTrue(unitx.getFaction() == null && unitx.getHitpoints() == 0);
-    	unitx.rest();
-    	while(unitx.isInitialRestMode())
-    		unitx.advanceTime(0.2);
-    	unitx.getHitpoints();
     }
     @Test
     public void testTerrainChange(){

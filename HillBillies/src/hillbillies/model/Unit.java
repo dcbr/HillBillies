@@ -1375,7 +1375,6 @@ public class Unit extends WorldObject {
 	public void terminate() {
 		if(!this.isTerminated()){
 			this.setHitpoints(MIN_HITPOINTS);
-			this.requestActivityFinish(this.getCurrentActivity());
 			this.isTerminated = true;
 			this.dropCarriedMaterial(this.getWorld().getCube(getPosition().getCubeCoordinates()));
 			Faction f = this.getFaction();

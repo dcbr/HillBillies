@@ -55,7 +55,7 @@ public class Material implements IWorldObject {
      * Initialize this new Material in the given world with the given owner.
      * @param world The world for this new Material.
      * @param owner The owner for this new Material
-     * @post The world this new Material belongs to is equal to the given
+     * @post The world this new Material belongs to, is equal to the given
      * world.
      * | new.getWorld() == world
      * @effect The owner of this new Material is set to
@@ -64,9 +64,10 @@ public class Material implements IWorldObject {
      * @post The weight of this new Material is a random
      * integer between MIN_WEIGHT and MAX_WEIGHT.
      * | MIN_WEIGHT <= new.getWeight() <= MAX_WEIGHT
-     * @throws IllegalArgumentException
-     * This new Material cannot have the given world as its world.
-     * | ! canHaveAsWorld(this.getWorld())
+     * @throws IllegalArgumentException When the owner is not a valid owner.
+     * 		| ! isValidOwner(owner)
+     * @throws IllegalStateException When the owner has reached its maximum number of owned Materials
+     * | owner.getMaxNbOwnedMaterials()!=-1 && owner.getNbOwnedMaterials()>=getMaxNbOwnedMaterials()
      */
     public Material(World world, WorldObject owner) throws IllegalArgumentException{
         this.world = world;

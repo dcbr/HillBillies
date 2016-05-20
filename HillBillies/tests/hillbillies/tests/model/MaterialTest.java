@@ -1,6 +1,7 @@
 package hillbillies.tests.model;
 
 import static org.junit.Assert.*;
+import static hillbillies.tests.util.TestHelper.advanceTimeFor;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -21,7 +22,7 @@ import hillbillies.utils.Vector;
 
 public class MaterialTest {
 
-	private static World airWorld;
+	private static World airWorld, otherWorld;;
 	private final static Set<TerrainChangeListener> listeners = new HashSet<>();
 	private static TerrainChangeListener modelListener = new TerrainChangeListener() {
 
@@ -36,15 +37,10 @@ public class MaterialTest {
     @BeforeClass
     public static void setUpClass() {
     	int[][][] types = new int[25][25][3];
-    	for (int x = 0; x < types.length; x++) {
-			for (int y = 0; y < types[x].length; y++) {
-				for (int z = 0; z < types[x][y].length; z++) {
-					types[x][y][z] = 0;// A test world that only have air as type
-				}
-			}
-    	}
     	airWorld = new World(types, modelListener);
+        otherWorld = new World(new int[5][5][5],null);
     }
+
 
 	private static Unit testUnit;
 	private static Material testMaterial, testLog, testBoulder;
@@ -53,33 +49,71 @@ public class MaterialTest {
     @Before
 	public void setUp() throws Exception {
     	testUnit = new Unit(airWorld,"TestUnit", nullPosition);
-    	testMaterial = new Material(airWorld, testUnit);
+    	testMaterial = new Material(airWorld, airWorld.getCube(nullPosition));
     	testLog = new Log(airWorld, airWorld.getCube(nullPosition));
     	testBoulder = new Boulder(airWorld, airWorld.getCube(nullPosition));
 	}
 
 	@After
 	public void tearDown() throws Exception {
+		for(Material m:airWorld.getMaterials(Material.class, false))
+			m.terminate();
+		advanceTimeFor(airWorld, 0.2);
+		for(Material m:otherWorld.getMaterials(Material.class, false))
+			m.terminate();
+		advanceTimeFor(otherWorld, 0.2);
 	}
 
 	@Test
 	public void testMaterialConstructor() {
-		
+		assertTrue(new Material(airWorld,testUnit).getOwner() == testUnit);
+		assertTrue(new Material(airWorld,airWorld.getCube(nullPosition)).getOwner() == airWorld.getCube(nullPosition));
 	}
-
+	
+	@Test(expected = IllegalArgumentException.class)
+	public void testInvalidMaterialConstructor() throws IllegalArgumentException{
+		new Material(otherWorld,airWorld.getCube(nullPosition));
+	}
+	
+	@Test(expected = IllegalStateException.class)
+	public void testInvalidMaterialConstructor2() throws IllegalArgumentException{
+		while(testUnit.getNbOwnedMaterials()!=testUnit.getMaxNbOwnedMaterials())
+			new Material(airWorld,testUnit);
+		new Material(airWorld,testUnit);
+	}
+	
+	
 	@Test
 	public void testAdvanceTime() {
-		fail("Not yet implemented");
+		Material material = new Material(airWorld, airWorld.getCube(new Vector(0,0,2)));
+		material.advanceTime(0.001);
+		while(material.getOwner() == null)
+			material.advanceTime(dt);
+		assertTrue(material.getPosition().getCubeCoordinates().equals(nullPosition));
 	}
 
 	@Test
 	public void testSetOwner() {
-		fail("Not yet implemented");
+		testMaterial.setOwner(airWorld.getCube(new Vector(0,0,2)));
+		assertEquals(testMaterial.getOwner(), airWorld.getCube(new Vector(0,0,2)));
+		testMaterial.setOwner(null);
+		assertTrue(testMaterial.getOwner() == null);
+	}
+	
+	@Test(expected = IllegalArgumentException.class)
+	public void testSetInvalidOwner() {
+		testMaterial.setOwner(new Unit(otherWorld));
 	}
 
 	@Test
 	public void testGetPosition() {
-		fail("Not yet implemented");
+		assertTrue(testMaterial.getPosition().equals(testMaterial.getPosition()));
+		testMaterial.setOwner(testUnit);
+		testUnit.moveToTarget(new Vector(10,10,0));
+		while(testUnit.isMoving()){
+			assertTrue(testMaterial.getPosition().equals(testUnit.getPosition()));
+			advanceTimeFor(airWorld, 0.2);
+		}
 	}
 
 	@Test

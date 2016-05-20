@@ -269,6 +269,8 @@ public abstract class WorldObject implements IWorldObject {
      * | new.getNbOwnedMaterials() == getNbOwnedMaterials() + 1
      * @post This worldObject has the given material as its very last ownedMaterial.
      * | new.getOwnedMaterialAt(getNbOwnedMaterials()+1) == ownedMaterial
+     * @throws IllegalStateException When this WorldObject has reached its maximum number of owned Materials
+     * | getMaxNbOwnedMaterials()!=-1 && getNbOwnedMaterials()>=getMaxNbOwnedMaterials()
      */
     public void addOwnedMaterial(@Raw Material material) {
     	assert(material != null) && (material.getOwner() == this) && (!this.hasAsOwnedMaterial(material));

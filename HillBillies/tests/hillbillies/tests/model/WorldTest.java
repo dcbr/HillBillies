@@ -97,18 +97,23 @@ public class WorldTest {
 		}
 	}
 
-	@Test(expected = IllegalArgumentException.class) //TODO: Is deze constructor niet juist? x hoeft niet gelijk te zijn aan y, maar overal zijn er evenveel x'en, y'en en z'en
+	@Test(expected = IllegalArgumentException.class)
 	public void testConstructorIllegal() throws IllegalArgumentException{
-		/*int[][][] wrongTerrain = new int[6][6][7];*/
 		int[][][] wrongTerrain = new int[6][6][6];
-		wrongTerrain[5] = new int [6][7]; //TODO: ik denk dat je dit bedoelt			
+		wrongTerrain[5] = new int [6][7];
 		new World(wrongTerrain, null);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testConstructorIllegal2() throws IllegalArgumentException{
-		int[][][] wrongTerrain = new int[7][7][7];
+		int[][][] wrongTerrain = new int[6][6][6];
 		wrongTerrain[0] = new int[7][6];
+		new World(wrongTerrain, null);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testConstructorIllegal3() throws IllegalArgumentException{
+		int[][][] wrongTerrain = new int[0][0][0];
 		new World(wrongTerrain, null);
 	}
 
@@ -229,14 +234,8 @@ public class WorldTest {
 		assertTrue(t.isDefaultActive());
 	}
 
-	@Test(expected = IllegalArgumentException.class)
-	public void spawnUnitIllegal() throws IllegalArgumentException{
-		int[][][] terrain = new int[0][0][0];
-		new World(terrain, null).spawnUnit(false);// World without cubes
-	}
-
-	@Test(expected = IllegalArgumentException.class)
-	public void spawnUnitIllegal2() throws IllegalArgumentException{
+	@Test(expected = IllegalStateException.class)
+	public void spawnUnitIllegal() throws IllegalStateException{
 		int[][][] terrain = new int[1][1][1];
 		terrain[0][0][0] = Terrain.ROCK.getId();
 		new World(terrain, null).spawnUnit(false);// World with only non-passable cubes
@@ -244,15 +243,16 @@ public class WorldTest {
 
 	@Test
 	public void addUnit() throws Exception {
-		// addUnit can only be called from inside the Unit's constructor since the given unit should already
-		// reference the world.
-		Unit t = new Unit(w, "Test", new Vector(0,0,0));
+		Unit t = new Unit(LobbyWorld.lobby, "Test", new Vector(0,0,0));
+		w.addUnit(t);
 		assertTrue(w.hasAsUnit(t));
 		Faction f = t.getFaction();
 		assertEquals(1, f.getNbUnits());
 		assertTrue(f.hasAsUnit(t));
-		for(int i=0;i<3;i++)
-			new Unit(w, "Blub", new Vector(0, 0, 0));
+		for(int i=0;i<2;i++) {
+			Unit blub = new Unit(LobbyWorld.lobby, "Blub", new Vector(0, 0, 0));
+			w.addUnit(blub);
+		}
 		t.terminate();
 		assertTrue(f.hasAsUnit(new Unit(w, "TestII", new Vector(0,0,0))));
 		assertEquals(1, f.getNbUnits());
@@ -262,10 +262,10 @@ public class WorldTest {
 	public void hasAsUnit() throws Exception {
 		assertTrue(w.hasAsUnit(u1));
 		assertTrue(w.hasAsUnit(u2));
-		assertFalse(w.hasAsUnit(new Unit(LobbyWorld.lobby)));
+		assertFalse(w.hasAsUnit(new Unit(LobbyWorld.lobby, "Blub", new Vector(0,0,0))));
 
 		Unit t = new Unit(w, "Test", new Vector(1,0,0));
-		assertTrue(w.hasAsUnit(new Unit(w, "Test2", new Vector(0,0,0))));
+		assertTrue(w.hasAsUnit(new Unit(w, "TestB", new Vector(0,0,0))));
 		t.terminate();
 		assertTrue(w.hasAsUnit(t));// Units are removed in advancetime
 		advanceTimeFor(w, 0.2);
@@ -342,14 +342,8 @@ public class WorldTest {
 			assertTrue(u.isValidPosition(s));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
-	public void getSpawnPositionIllegal() throws IllegalArgumentException{
-		int[][][] terrain = new int[0][0][0];
-		new World(terrain, null).getSpawnPosition();// World without cubes
-	}
-
-	@Test(expected = IllegalArgumentException.class)
-	public void getSpawnPositionIllegal2() throws IllegalArgumentException{
+	@Test(expected = IllegalStateException.class)
+	public void getSpawnPositionIllegal() throws IllegalStateException{
 		int[][][] terrain = new int[1][1][1];
 		terrain[0][0][0] = Terrain.ROCK.getId();
 		new World(terrain, null).getSpawnPosition();// World with only non-passable cubes
@@ -387,13 +381,15 @@ public class WorldTest {
 		// Corner position
 		pos = new Vector(0,0,0);
 		adjCubes = w.getDirectlyAdjacentCubes(pos);
+		int i = 0;
 		for(Vector adjDir : adjacentDirections) {
 			Vector adjPos = pos.add(adjDir);
-			if (w.isValidPosition(adjPos))
+			if (w.isValidPosition(adjPos)) {
 				assertTrue(adjCubes.contains(w.getCube(adjPos)));
-			else
-				assertFalse(adjCubes.contains(w.getCube(adjPos)));
+				i++;
+			}
 		}
+		assertTrue(i==adjCubes.size());
 	}
 
 	@Test
@@ -406,13 +402,15 @@ public class WorldTest {
 		// Corner position
 		pos = new Vector(0,0,0);
 		neighbCubes = w.getNeighbouringCubes(pos);
+		int i = 0;
 		for(Vector neighbDir : neighbouringDirections) {
 			Vector neighbPos = pos.add(neighbDir);
-			if (w.isValidPosition(neighbPos))
+			if (w.isValidPosition(neighbPos)) {
 				assertTrue(neighbCubes.contains(w.getCube(neighbPos)));
-			else
-				assertFalse(neighbCubes.contains(w.getCube(neighbPos)));
+				i++;
+			}
 		}
+		assertEquals(i, neighbCubes.size());
 	}
 
 	@Test(expected = NullPointerException.class)
@@ -468,13 +466,15 @@ public class WorldTest {
 		pos = new Vector(0,0,0);
 		neighbCubes.clear();
 		w.getNeighbouringCubesSatisfying(neighbCubes, pos, Cube::containsMaterials, cube -> cube);
+		int i = 0;
 		for(Vector neighbDir : neighbouringDirections) {
 			Vector neighbPos = pos.add(neighbDir);
-			if (w.isValidPosition(neighbPos) && w.getCube(neighbPos).containsMaterials())
+			if (w.isValidPosition(neighbPos) && w.getCube(neighbPos).containsMaterials()) {
 				assertTrue(neighbCubes.contains(w.getCube(neighbPos)));
-			else
-				assertFalse(neighbCubes.contains(w.getCube(neighbPos)));
+				i++;
+			}
 		}
+		assertTrue(neighbCubes.size()==i);
 	}
 
 	@Test(expected = NullPointerException.class)
@@ -581,7 +581,8 @@ public class WorldTest {
 	public void hasAsMaterial() throws Exception {
 		assertTrue(w.hasAsMaterial(l));
 		assertTrue(w.hasAsMaterial(b));
-		assertFalse(w.hasAsMaterial(new Log(new World(new int[][][]{}, null), null)));
+		World dummy = new World(new int[1][1][1], null);
+		assertFalse(w.hasAsMaterial(new Log(dummy, dummy.getCube(new Vector(0,0,0)))));
 
 		Log t = new Log(w, w.getCube(new Vector(2,2,2)));
 		t.terminate();

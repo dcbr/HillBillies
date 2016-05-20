@@ -80,7 +80,6 @@ public class Material implements IWorldObject {
     	this.world = world;
         this.setOwner(owner);
         world.addMaterial(this);
-        owner.addOwnedMaterial(this);
         this.weight = randInt(MIN_WEIGHT, MAX_WEIGHT);
     }
 
@@ -90,9 +89,7 @@ public class Material implements IWorldObject {
     		return;
         if(!this.hasValidPosition() && this.getOwner()!=null){
             this.fallingPosition = this.getPosition();
-            WorldObject owner = this.getOwner();
             this.setOwner(null);
-            owner.removeOwnedMaterial(this);
         }
         if(this.getOwner() == null) {
             Vector cPos = this.getPosition();
@@ -100,7 +97,6 @@ public class Material implements IWorldObject {
             if (cPos.equals(cPosCube) && this.isValidPosition(cPos)) {
                 Cube newOwner = this.getWorld().getCube(cPos.getCubeCoordinates());
                 this.setOwner(newOwner);
-                newOwner.addOwnedMaterial(this);
             } else {
                 double speed = 3;
                 Vector nextPos = cPos.add(new Vector(0, 0, -speed * dt));
@@ -132,9 +128,14 @@ public class Material implements IWorldObject {
     		throw new IllegalArgumentException("This Material is terminated");
         if (! isValidOwner(owner))
             throw new IllegalArgumentException("The given owner is not valid for this Material");
-        if(this.getOwner() != null)
-        	this.getOwner().removeOwnedMaterial(this);
-        this.owner = owner;
+        if(owner!=null && owner.hasAsOwnedMaterial(this))
+            throw new IllegalArgumentException("The given owner already has this material as an owned Material.");
+        WorldObject oldOwner = this.getOwner();
+        this.owner = owner;// Set new owner
+        if(oldOwner != null)
+            oldOwner.removeOwnedMaterial(this);// Remove this material from old owner
+        if(owner != null)
+            owner.addOwnedMaterial(this);// Add this material to new owner
     }
     //endregion
 
@@ -200,7 +201,10 @@ public class Material implements IWorldObject {
      * 	|	(!this.isTerminated() || !owner.isTerminated())
      */
     public boolean isValidOwner(WorldObject owner) {
-        return (owner == null || owner.getWorld() == this.world) && !(this.isTerminated() || owner != null && owner.isTerminated());
+        if(this.isTerminated()) return false;
+        if(owner == null) return true;
+        if(!owner.isTerminated() && owner.getWorld() == this.world) return true;
+        return false;
     }
 
     /**
@@ -257,11 +261,8 @@ public class Material implements IWorldObject {
     @Override
     public void terminate() {
     	if(!this.isTerminated()){
-    		WorldObject oldOwner = this.getOwner();
     		this.setOwner(null);
     		this.isTerminated = true;
-    		if (oldOwner != null)
-    			oldOwner.removeOwnedMaterial(this);
     	}
     }
     /**

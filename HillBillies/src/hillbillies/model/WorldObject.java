@@ -271,8 +271,10 @@ public abstract class WorldObject implements IWorldObject {
      * | new.getOwnedMaterialAt(getNbOwnedMaterials()+1) == ownedMaterial
      * @throws IllegalStateException When this WorldObject has reached its maximum number of owned Materials
      * | getMaxNbOwnedMaterials()!=-1 && getNbOwnedMaterials()>=getMaxNbOwnedMaterials()
+     * @note Do not call this method yourself, use the material's setOwner method
+     *          to properly associate worldObjects and materials.
      */
-    public void addOwnedMaterial(@Raw Material material) {
+    public void addOwnedMaterial(Material material) {
     	assert(material != null) && (material.getOwner() == this) && (!this.hasAsOwnedMaterial(material));
         if(getMaxNbOwnedMaterials()!=-1 && getNbOwnedMaterials()>=getMaxNbOwnedMaterials())
             throw new IllegalStateException("This WorldObject has reached its maximum number of owned Materials");
@@ -301,6 +303,8 @@ public abstract class WorldObject implements IWorldObject {
      * | for each I,J in 1..getNbOwnedMaterials():
      * | if ( (getOwnedMaterialAt(I) == ownedMaterial) and (I < J) )
      * | then new.getOwnedMaterialAt(J-1) == getOwnedMaterialAt(J)
+     * @note Do not call this method yourself, use the material's setOwner method
+     *          to properly associate worldObjects and materials.
      */
     @Raw
     public void removeOwnedMaterial(Material ownedMaterial) {

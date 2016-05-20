@@ -221,7 +221,7 @@ public class Facade implements IFacade {
             throw new ModelException("The given world is not effective.");
         if(unit==null)
             throw new ModelException("The given unit is not effective.");
-        if(!world.canHaveAsUnit(unit) || world.getNbUnits()>=World.MAX_UNITS)
+        if(unit.isTerminated() || world.getNbUnits()>=World.MAX_UNITS)
             throw new ModelException("world.addUnit's preconditions are violated.");
         world.addUnit(unit);
     }

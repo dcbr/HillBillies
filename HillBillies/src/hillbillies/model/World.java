@@ -221,6 +221,8 @@ public class World implements IWorld {
 	 * 			| terrainTypes[i].length != terrainTypes[j].length for some i and j element of [0;terrainTypes.length]
 	 * 			| OR
 	 * 			| terrainTypes[i][j].length != terrainTypes[i][k].length for some k and l element of [0;terrainTypes[i].length]
+	 * 			| OR
+	 * 			| terrainTypes.length == 0
 	 * @throws NullPointerException When the given terrainTypes are not effective.
 	 * 			| terrainTypes == null
 	 */
@@ -230,8 +232,14 @@ public class World implements IWorld {
 			throw new NullPointerException("The given terrainTypes are not effective.");
 		this.terrainChangeListener = terrainChangeListener;
 		this.NbCubesX = terrainTypes.length;
+		if(this.NbCubesX==0)
+			throw new IllegalArgumentException("Invalid terrain matrix, a World must have at least 1 cube.");
 		this.NbCubesY = terrainTypes[0].length;
+		if(this.NbCubesY==0)
+			throw new IllegalArgumentException("Invalid terrain matrix, a World must have at least 1 cube.");
 		this.NbCubesZ = terrainTypes[0][0].length;
+		if(this.NbCubesZ==0)
+			throw new IllegalArgumentException("Invalid terrain matrix, a World must have at least 1 cube.");
 		connectedToBorder = new ConnectedToBorder(this.getNbCubesX(), this.getNbCubesY(), this.getNbCubesZ());// Initialize connectedToBorder
 
 		// Construct this world:
@@ -437,9 +445,8 @@ public class World implements IWorld {
 	 *
 	 * @param unit
 	 * The unit to be added.
-	 * @pre The given unit is effective and is not yet terminated
-	 * and already references this world. And this world has not
-	 * reached the maximum number of units yet.
+	 * @pre The given unit is effective and is not yet terminated.
+	 * And this world has not reached the maximum number of units yet.
 	 * | (unit != null) && (unit.getWorld() == this) &&
 	 * | && (!unit.isTerminated()) && this.getNbUnits() < MAX_UNITS
 	 * @post This world has the given unit as one of its units.
@@ -457,7 +464,7 @@ public class World implements IWorld {
 	 */
 	@Override
 	public void addUnit(@Raw Unit unit){
-		assert canHaveAsUnit(unit) && this.getNbUnits()<MAX_UNITS;
+		assert (unit != null) && !unit.isTerminated() && this.getNbUnits()<MAX_UNITS;
 		// Bind unit to this world
 		unit.setWorld(this);
 		units.add(unit);
@@ -968,26 +975,21 @@ public class World implements IWorld {
 	 */
 	@Raw
 	public boolean canHaveAsMaterial(Material material) {
-		return (material != null);
+		return (material != null) && !material.isTerminated() && material.getWorld()==this;
 	}
 
 	/**
 	 * Check whether this world has proper materials attached to it.
 	 *
 	 * @return True if and only if this world can have each of the
-	 * materials attached to it as one of its materials,
-	 * and if each of these materials references this world as
-	 * the world to which they are attached.
+	 * materials attached to it as one of its materials.
 	 * | for each material in Material:
 	 * | if (hasAsMaterial(material))
-	 * | then canHaveAsMaterial(material) &&
-	 * | (material.getWorld() == this)
+	 * | then canHaveAsMaterial(material)
 	 */
 	public boolean hasProperMaterials() {
 		for (Material material: materials) {
 			if (!canHaveAsMaterial(material))
-			    return false;
-			if (material.getWorld() != this)
 			    return false;
 		}
 		return true;

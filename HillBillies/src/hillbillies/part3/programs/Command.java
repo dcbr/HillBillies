@@ -21,20 +21,32 @@ import java.util.function.Predicate;
  *
  * @author Kenneth & Bram
  * @version 1.0
- *
- * @invar The task of each Command must be a valid task for any
- * Statement.
- * | isValidTask(getTask())
  */
 public abstract class Command<T> {
+    /**
+     * List referencing this Command's children
+     */
     private final List<Command<?>> children;
     /**
      * Variable registering the current task. This is the task that
      * is currently running this Command.
      */
     private Task currentTask;
+    /**
+     * HashSet registering the already executed children.
+     */
     private HashSet<Integer> executedChildren;
 
+    /**
+     * Create a new Command with given children.
+     * @param children The child Commands of this new Command. It is important
+     *                 that these children are given in the right order. This
+     *                 is the order in which they will be executed the first
+     *                 time.
+     * @throws IllegalArgumentException
+     *          When one of the given children is invalid.
+     *          | for any(Command child in children : child==null || indicesSatisfying(command -> this==command).size()!=0)
+     */
     public Command(Command<?>... children) throws IllegalArgumentException {
         this.children = new ArrayList<>(Arrays.asList(children));
         for(int i=0;i<this.children.size();i++)

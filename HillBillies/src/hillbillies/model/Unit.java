@@ -1309,7 +1309,6 @@ public class Unit extends WorldObject {
 	    if (! canHaveAsOwnedMaterial(material))
 	        throw new IllegalArgumentException();
 		material.setOwner(this);
-		this.addOwnedMaterial(material);
 	}
 	
 	/**
@@ -1356,11 +1355,8 @@ public class Unit extends WorldObject {
 		if(dropCube == null)
 			throw new NullPointerException("DropCube is not effective");
 		Material m = this.getCarriedMaterial();
-		if(m!=null) {
+		if(m!=null)
 			m.setOwner(dropCube);
-			this.removeOwnedMaterial(m);
-			dropCube.addOwnedMaterial(m);
-		}
 	}
 	//endregion
 	

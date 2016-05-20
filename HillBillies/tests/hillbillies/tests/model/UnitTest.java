@@ -716,7 +716,10 @@ public class UnitTest {
     	assertFalse(unitx.isTerminated());
     	unitx.terminate();
     	assertTrue(unitx.getFaction() == null && unitx.getHitpoints() == 0);
-    	unitx.setHitpoints(10);
+    	unitx.rest();
+    	while(unitx.isInitialRestMode())
+    		unitx.advanceTime(0.2);
+    	unitx.getHitpoints();
     }
     @Test
     public void testTerrainChange(){

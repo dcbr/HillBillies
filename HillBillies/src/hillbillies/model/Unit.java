@@ -287,7 +287,8 @@ public class Unit extends WorldObject {
 	 * 			The weight to check against.
 	 * @param 	toughness
 	 * 			The toughness to check against.
-	 * @return
+	 * @return  True if and only if hitpoints lays between Unit.MIN_HITPOINTS 
+	 * 				and Unit.getMaxHitpoints(weight, toughness)
 	 *       	| result == (MIN_HITPOINTS <= hitpoints <= getMaxHitpoints(weight, toughness))
 	*/
 	public static boolean isValidHitpoints(int hitpoints, int weight, int toughness) {
@@ -644,6 +645,8 @@ public class Unit extends WorldObject {
 	 *
 	 * @param	hitpoints
 	 *       	The new hitpoints for this unit.
+	 * @pre		The given Unit is not terminated.
+	 * 			| !isTerminated()
 	 * @pre    	The given hitpoints must be a valid hitpoints for any
 	 *         	unit.
 	 *       	| isValidHitpoints(hitpoints)
@@ -655,7 +658,7 @@ public class Unit extends WorldObject {
 	 */
 	@Raw
 	public void setHitpoints(int hitpoints) {
-		assert isValidHitpoints(hitpoints, this.getWeight(), this.getToughness());
+		assert !isTerminated() && isValidHitpoints(hitpoints, this.getWeight(), this.getToughness());
 		this.hitpoints = hitpoints;
 	}
 
@@ -1125,6 +1128,8 @@ public class Unit extends WorldObject {
 	 * 		| this.requestNewActivity(new Attack(this, defender))
 	 * @throws IllegalStateException
 	 * 			When this unit is not able to attack the attacker.
+	 * @throws IllegalArgumentException when the unit is terminated.
+	 * 		|this.isTerminated()
 	 */
 	public void attack(Unit defender) throws IllegalStateException{
 		requestNewActivity(new Attack(this, defender));
@@ -1157,6 +1162,8 @@ public class Unit extends WorldObject {
 	 * @throws IllegalArgumentException
 	 * 			When the given direction points to an invalid position
 	 * 			| isValidPosition(this.getPosition().getCubeCenterCoordinates().add(direction)) == false
+	 * @throws IllegalArgumentException when the unit is terminated.
+	 * 		|this.isTerminated()     
      */
 	public void moveToAdjacent(Vector direction) throws IllegalStateException, IllegalArgumentException{
 		requestNewActivity(new AdjacentMove(this, direction));
@@ -1174,6 +1181,8 @@ public class Unit extends WorldObject {
 	 * 			|!this.isAbleToMove()
 	 * @throws IllegalArgumentException When the target is not a valid position.
 	 * 			|targetPosition==null || !isValidPosition(targetPosition)
+	 * @throws IllegalArgumentException when the unit is terminated.
+	 * 			|this.isTerminated()	 
 	 */
 	public void moveToTarget(Vector targetPosition) throws IllegalStateException, IllegalArgumentException{
 		if(targetPosition==null || !isValidPosition(targetPosition))
@@ -1215,6 +1224,8 @@ public class Unit extends WorldObject {
 	 * @throws IllegalArgumentException
 	 * 			When the given equals null or this unit.
 	 * 			| unit==null OR unit == this
+	 * @throws IllegalArgumentException when the unit is terminated.
+	 * 		|this.isTerminated()
 	 */
 	public void follow(Unit unit) throws IllegalArgumentException{
 		if(unit==null || unit == this)
@@ -1228,11 +1239,13 @@ public class Unit extends WorldObject {
 	/**
 	 * Method to let the Unit rest.
 	 * @post This unit stops the default behaviour if it was doing this.
-	 * 		| new.isDoingBehaviour
+	 * 			| new.isDoingBehaviour
 	 * @effect This unit will rest.
 	 * 			| this.requestNewActivity(new Rest(this))
 	 * @throws IllegalStateException * if the unit isn't able to rest.
-	 * | !this.isAbleToRest()
+	 * 			| !this.isAbleToRest()
+	 * @throws IllegalArgumentException when the unit is terminated.
+	 * 			|this.isTerminated()
 	 */
 	public void rest() throws IllegalStateException{
 		//activityController.
@@ -1249,7 +1262,8 @@ public class Unit extends WorldObject {
 	 * @post if this is the default behaviour, set the stateDefault to a new state.
 	 * 		| new.isDoingBehaviour 
 	 * @throws IllegalArgumentException when the given workPosition is not a valid position to work on.
-	 * 	
+	 * @throws IllegalArgumentException when the unit is terminated.
+	 * 		|this.isTerminated()	
 	 */
 	public void work(Vector position) throws IllegalStateException, IllegalArgumentException{
 		//activityController.
@@ -1360,12 +1374,14 @@ public class Unit extends WorldObject {
 	@Override
 	public void terminate() {
 		if(!this.isTerminated()){
+			this.setHitpoints(MIN_HITPOINTS);
+			this.requestActivityFinish(this.getCurrentActivity());
 			this.isTerminated = true;
-			this.setHitpoints(0);
 			this.dropCarriedMaterial(this.getWorld().getCube(getPosition().getCubeCoordinates()));
 			Faction f = this.getFaction();
 			this.faction = null;
 			f.removeUnit(this);
+			
 		}
 	}
 	/**
@@ -1582,9 +1598,11 @@ public class Unit extends WorldObject {
 	 * 		| new this.getCurrentActivity() == activity
 	 * @throws NullPointerException When the activity is not effective.
 	 * 	| activity == null
-	 * @throws IllegalArgumentException When the activity is not ordered by this unit or when the activity is already active.
+	 * @throws IllegalArgumentException When the activity is not ordered by this unit 
+	 * 			or when the activity is already active or when the unit is terminated.
 	 * 	|activity.getUnitId()!=Unit.this.getId()
 	 * 	|activity.isActive()
+	 *  |this.isTerminated()
 	 * @throws IllegalStateException When the unit is not able to do the activity at this moment.
 	 * 	|!this.isDefaultActive() && !activity.isAbleTo()
 	 */
@@ -1597,7 +1615,8 @@ public class Unit extends WorldObject {
 			throw new IllegalArgumentException("This activity is already active.");
 		if(!this.getCurrentActivity().isDefault() && !activity.isAbleTo())
 			throw new IllegalStateException("This unit cannot " + activity.toString() + " at this moment");
-
+		if(this.isTerminated())
+			throw new IllegalArgumentException("This unit is terminated.");
 		boolean isDefault = this.getCurrentActivity().isDefault();
 		try{
 			this.getCurrentActivity().interrupt(activity);

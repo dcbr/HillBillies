@@ -457,7 +457,10 @@ public class World implements IWorld {
 		// Bind unit to this world
 		unit.setWorld(this);
 		units.add(unit);
-
+		Vector position = unit.getPosition().getCubeCoordinates();
+		if(!unitsByCubePosition.containsKey(unit.getPosition().getCubeCoordinates()))
+			unitsByCubePosition.put(unit.getPosition().getCubeCoordinates(), new HashSet<>());
+		unitsByCubePosition.get(unit.getPosition().getCubeCoordinates()).add(unit);
 		Faction f;
 		if(this.factions.size()<MAX_FACTIONS) {
 			f = new Faction();

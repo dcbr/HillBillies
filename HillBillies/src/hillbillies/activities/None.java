@@ -110,8 +110,10 @@ public class None extends Activity {
      * | new.isDoingDefault() == startDoingDefault()
      * @throws IllegalStateException * The default behaviour is not activated for this unit.
      * |   !this.isDefault()
+	 * @throws IllegalArgumentException when the unit is terminated.
+	 * 		|this.isTerminated()     
      */
-    private void setDefaultBehaviour() throws IllegalStateException{
+    private void setDefaultBehaviour() throws IllegalStateException, IllegalArgumentException{
         if(!this.isDefault())
             throw new IllegalStateException("The default behaviour of unit is not activated");
 

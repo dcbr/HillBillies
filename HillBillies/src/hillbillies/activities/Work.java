@@ -50,7 +50,7 @@ public class Work extends Activity {
      *       	| result >= 0
      */
     private static int getWorkingTime(int strength) {
-        return (500/strength);
+        return (5/strength);
     }
 
     @Override

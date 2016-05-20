@@ -21,7 +21,7 @@ public class Attack extends Activity{
     /**
      * Constant reflecting the duration of an attack.
      */
-    public static final double ATTACK_DURATION = 1d;
+    public static final double ATTACK_DURATION = 0.1d;
 
     public static final int ATTACK_XP = 20;
 

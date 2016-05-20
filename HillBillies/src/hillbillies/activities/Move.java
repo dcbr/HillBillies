@@ -26,7 +26,7 @@ public abstract class Move extends Activity {
     /**
      * Constant reflecting the interval a sprinting unit loses a SPRINT_STAMINA_LOSS.
      */
-    public static final double SPRINT_STAMINA_LOSS_INTERVAL = 0.1d;// Unit will loose SPRINT_STAMINA_LOSS every SPRINT_STAMINA_LOSS_INTERVAL seconds when sprinting
+    public static final double SPRINT_STAMINA_LOSS_INTERVAL = 0.001d;// Unit will loose SPRINT_STAMINA_LOSS every SPRINT_STAMINA_LOSS_INTERVAL seconds when sprinting
     /**
      * Constant reflecting XP gaining after a move.
      */

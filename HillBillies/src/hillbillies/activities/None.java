@@ -121,7 +121,7 @@ public class None extends Activity {
         for (int i = 0; i < AdjCubes.size(); i++){
             units.addAll(unit.getWorld().getUnitsInCube(AdjCubes.get(i)));
         }
-        units.removeIf(defender -> unit.getFaction() == defender.getFaction() || Attack.isAccessible(this.unit, defender.getPosition().getCubeCoordinates()));
+        units.removeIf(defender -> unit.getFaction() == defender.getFaction() || !Attack.isAccessible(this.unit, defender.getPosition().getCubeCoordinates()));
         int nb = 2;
         if (units.size() > 0)
             nb +=1;

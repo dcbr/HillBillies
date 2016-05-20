@@ -16,11 +16,11 @@ public class Rest extends Activity {
     /**
      * Constant reflecting the interval wherein a resting unit recovers getRestHitpointsGain() hitpoints.
      */
-    public static final double REST_HITPOINTS_GAIN_INTERVAL = 0.2d;
+    public static final double REST_HITPOINTS_GAIN_INTERVAL = 0.002d;
     /**
      * Constant reflecting the interval wherein a resting unit recovers getRestStaminaGain() stamina.
      */
-    public static final double REST_STAMINA_GAIN_INTERVAL = 0.2d;
+    public static final double REST_STAMINA_GAIN_INTERVAL = 0.002d;
 
     /**
      * Variable registering the hitpoints a unit recovered during the current rest period.

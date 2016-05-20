@@ -256,7 +256,7 @@ public class TaskFactoryTest {
 
         assertTrue(u.isAttacking());
 
-        advanceTimeFor(w, 1.2000002);
+        advanceTimeFor(w, 1.2);
 
         // Check whether task successfully finished
         assertEquals(null, u.getTask());

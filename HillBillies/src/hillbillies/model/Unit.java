@@ -14,6 +14,14 @@ import java.util.*;
  * @author Kenneth & Bram
  * @version 2.5
  *
+ * @invar The world of each WorldObject must be a valid world for any
+ * WorldObject.
+ * | isValidWorld(getWorld())
+ * @invar The position of each WorldObject must be a valid position for any
+ * WorldObject.
+ * | isValidPosition(getPosition())
+ * @invar Each worldObject must have proper ownedMaterials.
+ * | hasProperOwnedMaterials()
  * @invar Each Unit has a unique Id.
  * | for each Unit u, for each Unit o -> u.getId()!=o.getId() if u!=o
  * @invar The name of each Unit must be a valid name for any
@@ -1050,6 +1058,7 @@ public class Unit extends WorldObject {
 	//region AdvanceTime
 	/**
 	 * No documentation needed
+	 * @throws IllegalArgumentException
 	 */
 	@Override
 	public void advanceTime(double dt){

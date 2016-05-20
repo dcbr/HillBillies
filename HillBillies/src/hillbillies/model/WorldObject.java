@@ -50,7 +50,9 @@ public abstract class WorldObject implements IWorldObject {
         this.setWorld(world);
         this.setPosition(position);
     }
-
+    /**
+     * @throws IllegalArgumentException
+     */
     @Override
     public abstract void advanceTime(double dt);
 
@@ -352,6 +354,8 @@ public abstract class WorldObject implements IWorldObject {
     /**
      * Return the maximum number of materials this worldObject can own.
      * If there is no limit, return -1.
+     * @return The maximum is greater than or equal then 0.
+	 * 	| result >=0 
      */
     public abstract int getMaxNbOwnedMaterials();
 }

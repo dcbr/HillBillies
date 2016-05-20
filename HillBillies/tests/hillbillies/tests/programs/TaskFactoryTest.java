@@ -333,33 +333,66 @@ public class TaskFactoryTest {
 
     @Test
     public void createPositionOf() throws Exception {
-
+    	Expression<Unit> unit= f.createThis(null);
+    	Expression<Vector> pos = f.createPositionOf(unit, null);
+    	Statement stmt = f.createPrint(pos, null);
+    	runStatementFor(u, stmt, 0.1);
+    	System.out.println("The above test should print" +  u.getPosition());
     }
 
     @Test
     public void createLiteralPosition() throws Exception {
-
+    	Expression<Vector> pos = f.createLiteralPosition(5, 5, 5, null);
+    	Statement stmt = f.createPrint(pos, null);
+    	runStatementFor(u, stmt, 0.1);
+    	Vector vec = new Vector (5,5,5);
+    	System.out.println("The above test should print" + vec );
     }
 
     @Test
     public void createThis() throws Exception {
-
+    	Expression<Unit> unit= f.createThis(null);
+    	Expression<Vector> pos = f.createPositionOf(unit, null);
+    	Statement stmt = f.createPrint(pos, null);
+    	runStatementFor(u, stmt, 0.1);
+    	System.out.println("The above test should print" +  u.getPosition());
+    	stmt =  f.createPrint(unit, null);
+    	runStatementFor(u, stmt, 0.1);
+    	System.out.println("The above test should print" +  u);
     }
 
     @Test
     public void createFriend() throws Exception {
-
+    	Faction fact = u.getFaction();
+    	Unit u2 = new Unit(w);
+    	while(fact!= u2.getFaction())
+    		u2 = new Unit(w);
+    	Expression<Unit> unit = f.createFriend(null);
+    	Statement stmt = f.createPrint(unit, null);
+    	runStatementFor(u, stmt, 0.1);
+    	System.out.println("The above test should print" +  u2);
     }
 
     @Test
     public void createEnemy() throws Exception {
-
+    	Unit u2 = new Unit(w);
+    	Expression<Unit> unit = f.createEnemy(null);
+    	Statement stmt = f.createPrint(unit, null);
+    	runStatementFor(u, stmt, 0.1);
+    	System.out.println("The above test should print" +  u2);
     }
 
     @Test
     public void createAny() throws Exception {
     	Expression<Unit> unit = f.createAny(null);
-    	Statement stmt = f.create
+    	Statement stmt = f.createPrint(unit, null);
+    	runStatementFor(u, stmt, 0.1, 0.01);
+    	System.out.println("The above test should print null");
+    	Unit any = new Unit(w);
+    	Expression<Unit> unit2 = f.createAny(null);
+    	Statement stmt2 = f.createPrint(unit2, null);
+    	runStatementFor(u, stmt2, 0.1);
+    	System.out.println("The above test should print" +  any);
     	
     }
 

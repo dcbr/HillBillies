@@ -373,7 +373,8 @@ public class TargetMove extends Move {
         public void add(Vector position){
         	path.addFirst(position);
         	pathPositions.add(position);
-            List<Vector> adjacentPositions = unit.getWorld().getDirectlyAdjacentCubesPositions(position);
+            /*List<Vector> adjacentPositions = unit.getWorld().getDirectlyAdjacentCubesPositions(position);*/
+        	List<Vector> adjacentPositions = unit.getWorld().getNeighbouringCubesPositions(position);
             adjacentPositions.removeIf(adjPos -> unit.getWorld().isCubePassable(adjPos));
             pathPositions.addAll(adjacentPositions);
         }
@@ -389,8 +390,8 @@ public class TargetMove extends Move {
          */
         private void removeRedundantPathPositions(Vector oldEndPosition, Vector newEndPosition){
             Collection<Vector> redundantPathPositions = new HashSet<>();
-            Collection<Vector> newNextAdjacentPositions = (newEndPosition==null) ? new HashSet<>() : unit.getWorld().getDirectlyAdjacentCubesPositions(newEndPosition);
-            unit.getWorld().getDirectlyAdjacentCubesSatisfying(
+            Collection<Vector> newNextAdjacentPositions = (newEndPosition==null) ? new HashSet<>() : unit.getWorld().getNeighbouringCubesPositions(newEndPosition);
+            unit.getWorld().getNeighbouringCubesSatisfying(
                     redundantPathPositions,
                     oldEndPosition,
                     cube -> !newNextAdjacentPositions.contains(cube.getPosition()),

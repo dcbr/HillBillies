@@ -19,7 +19,7 @@ import static hillbillies.utils.Utils.randInt;
  * | canHaveAsWeight(this.getWeight())
  *
  */
-public class Material implements IWorldObject {
+public abstract class Material implements IWorldObject {
 
     /**
      * Constant reflecting the minimum weight of each Material.

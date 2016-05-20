@@ -43,13 +43,12 @@ public class MaterialTest {
 
 
 	private static Unit testUnit;
-	private static Material testMaterial, testLog, testBoulder;
+	private static Material testBoulder, testLog;
 	private static Vector nullPosition = new Vector(0,0,0);
 	private static double dt = 0.2;
     @Before
 	public void setUp() throws Exception {
     	testUnit = new Unit(airWorld,"TestUnit", nullPosition);
-    	testMaterial = new Material(airWorld, airWorld.getCube(nullPosition));
     	testLog = new Log(airWorld, airWorld.getCube(nullPosition));
     	testBoulder = new Boulder(airWorld, airWorld.getCube(nullPosition));
 	}
@@ -65,118 +64,199 @@ public class MaterialTest {
 	}
 
 	@Test
-	public void testMaterialConstructor() {
-		assertTrue(new Material(airWorld,testUnit).getOwner() == testUnit);
-		assertTrue(new Material(airWorld,airWorld.getCube(nullPosition)).getOwner() == airWorld.getCube(nullPosition));
+	public void testBoulderConstructor() {
+		assertTrue(new Boulder(airWorld,testUnit).getOwner() == testUnit);
+		assertTrue(new Boulder(airWorld,airWorld.getCube(nullPosition)).getOwner() == airWorld.getCube(nullPosition));
+	}
+	@Test
+	public void testLogConstructor() {
+		assertTrue(new Log(airWorld,testUnit).getOwner() == testUnit);
+		assertTrue(new Log(airWorld,airWorld.getCube(nullPosition)).getOwner() == airWorld.getCube(nullPosition));
 	}
 	
 	@Test(expected = IllegalArgumentException.class)//different world
-	public void testInvalidMaterialConstructor() throws IllegalArgumentException{
-		new Material(otherWorld,airWorld.getCube(nullPosition));
+	public void testInvalidBoulderConstructor() throws IllegalArgumentException{
+		new Boulder(otherWorld,airWorld.getCube(nullPosition));
+	}
+	@Test(expected = IllegalArgumentException.class)//different world
+	public void testInvalidLogConstructor() throws IllegalArgumentException{
+		new Log(otherWorld,airWorld.getCube(nullPosition));
 	}
 	
 	@Test(expected = IllegalStateException.class)//nb >max
-	public void testInvalidMaterialConstructor2() throws IllegalArgumentException{
+	public void testInvalidBoulederConstructor2() throws IllegalArgumentException{
 		while(testUnit.getNbOwnedMaterials()!=testUnit.getMaxNbOwnedMaterials())
-			new Material(airWorld,testUnit);
-		new Material(airWorld,testUnit);
+			new Boulder(airWorld,testUnit);
+		new Boulder(airWorld,testUnit);
+	}
+	@Test(expected = IllegalStateException.class)//nb >max
+	public void testInvalidLogConstructor2() throws IllegalArgumentException{
+		while(testUnit.getNbOwnedMaterials()!=testUnit.getMaxNbOwnedMaterials())
+			new Log(airWorld,testUnit);
+		new Log(airWorld,testUnit);
 	}
 	
 	@Test(expected = NullPointerException.class)//null
-	public void testInvalidMaterialConstructor3() throws NullPointerException{
-		new Material(null, null);
+	public void testInvalidBoulderConstructor3() throws NullPointerException{
+		new Boulder(null, null);
+	}
+	@Test(expected = NullPointerException.class)//null
+	public void testInvalidLogConstructor3() throws NullPointerException{
+		new Boulder(null, null);
 	}
 	
 	@Test
 	public void testAdvanceTime() {
-		Material material = new Material(airWorld, airWorld.getCube(new Vector(0,0,2)));
-		material.advanceTime(0.001);
-		while(material.getOwner() == null)
-			material.advanceTime(dt);
-		assertTrue(material.getPosition().getCubeCoordinates().equals(nullPosition));
+		Boulder boulder = new Boulder(airWorld, airWorld.getCube(new Vector(0,0,2)));
+		boulder.advanceTime(0.001);
+		while(boulder.getOwner() == null)
+			boulder.advanceTime(dt);
+		assertTrue(boulder.getPosition().getCubeCoordinates().equals(nullPosition));
+		Log log = new Log(airWorld, airWorld.getCube(new Vector(0,0,2)));
+		log.advanceTime(0.001);
+		while(log.getOwner() == null)
+			log.advanceTime(dt);
+		assertTrue(log.getPosition().getCubeCoordinates().equals(nullPosition));
 	}
 
 	@Test
 	public void testSetOwner() {
-		testMaterial.setOwner(airWorld.getCube(new Vector(0,0,2)));
-		assertEquals(testMaterial.getOwner(), airWorld.getCube(new Vector(0,0,2)));
-		testMaterial.setOwner(null);
-		assertTrue(testMaterial.getOwner() == null);
+		testBoulder.setOwner(airWorld.getCube(new Vector(0,0,2)));
+		assertEquals(testBoulder.getOwner(), airWorld.getCube(new Vector(0,0,2)));
+		testBoulder.setOwner(null);
+		assertTrue(testBoulder.getOwner() == null);
+		testLog.setOwner(airWorld.getCube(new Vector(0,0,2)));
+		assertEquals(testLog.getOwner(), airWorld.getCube(new Vector(0,0,2)));
+		testLog.setOwner(null);
+		assertTrue(testLog.getOwner() == null);
 	}
 	
 	@Test(expected = IllegalArgumentException.class)
-	public void testSetInvalidOwner() {
-		testMaterial.setOwner(new Unit(otherWorld));
+	public void testBoulderSetInvalidOwner() {
+		testBoulder.setOwner(new Unit(otherWorld));
+	}
+	@Test(expected = IllegalArgumentException.class)
+	public void testLogSetInvalidOwner() {
+		testLog.setOwner(new Unit(otherWorld));
 	}
 
 	@Test
-	public void testGetPosition() {
-		assertTrue(testMaterial.getPosition().equals(testMaterial.getPosition()));
-		testMaterial.setOwner(testUnit);
+	public void testGetPositionBoulder() {
+		assertTrue(testBoulder.getPosition().equals(nullPosition.getCubeCenterCoordinates()));
+		testBoulder.setOwner(testUnit);
 		testUnit.moveToTarget(new Vector(10,10,0));
 		while(testUnit.isMoving()){
-			assertTrue(testMaterial.getPosition().equals(testUnit.getPosition()));
+			assertTrue(testBoulder.getPosition().equals(testUnit.getPosition()));
+			advanceTimeFor(airWorld, 0.2);
+		}
+	}
+	@Test
+	public void testGetPositionLog() {	
+		assertTrue(testLog.getPosition().equals(nullPosition.getCubeCenterCoordinates()));
+		testLog.setOwner(testUnit);
+		testUnit.moveToTarget(nullPosition);
+		while(testUnit.isMoving()){
+			assertTrue(testLog.getPosition().equals(testUnit.getPosition()));
 			advanceTimeFor(airWorld, 0.2);
 		}
 	}
 
 	@Test
-	public void testGetWorld() {
-		assertTrue((new Material(airWorld, testUnit)).getWorld() == airWorld);
-		assertTrue((new Material(airWorld,airWorld.getCube(nullPosition))).getWorld() == airWorld);	
+	public void testGetWorldBoulder() {
+		assertTrue((new Boulder(airWorld, testUnit)).getWorld() == airWorld);
+		assertTrue((new Boulder(airWorld,airWorld.getCube(nullPosition))).getWorld() == airWorld);	
+	}
+	@Test
+	public void testGetWorldLog() {
+		assertTrue((new Log(airWorld, testUnit)).getWorld() == airWorld);
+		assertTrue((new Log(airWorld,airWorld.getCube(nullPosition))).getWorld() == airWorld);	
 	}
 
 	@Test
-	public void testGetOwner() {		
-	assertTrue((new Material(airWorld, testUnit)).getOwner() == testUnit);
-	assertTrue((new Material(airWorld,airWorld.getCube(nullPosition))).getOwner() == airWorld.getCube(nullPosition));
-	Material m = new Material(airWorld, airWorld.getCube(new Vector (0,0,2)));
-	m.advanceTime(0.01);
-	assertTrue(m.getOwner() == null);
+	public void testGetOwnerBoulder() {		
+		assertTrue((new Boulder(airWorld, testUnit)).getOwner() == testUnit);
+		assertTrue((new Boulder(airWorld,airWorld.getCube(nullPosition))).getOwner() == airWorld.getCube(nullPosition));
+		Boulder b = new Boulder(airWorld, airWorld.getCube(new Vector (0,0,2)));
+		b.advanceTime(0.01);
+		assertTrue(b.getOwner() == null);
+	}
+	public void testGetOwnerLog() {		
+		assertTrue((new Log(airWorld, testUnit)).getOwner() == testUnit);
+		assertTrue((new Log(airWorld,airWorld.getCube(nullPosition))).getOwner() == airWorld.getCube(nullPosition));
+		Log l = new Log(airWorld, airWorld.getCube(new Vector (0,0,2)));
+		l.advanceTime(0.01);
+		assertTrue(l.getOwner() == null);
 	}
 
 	@Test
 	public void testGetWeight() {
 		for(int i = 0; i<30; i++){
-			assertTrue(Material.canHaveAsWeight(new Material(airWorld,airWorld.getCube(nullPosition)).getWeight()));
+			assertTrue(Boulder.canHaveAsWeight(new Boulder(airWorld,airWorld.getCube(nullPosition)).getWeight()));
 		}
-		int m = testMaterial.getWeight();
-		m += 1;
-		assertFalse(m == testMaterial.getWeight());
+		int boulderWeight= testBoulder.getWeight();
+		boulderWeight += 1;
+		assertFalse(boulderWeight == testBoulder.getWeight());
+		for(int i = 0; i<30; i++){
+			assertTrue(Log.canHaveAsWeight(new Log(airWorld,airWorld.getCube(nullPosition)).getWeight()));
+		}
+		int logWeight = testBoulder.getWeight();
+		logWeight += 1;
+		assertFalse(logWeight == testBoulder.getWeight());
 	}
 
 	@Test
 	public void testIsValidOwner() {
-		assertFalse(testMaterial.isValidOwner(otherWorld.getCube(nullPosition)));
-		assertTrue(testMaterial.isValidOwner(null));
+		assertFalse(testBoulder.isValidOwner(otherWorld.getCube(nullPosition)));
+		assertTrue(testBoulder.isValidOwner(null));
 		testUnit.terminate();
-		assertFalse(testMaterial.isValidOwner(testUnit));
+		assertFalse(testBoulder.isValidOwner(testUnit));
+		
+		assertFalse(testLog.isValidOwner(otherWorld.getCube(nullPosition)));
+		assertTrue(testLog.isValidOwner(null));
+		testUnit.terminate();
+		assertFalse(testLog.isValidOwner(testUnit));
 	}
 
 	@Test
 	public void testCanHaveAsWeight() {
-		assertTrue(Material.canHaveAsWeight(Material.MAX_WEIGHT));
-		assertTrue(Material.canHaveAsWeight(Material.MIN_WEIGHT));
-		assertFalse(Material.canHaveAsWeight(Material.MAX_WEIGHT+1));
-		assertFalse(Material.canHaveAsWeight(Material.MIN_WEIGHT-1));
-	}
-
-	@Test
-	public void testTerminate() {
-		int nb = airWorld.getCube(nullPosition).getNbOwnedMaterials();
-		testMaterial.terminate();
-		assertTrue(testMaterial.isTerminated());
-		assertTrue(nb > airWorld.getCube(nullPosition).getNbOwnedMaterials());
-		assertTrue(testMaterial.getOwner() == null);
-		testMaterial.advanceTime(dt);
+		assertTrue(Boulder.canHaveAsWeight(Boulder.MAX_WEIGHT));
+		assertTrue(Boulder.canHaveAsWeight(Boulder.MIN_WEIGHT));
+		assertFalse(Boulder.canHaveAsWeight(Boulder.MAX_WEIGHT+1));
+		assertFalse(Boulder.canHaveAsWeight(Boulder.MIN_WEIGHT-1));
 		
+		assertTrue(Log.canHaveAsWeight(Log.MAX_WEIGHT));
+		assertTrue(Log.canHaveAsWeight(Log.MIN_WEIGHT));
+		assertFalse(Log.canHaveAsWeight(Log.MAX_WEIGHT+1));
+		assertFalse(Log.canHaveAsWeight(Log.MIN_WEIGHT-1));
+	}
+	
+	@Test
+	public void testTerminateBoulder() {
+		int nb = airWorld.getCube(nullPosition).getNbOwnedMaterials();
+		testBoulder.terminate();
+		assertTrue(testBoulder.isTerminated());
+		assertTrue(nb > airWorld.getCube(nullPosition).getNbOwnedMaterials());
+		assertTrue(testBoulder.getOwner() == null);
+		testBoulder.advanceTime(dt);
+	}
+	public void testTerminateLog() {
+		int nb = airWorld.getCube(nullPosition).getNbOwnedMaterials();
+		testLog.terminate();
+		assertTrue(testLog.isTerminated());
+		assertTrue(nb > airWorld.getCube(nullPosition).getNbOwnedMaterials());
+		assertTrue(testLog.getOwner() == null);
+		testLog.advanceTime(dt);
 	}
 
 	@Test
 	public void testIsTerminated() {
-		assertFalse(testMaterial.isTerminated());
-		testMaterial.terminate();
-		assertTrue(testMaterial.isTerminated());
+		assertFalse(testBoulder.isTerminated());
+		testBoulder.terminate();
+		assertTrue(testBoulder.isTerminated());
+		
+		assertFalse(testLog.isTerminated());
+		testLog.terminate();
+		assertTrue(testLog.isTerminated());
 	}
 
 }

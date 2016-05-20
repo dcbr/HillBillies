@@ -293,7 +293,7 @@ public class Facade implements IFacade {
     public int getExperiencePoints(Unit unit) throws ModelException {
         if(unit==null)
             throw new ModelException("The given unit is not effective.");
-        return unit.getXP();//TODO: toevoegen wanneer hoeveel wordt verdiend
+        return unit.getXP();
     }
 
     /**
@@ -313,7 +313,7 @@ public class Facade implements IFacade {
         try{
             unit.work(new Vector(x,y,z));
         }catch(IllegalArgumentException e){
-            throw new ModelException("The target cube is not a neighbouring cube.", e);
+            throw new ModelException("The target cube is not a valid cube to work on.", e);
         }catch(IllegalStateException e){
             throw new ModelException("Unit is not able to work at this moment.", e);
         }

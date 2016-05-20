@@ -26,14 +26,6 @@ import hillbillies.utils.Vector;
  * | hasProperUnits()
  */
 public class World implements IWorld {
-	/**
-	 * Constant reflecting the maximum units in a world.    
-	 */
-	public static final int MAX_UNITS = 100;
-	/**
-	 * Constant reflecting the maximum factions in a world.    
-	 */
-	private static final int MAX_FACTIONS = 5;
 	
 	/**
 	 * A list of vectors reflecting the directly adjacent directions of a cube.    

@@ -22,8 +22,8 @@ public class IsFriend extends UnaryExpression<Unit, Boolean> {
 	 *
 	 * @param unit The value of the child expression. This value is guaranteed
 	 *              to be not null.
-	 * @return The value this expression should return based on the given value
-	 * of its child expression.
+	 * @return True if the given unit's faction is equal to the executing unit's
+	 * 			faction. False otherwise.
 	 */
 	@Override
 	protected Boolean compute(Unit unit) {

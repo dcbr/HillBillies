@@ -16,13 +16,24 @@ public class Work extends Activity {
      * Constant reflecting XP gaining after a work.
      */
     private static final int WORK_XP = 10;
-
+    /**
+     * Variable registering the work's duration.
+     */
     private float workDuration;
     /**
      * Variable registering the workCube.
      */
     private final Cube workCube;
 
+    /**
+     * Initialize a new Work Activity for the given Unit at the given workPosition.
+     * @param unit The unit who will execute this newly created Work
+     * @param workPosition The position at which the given unit should work.
+     * @throws IllegalArgumentException
+     *          When the given workPosition does not reference a valid workCube
+     *          for the given unit.
+     *          | !isValidWorkCube(workCube)
+     */
     public Work(Unit unit, Vector workPosition) throws IllegalArgumentException{
         super(unit);
         Cube workCube = unit.getWorld().getCube(workPosition.getCubeCoordinates());
@@ -32,13 +43,13 @@ public class Work extends Activity {
     }
 
     /**
-     * Return the time this unit shall be working.
+     * Return the time a unit with given strength shall be working.
      * @param	strength
      * 			The strength to check against.
-     * @return 	The time a unit need to work is positive for all units.
+     * @return 	The time a unit needs to work is positive for all units.
      *       	| result >= 0
      */
-    public static int getWorkingTime(int strength) {
+    private static int getWorkingTime(int strength) {
         return (500/strength);
     }
 
@@ -93,7 +104,7 @@ public class Work extends Activity {
      */
     @Override
     public boolean isAbleTo() {
-        return !unit.isInitialRestMode() && !unit.isAttacking() && this.isAccessible(workCube.getPosition());
+        return !unit.isInitialRestMode() && !unit.isAttacking();
     }
 
     /**
@@ -142,38 +153,5 @@ public class Work extends Activity {
                 (unit.getPosition().getCubeCoordinates().equals(workCube.getPosition()) ||
                         unit.getWorld().getNeighbouringCubesPositions(unit.getPosition().getCubeCoordinates()).contains(workCube.getPosition()));
     }
-    /**
-     * Check whether a position is an accessible position to work on to from units position.
-     * @param unit The working unit.
-     * @param position The position to work on.
-     * @return True if position is indeed a accessible position to work on from the units position
-     *          | if(foreach Vector d in nextPosition.difference(fromPosition).decompose() :
-     *          |       !unit.getWorld().isCubePassable(unit.getPosition().add(d)) || !unit.getWorld.isCubePassable(position.difference(d))
-     *          |			where unit.getPosition().add(d) != position && unit.getPosition() != position && d!=Vector(0,0,0)
-     *          |           	result==false
-     *          | else
-     *          |       result==true
-     * @throws IllegalArgumentException
-     *          When units position or otherPosition are not effective.
-     *          | unit.getPosition()==null || nextPosition==null
-     */
-    protected static boolean isAccessible(Unit unit, Vector position) throws IllegalArgumentException{
-        if(unit==null || position==null)
-            throw new IllegalArgumentException("The other position must be an effective position in order to check his validity.");
-    	Vector unitPosition = unit.getPosition().getCubeCoordinates();
-    	position = position.getCubeCoordinates();
 
-        for(Vector d : position.difference(unitPosition).decompose()){
-        	if(!d.equals(new Vector(0,0,0))){
-        		Vector pos1 = unitPosition.add(d);
-        		Vector pos2 = position.difference(d);
-        		if(!(pos1.equals(position) || unit.getWorld().isCubePassable(pos1)) ||!(pos2.equals(unitPosition) || unit.getWorld().isCubePassable(pos2)))
-        			return false;// Check if surrounding positions are valid too (prevent corner glitch)
-        	}
-        }	
-        return true;
-    }
-    private boolean isAccessible(Vector position) throws IllegalArgumentException{
-    	return isAccessible(unit, position);
-    }
 }

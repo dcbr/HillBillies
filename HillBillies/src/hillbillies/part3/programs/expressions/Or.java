@@ -18,6 +18,13 @@ public class Or extends BinaryExpression<Boolean, Boolean, Boolean> {
         super(Boolean.class, Boolean.class, left, Boolean.class, right);
     }
 
+    /**
+     * @param leftValue  The value returned by leftExpression's evaluation.
+     *                   This value is guaranteed to be not null.
+     * @param rightValue The value returned by rightExpression's evaluation.
+     *                   This value is guaranteed to be not null.
+     * @return | leftValue || rightValue
+     */
     @Override
     protected Boolean combine(Boolean leftValue, Boolean rightValue) {
         return leftValue || rightValue;

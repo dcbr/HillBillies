@@ -5,10 +5,7 @@ import be.kuleuven.cs.som.annotate.Raw;
 import hillbillies.model.Task;
 import hillbillies.part3.programs.statements.Statement;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 import java.util.function.Predicate;
 
 /**
@@ -22,7 +19,7 @@ import java.util.function.Predicate;
  * @author Kenneth & Bram
  * @version 1.0
  */
-public abstract class Command<T> {
+public abstract class Command<T> implements Iterable<Command<?>> {
     /**
      * List referencing this Command's children
      */
@@ -56,10 +53,23 @@ public abstract class Command<T> {
         this.executedChildren = new HashSet<>();
     }
 
+    /**
+     * Return the indices of the child commands of the given type.
+     * @param type The type to check for
+     * @param <C> The type to check for
+     * @return A HashSet containing the indices of the children
+     *          of the given type.
+     */
     protected <C extends Command<?>> HashSet<Integer> indicesOf(Class<C> type){
         return indicesSatisfying(type::isInstance);
     }
 
+    /**
+     * Return the indices of the child commands satisfying the given condition.
+     * @param condition The condition to filter on.
+     * @return A HashSet containing the indices of the children satisfying the
+     *          given condition.
+     */
     protected HashSet<Integer> indicesSatisfying(Predicate<Command<?>> condition){
         HashSet<Integer> indices = new HashSet<>();
         for(int i=0;i<children.size();i++)
@@ -68,14 +78,16 @@ public abstract class Command<T> {
         return indices;
     }
 
+    /**
+     * @return The child at the given index.
+     */
     protected Command<?> getChild(int index){
         return this.children.get(index);
     }
 
-    protected List<Command<?>> getChildren(){
-        return this.children;
-    }
-
+    /**
+     * @return The number of children this command has.
+     */
     protected int getNbChildren(){
         return this.children.size();
     }
@@ -95,9 +107,8 @@ public abstract class Command<T> {
      *
      * @param task
      * The task to check.
-     * @return True when the task's activity is still null and
-     *          this Command doesn't have a task yet.
-     * | result == (task.getActivity()==null) && (!this.isTaskSet())
+     * @return True when the task's activity is set to this Command.
+     * | result == (task.getActivity()==this)
      */
     private boolean isValidTask(Task task) {
         return task.getActivity()==this;
@@ -113,6 +124,8 @@ public abstract class Command<T> {
      * @post The currentTask of this new Command is equal to
      * the given task.
      * | new.getCurrentTask() == task
+     * @post The Command's progress is reset.
+     *       | this.getCurrentChild() == 0 ; this.executedChildren.size() == 0
      */
     @Raw
     private void setCurrentTask(Task task) throws IllegalArgumentException {
@@ -123,18 +136,24 @@ public abstract class Command<T> {
         this.currentChild = 0;
     }
 
+    /**
+     * Set the currentTask of this Command and all its children to null.
+     */
     private void resetCurrentTask(){
-        for(Command<?> child : this.children)
+        for(Command<?> child : this)
             child.resetCurrentTask();
         this.currentTask = null;
     }
 
+    /**
+     * @return Boolean value indicating whether this Command's currentTask is null or not.
+     */
     private boolean isCurrentTaskSet(){
         return this.currentTask!=null;
     }
 
     /**
-     *
+     * Run this command.
      * @return
      * @throws IllegalStateException
      * @throws NullPointerException
@@ -156,7 +175,7 @@ public abstract class Command<T> {
             throw new IllegalStateException("This command is not linked to any task yet, so it can't be executed.");
         if(this.getRunner().isStopping() || this.getRunner().isPausing())
             return null;// We are stopping / pausing
-        int childIndex = this.getChildren().indexOf(child);
+        int childIndex = this.children.indexOf(child);
         if(childIndex<currentChild && !executedChildren.contains(childIndex))
             throw new IllegalArgumentException("The given child command should be run before the currently running command.");
         setCurrentChild(childIndex);
@@ -196,5 +215,15 @@ public abstract class Command<T> {
         if(!this.getCurrentTask().isRunning())
             throw new IllegalStateException("The task linked to this command is not running yet, so there's no runner available.");
         return this.getCurrentTask().getRunner();
+    }
+
+    /**
+     * Returns an iterator over elements of type {@code Command<?>}.
+     *
+     * @return an Iterator.
+     */
+    @Override
+    public Iterator<Command<?>> iterator() {
+        return this.children.iterator();
     }
 }

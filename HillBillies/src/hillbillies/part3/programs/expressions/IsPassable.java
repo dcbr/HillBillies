@@ -22,8 +22,8 @@ public class IsPassable extends UnaryExpression<Vector, Boolean> {
 	 *
 	 * @param position The value of the child expression. This value is guaranteed
 	 *              to be not null.
-	 * @return The value this expression should return based on the given value
-	 * of its child expression.
+	 * @return True if the cube, associated to the given position, in the executing
+	 * 			unit's world is passable. False otherwise
 	 */
 	@Override
 	protected Boolean compute(Vector position) {

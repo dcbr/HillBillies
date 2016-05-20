@@ -10,7 +10,10 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.util.Arrays;
+
 import static hillbillies.tests.util.TestHelper.advanceTimeFor;
+import static hillbillies.tests.util.TestHelper.runStatementFor;
 
 /**
  * Test class for the TaskFactory class
@@ -57,7 +60,11 @@ public class TaskFactoryTest {
 
     @Test
     public void createAssignment() throws Exception {
+        Statement a1 = f.createAssignment("test", new True(), null);
+        Statement a2 = f.createAssignment("test", new HerePosition(), null);
+        Statement s = f.createSequence(Arrays.asList(a1, a2), null);// TODO: moet classcastexception throwen maar doet het niet
 
+        runStatementFor(u, s, 0.2);
     }
 
     @Test

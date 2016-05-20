@@ -241,10 +241,8 @@ public class SchedulerTest {
         scheduler1.addTask(task2);
         assertEquals(task2, scheduler1.getHighestPriorityNotRunningTask());
         scheduler1.schedule(task2, unit11);
-        task2.run();
         assertEquals(task1, scheduler1.getHighestPriorityNotRunningTask());
         scheduler1.schedule(task1, unit12);
-        task1.run();
         assertEquals(null, scheduler1.getHighestPriorityNotRunningTask());
         scheduler1.deschedule(task2);
         assertEquals(task2, scheduler1.getHighestPriorityNotRunningTask());
@@ -297,7 +295,6 @@ public class SchedulerTest {
     @Test
     public void deschedule() throws Exception {
         scheduler1.schedule(task1, unit11);
-        task1.run();
         scheduler2.addTask(task2);
         scheduler2.schedule(task2, unit21);
 

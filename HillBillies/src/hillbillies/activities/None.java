@@ -59,7 +59,6 @@ public class None extends Activity {
                     setDefaultBehaviour();// No task available => do something random
                 else {
                     this.unit.getFaction().getScheduler().schedule(availableTask, unit);
-                    availableTask.run();
                 }
             }else{
                 this.unit.getTask().getRunner().advanceTask(dt);
@@ -141,9 +140,8 @@ public class None extends Activity {
             }
         }
         if (activity == 2) {
-            List<Vector> workPositions = unit.getWorld().getDirectlyAdjacentCubesPositions(unit.getPosition().getCubeCoordinates()); //TODO: geeft nullpointerException bij hillbillies.model.World.getDirectlyAdjacentCubesSatisfying(World.java:696)
-            workPositions.add(unit.getPosition());																// daar wordt er een cube gemapt, terwijl vector gevraagd is?
-            workPositions.removeIf(position -> !Work.isAccessible(unit, position));
+            List<Vector> workPositions = unit.getWorld().getDirectlyAdjacentCubesPositions(unit.getPosition().getCubeCoordinates());
+            workPositions.add(unit.getPosition());
             unit.work(workPositions.get(randInt(0,workPositions.size()-1)));
         }
         if (activity == 3){

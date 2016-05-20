@@ -35,7 +35,7 @@ public class LobbyWorld implements IWorld {
 	 */
 	@Override
 	public Vector getMinPosition() {
-		return null;
+		throw new NoSuchMethodError("This method is not supported by the lobby.");
 	}
 
 	/**
@@ -45,7 +45,7 @@ public class LobbyWorld implements IWorld {
 	 */
 	@Override
 	public Vector getMaxPosition() {
-		return null;
+		throw new NoSuchMethodError("This method is not supported by the lobby.");
 	}
 
 	/**
@@ -77,7 +77,7 @@ public class LobbyWorld implements IWorld {
 
 	@Override
 	public boolean isCubePassable(Vector vector){
-		return true;
+		throw new NoSuchMethodError("This method is not supported by the lobby.");
 	}
 
 	@Override
@@ -134,17 +134,17 @@ public class LobbyWorld implements IWorld {
 
 	@Override
 	public Set<Log> getLogs(boolean inCube) {
-		return null;
+		throw new NoSuchMethodError("This method is not supported by the lobby.");
 	}
 
 	@Override
 	public Set<Boulder> getBoulders(boolean inCube) {
-		return null;
+		throw new NoSuchMethodError("This method is not supported by the lobby.");
 	}
 
 	@Override
 	public Set<Unit> getUnits() {
-		return null;
+		throw new NoSuchMethodError("This method is not supported by the lobby.");
 	}
 
 	@Override
@@ -154,7 +154,7 @@ public class LobbyWorld implements IWorld {
 
 	@Override
 	public Set<Cube> getWorkshops() {
-		return null;
+		throw new NoSuchMethodError("This method is not supported by the lobby.");
 	}
 
 	@Override

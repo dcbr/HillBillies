@@ -63,7 +63,7 @@ public abstract class Statement extends Command<Void> {
     }
 
     protected boolean checkVariableAccess(HashSet<String> assignedVariables){
-        for(Command<?> child : this.getChildren()){
+        for(Command<?> child : this){
             if(child instanceof ReadVariable && !assignedVariables.contains(((ReadVariable<?>)child).getVariableName()))
                 return false;
             if(child instanceof Statement && !((Statement)child).checkVariableAccess(assignedVariables))
@@ -75,7 +75,7 @@ public abstract class Statement extends Command<Void> {
     }
 
     protected boolean checkBreak(){
-        for(Command<?> child : this.getChildren())
+        for(Command<?> child : this)
             if(child instanceof Break || (child instanceof Statement && !((Statement)child).checkBreak()))
                 return false;
         return true;

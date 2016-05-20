@@ -251,6 +251,7 @@ public class Task implements Comparable<Task> {
         if (! isValidAssignedUnit(assignedUnit))
             throw new IllegalArgumentException();
         this.assignedUnit = assignedUnit;
+        this.run();
     }
 
     /**
@@ -406,7 +407,7 @@ public class Task implements Comparable<Task> {
         return this.getPriority()-o.getPriority();
     }
 
-    public void run(){
+    private void run(){
         if(!this.getActivity().check())
             throw new IllegalStateException("This task's activity is not well-formed.");
         if(runner!=null)
@@ -525,7 +526,7 @@ public class Task implements Comparable<Task> {
         }
 
         public double getDt(){
-            return dt;// tODO
+            return dt;
         }
 
         public void consumeDt(){

@@ -22,8 +22,8 @@ public class IsSolid extends UnaryExpression<Vector, Boolean> {
 	 *
 	 * @param position The value of the child expression. This value is guaranteed
 	 *              to be not null.
-	 * @return The value this expression should return based on the given value
-	 * of its child expression.
+	 * @return False if the cube, associated to the given position, in the executing
+	 * 			unit's world is passable. True otherwise
 	 */
 	@Override
 	protected Boolean compute(Vector position) {

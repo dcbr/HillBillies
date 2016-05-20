@@ -19,6 +19,11 @@ public class CarriesItem extends UnaryExpression<Unit, Boolean> {
 		super(Boolean.class, Unit.class, unit);
 	}
 
+	/**
+	 * @param unit The value of the child expression. This value is guaranteed
+	 *              to be not null.
+	 * @return | unit.isCarryingMaterial()
+	 */
 	@Override
 	protected Boolean compute(Unit unit) {
 		return unit.isCarryingMaterial();

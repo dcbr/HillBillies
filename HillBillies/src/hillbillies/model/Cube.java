@@ -78,7 +78,6 @@ public class Cube extends WorldObject {
 
     @Override
     protected boolean validatePosition(Vector position){
-        // TODO
         return this.getWorld().getCube(position)==null || this.getWorld().getCube(position)==this;
     }
 

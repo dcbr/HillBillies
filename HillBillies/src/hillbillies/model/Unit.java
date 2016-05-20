@@ -993,8 +993,8 @@ public class Unit extends WorldObject {
 	 */
 	public Unit(IWorld world, String name, Vector position, int strength, int agility, int toughness, int weight, int stamina, int hitpoints) throws IllegalArgumentException {
 		super(world, position.add(Cube.CUBE_SIDE_LENGTH/2));
-		/*if(world.getNbUnits() >= world.MAX_UNITS) // TODO
-			throw new IllegalArgumentException("The given world has reached its maximum number of units.");*/
+		if(world.getNbUnits() >= World.MAX_UNITS)
+			throw new IllegalArgumentException("The given world has reached its maximum number of units.");
 		world.addUnit(this);
 
 		this.Id = ID;
@@ -1250,7 +1250,6 @@ public class Unit extends WorldObject {
 	 * 			|this.isTerminated()
 	 */
 	public void rest() throws IllegalStateException{
-		//activityController.
 		requestNewActivity(new Rest(this));
 	}
 
@@ -1268,7 +1267,6 @@ public class Unit extends WorldObject {
 	 * 		|this.isTerminated()	
 	 */
 	public void work(Vector position) throws IllegalStateException, IllegalArgumentException{
-		//activityController.
 		requestNewActivity(new Work(this, position));
 	}
 	/**
@@ -1663,8 +1661,7 @@ public class Unit extends WorldObject {
 	 * 		| activity!=this.getCurrentActivity() || !activity.isActive())
 	 */
 	public void requestActivityFinish(Activity activity, boolean finishParent) throws IllegalArgumentException{
-		// TODO: maybe change this to reportActivityFinish and check for inactiviy of current activity and then resume previous in stack
-		if(activity == null) 
+		if(activity == null)
 			throw new IllegalArgumentException("Invalid activity.");
 		if(activity.getUnitId()!=Unit.this.getId())
 			throw new IllegalArgumentException("This activity is not bound to this unit.");

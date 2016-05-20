@@ -24,8 +24,8 @@ public class PositionOfUnit extends UnaryExpression<Unit, Vector> {
 	 *
 	 * @param unit The value of the child expression. This value is guaranteed
 	 *              to be not null.
-	 * @return The value this expression should return based on the given value
-	 * of its child expression.
+	 * @return The given unit's position
+	 * 			| unit.getPosition()
 	 */
 	@Override
 	protected Vector compute(Unit unit) {

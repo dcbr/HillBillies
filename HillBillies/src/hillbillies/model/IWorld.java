@@ -14,6 +14,14 @@ import hillbillies.utils.Vector;
  * Created by Bram on 2-4-2016.
  */
 public interface IWorld {
+    /**
+     * Constant reflecting the maximum units in a world.
+     */
+    int MAX_UNITS = 100;
+    /**
+     * Constant reflecting the maximum factions in a world.
+     */
+    int MAX_FACTIONS = 5;
 
     /**
      * Check whether the given position is a valid position

@@ -27,8 +27,8 @@ public class NextToPosition extends UnaryExpression<Vector, Vector> {
 	 *
 	 * @param position The value of the child expression. This value is guaranteed
 	 *              to be not null.
-	 * @return The value this expression should return based on the given value
-	 * of its child expression.
+	 * @return A valid position next to the given position. Null if no such position
+	 * 			is available.
 	 */
 	@Override
 	protected Vector compute(Vector position) {

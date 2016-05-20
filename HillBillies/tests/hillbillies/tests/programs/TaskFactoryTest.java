@@ -482,7 +482,7 @@ public class TaskFactoryTest {
 
     @Test
     public void createNextToPosition() throws Exception {
-        Statement p = new Print(f.createNextToPosition(new This(), null));
+        Statement p = new Print(f.createNextToPosition(new PositionOfUnit(new This()), null));
 
         runStatementFor(u, p, 0.2);
         System.out.println("The above should print (0,0,0)");

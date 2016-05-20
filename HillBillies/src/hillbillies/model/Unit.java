@@ -1566,18 +1566,24 @@ public class Unit extends WorldObject {
 	 * 		The cube where the change happened.
 	 * @effect If the unit is moving, the activity will be stopped.
 	 * | this.requestActivityFinish(this.getCurrentActivity())
+	 * 
 	 */
 	public void notifyTerrainChange(Terrain oldTerrain, Cube cube){
 		if(!this.isFalling() && this.isMoving()){
 			if(this.isExecuting(AdjacentMove.class)){
 				if(this.getCurrentActivity().isParentActivity(null)){
+					try{
 					this.restartActivity();
+					}catch(Exception e){
+						this.stopCurrentActivity(false);
+						this.requestNewActivity(NONE);
+					}
 					return;
 				}	
 				else{
 					Vector target = ((AdjacentMove)this.getCurrentActivity()).getNextPosition();
 					this.requestActivityFinish(this.getCurrentActivity());
-					((TargetMove)this.getCurrentActivity()).addLast(target.getCubeCoordinates());
+					((TargetMove)this.getCurrentActivity()).add(target.getCubeCoordinates());
 				}
 			}
 			assert this.getCurrentActivity() instanceof TargetMove;

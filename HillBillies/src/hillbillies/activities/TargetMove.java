@@ -119,8 +119,14 @@ public class TargetMove extends Move {
         }
         if(this.path!=null && this.path.hasNext()){
         	Vector nextblub = path.getNext();
-            AdjacentMove nextMove = new AdjacentMove(unit, nextblub.difference(cpos), this.isSprinting(), this);
-            unit.requestNewActivity(nextMove);
+            try{
+            	AdjacentMove nextMove = new AdjacentMove(unit, nextblub.difference(cpos), this.isSprinting(), this);
+            	unit.requestNewActivity(nextMove);
+            }catch(Exception e){
+            	if(!calculatePath(unit.getPosition().getCubeCoordinates(), this.path.getTarget()))
+                    this.requestFinish();
+            }
+            
         }else if(this == unit.getCurrentActivity())
             requestFinish();
     }
@@ -158,8 +164,7 @@ public class TargetMove extends Move {
             if(!calculatePath(unit.getPosition().getCubeCoordinates(), this.path.getTarget()))
                 this.requestFinish();
         }
-        else
-        	calculatePath(unit.getPosition().getCubeCoordinates(), this.path.getNext());
+
     }
     
 	public Vector getNearestPos(){
@@ -173,8 +178,8 @@ public class TargetMove extends Move {
     private boolean hasNextLeader(){
         return !this.targets.isEmpty();
     }
-    public void addLast(Vector position){
-    	this.path.addLast(position);
+    public void add(Vector position){
+    	this.path.add(position);
     }
     
     private static boolean isValidLeader(IWorldObject leader){
@@ -383,14 +388,13 @@ public class TargetMove extends Move {
             adjacentPositions.removeIf(adjPos -> unit.getWorld().isCubePassable(adjPos));
             pathPositions.addAll(adjacentPositions);
         }
-        public void addLast(Vector position){
+  /*     public void addLast(Vector position){
         	path.addLast(position);
-        	pathPositions.add(position);
-            /*List<Vector> adjacentPositions = unit.getWorld().getDirectlyAdjacentCubesPositions(position);*/
+        	pathPositions.add(position);/
         	List<Vector> adjacentPositions = unit.getWorld().getNeighbouringCubesPositions(position);
             adjacentPositions.removeIf(adjPos -> unit.getWorld().isCubePassable(adjPos));
             pathPositions.addAll(adjacentPositions);
-        }
+        }*/
 
         /**
          * Remove the pathPositions that became redundant by removing oldEndPosition.

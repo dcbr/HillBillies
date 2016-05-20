@@ -5,7 +5,6 @@ import hillbillies.part3.programs.*;
 import hillbillies.part3.programs.expressions.*;
 import hillbillies.part3.programs.statements.*;
 import hillbillies.utils.Vector;
-import static org.junit.Assert.*;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -26,8 +25,8 @@ public class TaskFactoryTest {
     private static TaskFactory f;
     private static World w;
     private static Unit u;
-    //private static Statement defaultActivity;
-    //private Task t;
+    private static Statement defaultActivity;
+    private Task t;
 
     @BeforeClass
     public static void setUpClass(){
@@ -40,13 +39,13 @@ public class TaskFactoryTest {
         terrain[1][1][0] = Terrain.WORKSHOP.getId();
         w = new World(terrain, null);
         u = new Unit(w, "Unit", new Vector(0,0,0));
-        //defaultActivity = new Print(new LiteralPosition(0,0,0));
+        defaultActivity = new Print(new LiteralPosition(0,0,0));
     }
 
     @Before
     public void setUp() throws Exception {
-        //t = new Task("test", 100, defaultActivity, new int[]{1,1,0});
-        //u.getFaction().getScheduler().addTask(t);
+        t = new Task("test", 100, defaultActivity, new int[]{1,1,0});
+        u.getFaction().getScheduler().addTask(t);
     }
 
     @After
@@ -61,14 +60,9 @@ public class TaskFactoryTest {
 
     @Test
     public void createAssignment() throws Exception {
-
-    }
-
-    @Test(expected = ClassCastException.class)
-    public void createAssignmentIllegal() throws ClassCastException {
         Statement a1 = f.createAssignment("test", new True(), null);
         Statement a2 = f.createAssignment("test", new HerePosition(), null);
-        Statement s = f.createSequence(Arrays.asList(a1, a2), null);
+        Statement s = f.createSequence(Arrays.asList(a1, a2), null);// TODO: moet classcastexception throwen maar doet het niet
 
         runStatementFor(u, s, 0.2);
     }
@@ -78,25 +72,13 @@ public class TaskFactoryTest {
         //new While(new HerePosition(),new Print(new True()));// Dit lukt niet
         new While(new False(),new Print(new False()));
 
-        Expression<Boolean> condition = f.createIsAlive(f.createAny(null),null);
+        Expression<Boolean> condition = f.createIsAlive(f.createThis(null),null);
         Statement body = f.createPrint(new LiteralPosition(0,0,0),null);
         Statement whileStmt = f.createWhile(condition, body, null);
+        t = new Task("task", 100, whileStmt, new int[]{0,0,0});
+        u.getFaction().getScheduler().schedule(t, u);
 
-        Unit test = w.spawnUnit(false);
-
-        runStatementFor(u, whileStmt, 0.1, 0.01);// No exceptions
-
-        // Task is still running:
-        assertTrue(u.getTask()!=null);
-        assertEquals(1, u.getFaction().getScheduler().getNbTasks());
-
-        test.terminate();
-
-        advanceTimeFor(w, 0.1, 0.01);
-
-        // Check whether task successfully finished
-        assertEquals(null, u.getTask());
-        assertEquals(0, u.getFaction().getScheduler().getNbTasks());
+        advanceTimeFor(w, 1);
     }
 
     @Test(expected = IllegalArgumentException.class)

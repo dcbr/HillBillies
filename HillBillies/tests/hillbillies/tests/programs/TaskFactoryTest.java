@@ -6,6 +6,7 @@ import hillbillies.part3.programs.*;
 import hillbillies.part3.programs.expressions.*;
 import hillbillies.part3.programs.statements.*;
 import hillbillies.utils.Vector;
+import static org.junit.Assert.*;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -29,32 +30,30 @@ public class TaskFactoryTest {
     private static TaskFactory f;
     private static World w;
     private static Unit u;
-    private static Statement defaultActivity;
-    private Task t;
+    private static int[][][] terrain;
+    //private static Statement defaultActivity;
+    //private Task t;
 
     @BeforeClass
     public static void setUpClass(){
         f = new TaskFactory();
-        int[][][] terrain = new int[3][3][10];
+        terrain = new int[3][3][10];
         for(int i=1;i<8;i+=2) {
             terrain[1][1][i] = Terrain.ROCK.getId();
             terrain[1][1][i+1] = Terrain.WOOD.getId();
         }
         terrain[1][1][0] = Terrain.WORKSHOP.getId();
-        w = new World(terrain, null);
-        u = new Unit(w, "Unit", new Vector(0,0,0));
-        defaultActivity = new Print(new LiteralPosition(0,0,0));
     }
 
     @Before
     public void setUp() throws Exception {
-        t = new Task("test", 100, defaultActivity, new int[]{1,1,0});
-        u.getFaction().getScheduler().addTask(t);
+        w = new World(terrain, null);
+        u = new Unit(w, "Unit", new Vector(0,0,0));
     }
 
     @After
     public void tearDown() throws Exception {
-    	
+
     }
 
     @Test
@@ -93,11 +92,11 @@ public class TaskFactoryTest {
         assertEquals(0, u.getFaction().getScheduler().getNbTasks());
     }
 
-    @Test(expected = ClassCastException.class)
-    public void createAssignmentIllegal() throws ClassCastException {
+    @Test(expected = IllegalArgumentException.class)
+    public void createAssignmentIllegal() throws IllegalArgumentException {
         Statement a1 = f.createAssignment("test", new True(), null);
         Statement a2 = f.createAssignment("test", new HerePosition(), null);
-        Statement s = f.createSequence(Arrays.asList(a1, a2), null);// TODO: moet classcastexception throwen maar doet het niet
+        Statement s = f.createSequence(Arrays.asList(a1, a2), null);
 
         runStatementFor(u, s, 0.2);
     }
@@ -107,13 +106,25 @@ public class TaskFactoryTest {
         //new While(new HerePosition(),new Print(new True()));// Dit lukt niet
         new While(new False(),new Print(new False()));
 
-        Expression<Boolean> condition = f.createIsAlive(f.createThis(null),null);
+        Expression<Boolean> condition = f.createIsAlive(f.createAny(null),null);
         Statement body = f.createPrint(new LiteralPosition(0,0,0),null);
         Statement whileStmt = f.createWhile(condition, body, null);
-        t = new Task("task", 100, whileStmt, new int[]{0,0,0});
-        u.getFaction().getScheduler().schedule(t, u);
 
-        advanceTimeFor(w, 1);
+        Unit test = w.spawnUnit(false);
+
+        runStatementFor(u, whileStmt, 0.1, 0.01);// No exceptions
+
+        // Task is still running:
+        assertTrue(u.getTask()!=null);
+        assertEquals(1, u.getFaction().getScheduler().getNbTasks());
+
+        test.terminate();
+
+        advanceTimeFor(w, 0.1, 0.01);
+
+        // Check whether task successfully finished
+        assertEquals(null, u.getTask());
+        assertEquals(0, u.getFaction().getScheduler().getNbTasks());
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -153,7 +164,7 @@ public class TaskFactoryTest {
     @Test
     public void createBreak() throws Exception {
         Expression<Boolean> condition = f.createTrue(null);
-        Statement body = f.createIf(new CarriesItem(new This()), new Break(), null, null);
+        Statement body = f.createIf(new CarriesItem(new This()), f.createBreak(null), null, null);
         Statement stmt = f.createWhile(condition, body, null);
 
         runStatementFor(u, stmt, 0.2);
@@ -173,27 +184,66 @@ public class TaskFactoryTest {
 
     @Test
     public void createPrint() throws Exception {
+        Statement print = f.createPrint(new True(), null);
 
+        runStatementFor(u, print, 0.2);
+        System.out.println("True should be printed.");
+
+        // Check whether task successfully finished
+        assertEquals(null, u.getTask());
+        assertEquals(0, u.getFaction().getScheduler().getNbTasks());
     }
 
     @Test
     public void createSequence() throws Exception {
+        Statement sequence = f.createSequence(Arrays.asList(new Print(new True()), new Print(new False())), null);
 
+        runStatementFor(u, sequence, 0.2);
+        System.out.println("The above should print True, False.");
+
+        // Check whether task successfully finished
+        assertEquals(null, u.getTask());
+        assertEquals(0, u.getFaction().getScheduler().getNbTasks());
     }
 
     @Test
     public void createMoveTo() throws Exception {
+        Statement move = f.createMoveTo(new LiteralPosition(0,1,0), null);
 
+        runStatementFor(u, move, 2);
+
+        // Check whether task successfully finished
+        assertEquals(null, u.getTask());
+        assertEquals(0, u.getFaction().getScheduler().getNbTasks());
+        assertEquals(new Vector(0,1,0), u.getPosition().getCubeCoordinates());
     }
 
     @Test
     public void createWork() throws Exception {
+        Statement work = f.createWork(new LiteralPosition(1,0,0), null);
 
+        new Boulder(w, w.getCube(new Vector(1,0,0)));
+
+        runStatementFor(u, work, 1 + 500/u.getStrength());
+
+        // Check whether task successfully finished
+        assertEquals(null, u.getTask());
+        assertEquals(0, u.getFaction().getScheduler().getNbTasks());
+        assertTrue(u.isCarryingBoulder());
     }
 
     @Test
     public void createFollow() throws Exception {
+        Statement follow = f.createFollow(new Any(), null);
 
+        Unit test = new Unit(w, "Test", new Vector(2,2,0));
+
+        runStatementFor(u, follow, 6);
+
+        // Check whether task successfully finished
+        assertEquals(null, u.getTask());
+        assertEquals(0, u.getFaction().getScheduler().getNbTasks());
+        assertTrue(w.getNeighbouringCubesPositions(u.getPosition().getCubeCoordinates()).contains(new Vector(2,2,0)));
     }
 
     @Test

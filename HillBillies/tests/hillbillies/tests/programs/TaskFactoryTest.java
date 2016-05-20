@@ -248,87 +248,248 @@ public class TaskFactoryTest {
 
     @Test
     public void createAttack() throws Exception {
+        Statement attack = f.createAttack(new Any(), null);
 
+        Unit defender = new Unit(w, "Defender", new Vector(1,0,0));
+
+        runStatementFor(u, attack, 0.1, 0.1);
+
+        assertTrue(u.isAttacking());
+
+        advanceTimeFor(w, 1);
+
+        // Check whether task successfully finished
+        assertEquals(null, u.getTask());
+        assertEquals(0, u.getFaction().getScheduler().getNbTasks());
     }
 
     @Test
     public void createReadVariable() throws Exception {
+        Statement stmt = f.createSequence(Arrays.asList(f.createAssignment("w", new True(), null), new Print(f.createReadVariable("w", null))), null);
 
+        runStatementFor(u, stmt, 0.2);
+        System.out.println("The above should print True");
+
+        // Check whether task successfully finished
+        assertEquals(null, u.getTask());
+        assertEquals(0, u.getFaction().getScheduler().getNbTasks());
     }
 
     @Test
     public void createIsSolid() throws Exception {
+        Expression<Boolean> condition = new Not(f.createIsSolid(new LiteralPosition(1,0,0), null));
+        Statement ifBody = new MoveTo(new LiteralPosition(1,0,0));
+        Statement stmt = f.createIf(condition, ifBody, null, null);
 
+        runStatementFor(u, stmt, 2);
+
+        // Check whether task successfully finished
+        assertEquals(null, u.getTask());
+        assertEquals(0, u.getFaction().getScheduler().getNbTasks());
+        assertEquals(new Vector(1,0,0), u.getPosition().getCubeCoordinates());
     }
 
     @Test
     public void createIsPassable() throws Exception {
+        Expression<Boolean> condition = f.createIsSolid(new LiteralPosition(1,0,0), null);
+        Statement ifBody = new MoveTo(new LiteralPosition(1,0,0));
+        Statement stmt = f.createIf(condition, ifBody, null, null);
 
+        runStatementFor(u, stmt, 2);
+
+        // Check whether task successfully finished
+        assertEquals(null, u.getTask());
+        assertEquals(0, u.getFaction().getScheduler().getNbTasks());
+        assertEquals(new Vector(1,0,0), u.getPosition().getCubeCoordinates());
     }
 
     @Test
     public void createIsFriend() throws Exception {
+        Unit test = w.spawnUnit(false);
+        Statement p = new Print(f.createIsFriend(new Expression<Unit>(Unit.class) {
+            @Override
+            public Unit evaluate() throws NullPointerException {
+                return test;
+            }
+        }, null));
 
+        runStatementFor(u, p, 0.2);
+        System.out.println("The above should print False");
+
+        // Check whether task successfully finished
+        assertEquals(null, u.getTask());
+        assertEquals(0, u.getFaction().getScheduler().getNbTasks());
     }
 
     @Test
     public void createIsEnemy() throws Exception {
+        Unit test = w.spawnUnit(false);
+        Statement p = new Print(f.createIsEnemy(new Expression<Unit>(Unit.class) {
+            @Override
+            public Unit evaluate() throws NullPointerException {
+                return test;
+            }
+        }, null));
 
+        runStatementFor(u, p, 0.2);
+        System.out.println("The above should print True");
+
+        // Check whether task successfully finished
+        assertEquals(null, u.getTask());
+        assertEquals(0, u.getFaction().getScheduler().getNbTasks());
     }
 
     @Test
     public void createIsAlive() throws Exception {
+        Unit test = w.spawnUnit(false);
+        Statement p = new Print(f.createIsAlive(new Expression<Unit>(Unit.class) {
+            @Override
+            public Unit evaluate() throws NullPointerException {
+                return test;
+            }
+        }, null));
 
+        runStatementFor(u, p, 0.2);
+        System.out.println("The above should print True");
+
+        // Check whether task successfully finished
+        assertEquals(null, u.getTask());
+        assertEquals(0, u.getFaction().getScheduler().getNbTasks());
+
+        test.terminate();
+        advanceTimeFor(w, 0.2);
+
+        runStatementFor(u, p, 0.2);
+        System.out.println("The above should print False");
+
+        // Check whether task successfully finished
+        assertEquals(null, u.getTask());
+        assertEquals(0, u.getFaction().getScheduler().getNbTasks());
     }
 
     @Test
     public void createCarriesItem() throws Exception {
+        Unit test = w.spawnUnit(false);
+        Statement p = new Print(f.createCarriesItem(new Expression<Unit>(Unit.class) {
+            @Override
+            public Unit evaluate() throws NullPointerException {
+                return test;
+            }
+        }, null));
 
+        runStatementFor(u, p, 0.2);
+        System.out.println("The above should print False");
+
+        // Check whether task successfully finished
+        assertEquals(null, u.getTask());
+        assertEquals(0, u.getFaction().getScheduler().getNbTasks());
+
+        new Boulder(w, test);
+        advanceTimeFor(w, 0.2);
+
+        runStatementFor(u, p, 0.2);
+        System.out.println("The above should print True");
+
+        // Check whether task successfully finished
+        assertEquals(null, u.getTask());
+        assertEquals(0, u.getFaction().getScheduler().getNbTasks());
     }
 
     @Test
     public void createNot() throws Exception {
-
+        Statement stmt = f.createPrint(f.createNot(new False(), null), null);
+        runStatementFor(u, stmt, 0.2);
+        System.out.println("The above test should print 'true'");
     }
 
     @Test
     public void createAnd() throws Exception {
-
+        Statement stmt = f.createPrint(f.createAnd(new True(), new False(), null), null);
+        runStatementFor(u, stmt, 0.2);
+        System.out.println("The above test should print 'false'");
     }
 
     @Test
     public void createOr() throws Exception {
-
+        Statement stmt = f.createPrint(f.createOr(new True(), new False(), null), null);
+        runStatementFor(u, stmt, 0.2);
+        System.out.println("The above test should print 'true'");
     }
 
     @Test
     public void createHerePosition() throws Exception {
+        Statement p = new Print(f.createHerePosition(null));
 
+        runStatementFor(u, p, 0.2);
+        System.out.println("The above should print " + u.getPosition());
+
+        // Check whether task successfully finished
+        assertEquals(null, u.getTask());
+        assertEquals(0, u.getFaction().getScheduler().getNbTasks());
     }
 
     @Test
     public void createLogPosition() throws Exception {
+        Statement p = new Print(f.createLogPosition(null));
 
+        new Log(w, w.getCube(new Vector(1,0,0)));
+
+        runStatementFor(u, p, 0.2);
+        System.out.println("The above should print (1,0,0)");
+
+        // Check whether task successfully finished
+        assertEquals(null, u.getTask());
+        assertEquals(0, u.getFaction().getScheduler().getNbTasks());
     }
 
     @Test
     public void createBoulderPosition() throws Exception {
+        Statement p = new Print(f.createBoulderPosition(null));
 
+        new Boulder(w, w.getCube(new Vector(1,0,0)));
+
+        runStatementFor(u, p, 0.2);
+        System.out.println("The above should print (1,0,0)");
+
+        // Check whether task successfully finished
+        assertEquals(null, u.getTask());
+        assertEquals(0, u.getFaction().getScheduler().getNbTasks());
     }
 
     @Test
     public void createWorkshopPosition() throws Exception {
+        Statement p = new Print(f.createWorkshopPosition(null));
 
+        runStatementFor(u, p, 0.2);
+        System.out.println("The above should print (1,1,0)");
+
+        // Check whether task successfully finished
+        assertEquals(null, u.getTask());
+        assertEquals(0, u.getFaction().getScheduler().getNbTasks());
     }
 
     @Test
     public void createSelectedPosition() throws Exception {
+        Statement p = new Print(f.createSelectedPosition(null));
 
+        runStatementFor(u, p, 0.2);
+        System.out.println("The above should print (0,0,0)");
+
+        // Check whether task successfully finished
+        assertEquals(null, u.getTask());
+        assertEquals(0, u.getFaction().getScheduler().getNbTasks());
     }
 
     @Test
     public void createNextToPosition() throws Exception {
+        Statement p = new Print(f.createNextToPosition(new This(), null));
 
+        runStatementFor(u, p, 0.2);
+        System.out.println("The above should print (0,0,0)");
+
+        // Check whether task successfully finished
+        assertEquals(null, u.getTask());
+        assertEquals(0, u.getFaction().getScheduler().getNbTasks());
     }
 
     @Test

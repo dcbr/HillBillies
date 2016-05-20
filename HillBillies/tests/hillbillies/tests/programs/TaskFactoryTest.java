@@ -291,7 +291,7 @@ public class TaskFactoryTest {
 
     @Test
     public void createIsPassable() throws Exception {
-        Expression<Boolean> condition = f.createIsSolid(new LiteralPosition(1,0,0), null);
+        Expression<Boolean> condition = f.createIsPassable(new LiteralPosition(1,0,0), null);
         Statement ifBody = new MoveTo(new LiteralPosition(1,0,0));
         Statement stmt = f.createIf(condition, ifBody, null, null);
 

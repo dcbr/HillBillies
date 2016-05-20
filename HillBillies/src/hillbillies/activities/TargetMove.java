@@ -158,6 +158,8 @@ public class TargetMove extends Move {
             if(!calculatePath(unit.getPosition().getCubeCoordinates(), this.path.getTarget()))
                 this.requestFinish();
         }
+        else
+        	calculatePath(unit.getPosition().getCubeCoordinates(), this.path.getNext());
     }
     
 	public Vector getNearestPos(){
@@ -171,7 +173,10 @@ public class TargetMove extends Move {
     private boolean hasNextLeader(){
         return !this.targets.isEmpty();
     }
-
+    public void addLast(Vector position){
+    	this.path.addLast(position);
+    }
+    
     private static boolean isValidLeader(IWorldObject leader){
         if(leader==null || leader.isTerminated()) return false;
         if(leader instanceof Unit && ((Unit)leader).isFalling()) return false;
@@ -372,6 +377,14 @@ public class TargetMove extends Move {
 
         public void add(Vector position){
         	path.addFirst(position);
+        	pathPositions.add(position);
+            /*List<Vector> adjacentPositions = unit.getWorld().getDirectlyAdjacentCubesPositions(position);*/
+        	List<Vector> adjacentPositions = unit.getWorld().getNeighbouringCubesPositions(position);
+            adjacentPositions.removeIf(adjPos -> unit.getWorld().isCubePassable(adjPos));
+            pathPositions.addAll(adjacentPositions);
+        }
+        public void addLast(Vector position){
+        	path.addLast(position);
         	pathPositions.add(position);
             /*List<Vector> adjacentPositions = unit.getWorld().getDirectlyAdjacentCubesPositions(position);*/
         	List<Vector> adjacentPositions = unit.getWorld().getNeighbouringCubesPositions(position);

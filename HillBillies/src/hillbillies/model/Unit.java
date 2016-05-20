@@ -1571,12 +1571,14 @@ public class Unit extends WorldObject {
 		if(!this.isFalling() && this.isMoving()){
 			if(this.isExecuting(AdjacentMove.class)){
 				if(this.getCurrentActivity().isParentActivity(null)){
-					//Vector target = ((AdjacentMove)this.getCurrentActivity()).getNextPosition();
 					this.restartActivity();
 					return;
 				}	
-				else
+				else{
+					Vector target = ((AdjacentMove)this.getCurrentActivity()).getNextPosition();
 					this.requestActivityFinish(this.getCurrentActivity());
+					((TargetMove)this.getCurrentActivity()).addLast(target.getCubeCoordinates());
+				}
 			}
 			assert this.getCurrentActivity() instanceof TargetMove;
 			((TargetMove)this.getCurrentActivity()).notifyTerrainChange(oldTerrain, cube);

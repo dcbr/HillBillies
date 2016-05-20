@@ -178,7 +178,7 @@ public class AdjacentMove extends Move {
         super.stopSprint();
         if(targetMove!=null) targetMove.stopSprint();// Let previous activity in stack (extended movement) know we stopped sprinting
     }
-    /*public Vector getNextPosition(){
+    public Vector getNextPosition(){
     	return this.nextPosition.clone();
-    }*/
+    }
 }

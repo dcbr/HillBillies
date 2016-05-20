@@ -15,10 +15,13 @@ public class Log extends Material {
      * @effect This new Log is initialized as a new Material with
      *         given owner in the given world.
      *       | super(world, owner)
-     * @throws IllegalArgumentException When the owneris not a valid owner.
+     * @throws IllegalArgumentException When the owner is not a valid owner.
      * 		| ! isValidOwner(owner)
      * @throws IllegalStateException When the owner has reached its maximum number of owned Materials
      * | owner.getMaxNbOwnedMaterials()!=-1 && owner.getNbOwnedMaterials()>=getMaxNbOwnedMaterials()
+     * @throws NullPointerException When the world is not an effective world 
+     * 			or when the owner is not effective.
+     * |world == null || owner == null
      */
     public Log(World world, WorldObject owner){
         super(world, owner);

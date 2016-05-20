@@ -13,8 +13,8 @@ import org.junit.runners.Suite;
  */
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
-        /*Part1TestPartial.class,*/
-        Part2TestPartial.class,
+        /*Part1TestPartial.class,
+        Part2TestPartial.class,*/
         Part3TestPartial.class,
         UnitTest.class,
         UtilsTest.class,

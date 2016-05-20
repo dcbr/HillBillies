@@ -602,7 +602,9 @@ public class UnitTest {
     	}catch(IllegalStateException e){
     		
     	}
-    	assertFalse(unitz.isWorking());
+    	assertTrue(unitz.isWorking());
+    	while(unitz.isWorking())
+    		unitz.advanceTime(0.2);
     	unitz.work(new Vector(22,21,0));
     	while(unitz.isWorking()||unitz.isResting()){
     		if (unitz.isResting() && !unitz.isInitialRestMode())

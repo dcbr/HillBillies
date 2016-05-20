@@ -18,11 +18,20 @@ public class Cube extends WorldObject {
      * Constant reflecting the length of a cube side.
      */
     public static final double CUBE_SIDE_LENGTH = 1;
-
+    /**
+     * Listener reflecting the terrain change.
+     */
     private BiConsumer<Terrain, Cube> terrainChangeListener;
-
+    /**
+     * Constant reflecting the collapsing time a cube side.
+     */
     private double collapseTime = -1;
-
+    /**
+     * 
+     * @param world
+     * @param position
+     * @param terrainChangeListener
+     */
     public Cube(World world, Vector position, BiConsumer<Terrain, Cube> terrainChangeListener){
         this(world, position, null, terrainChangeListener);// Null will result in the default Terrain type -> Terrain.AIR
     }
@@ -32,7 +41,11 @@ public class Cube extends WorldObject {
             throw new IllegalStateException("A passable cube cannot be collapsed.");
         this.collapseTime = 4d;
     }
-
+    /**
+     * Check whether this cube is collapsing.
+     * @return True if and only if the collapsing tie is positive.
+     * |result == (this.collapseTime>=0d)
+     */
     public boolean isCollapsing(){
         return this.collapseTime>=0d;
     }
@@ -67,6 +80,11 @@ public class Cube extends WorldObject {
      * | else new.getTerrain() == Terrain.AIR
      * @post This new cube has no materials yet.
      * | new.getNbMaterials() == 0
+     * @throws NullPointerException if the given world or position are not effective.
+     * |world == null || position==null
+     * @throws IllegalArgumentException * The given position is not a valid position for any
+     * WorldObject.
+     * | ! isValidPosition(getPosition())
      */
     public Cube(World world, Vector position, Terrain terrain, BiConsumer<Terrain, Cube> terrainChangeListener){
         super(world, position);
@@ -143,24 +161,45 @@ public class Cube extends WorldObject {
      * Variable registering the terrain of this Cube.
      */
     private Terrain terrain;
-
+	/**
+	 * Check whether this cube is passable.
+	 * @return True if and only if the terrain of this cube is passable.
+	 *       | result == this.getTerrain().isPassable()
+	 */
     public boolean isPassable(){
         return this.getTerrain().isPassable();
     }
 
-
+	/**
+	 * Check whether this cube contains a material.
+	 * @return True if and only if this cube is passable and this cube have more then 0 materials.
+	 *       | result == this.isPassable() && this.getNbOwnedMaterials()>0
+	 */
     public boolean containsMaterials(){
         return this.isPassable() && this.getNbOwnedMaterials()>0;
     }
-
+	/**
+	 * Check whether this cube contains a log.
+	 * @return True if and only if this cube contains materials of type log.
+	 *       | result == containsMaterialType(Log.class)
+	 */
     public boolean containsLogs(){
         return containsMaterialType(Log.class);
     }
-
+	/**
+	 * Check whether this cube contains a boulder.
+	 * @return True if and only if this cube contains materials of type boulder.
+	 *       | result == containsMaterialType(Boulder.class)
+	 */
     public boolean containsBoulders(){
         return containsMaterialType(Boulder.class);
     }
-
+	/**
+	 * Check whether this cube contains a the given type of material.
+	 * @return False if this cube contains no materials.
+	 *       | if (!this.containsMaterials()) 
+	 *       |	result == false
+	 */
     public boolean containsMaterialType(Class<? extends Material> material){
         if(this.containsMaterials()){
             for(Material m : this.ownedMaterials)
@@ -169,15 +208,30 @@ public class Cube extends WorldObject {
         }
         return false;
     }
-
+    /**
+     * Method to get a log from this cube
+     * @return  A log.
+     * 		| getMaterialOfType(Log.class)
+     */
     public Log getLog(){
         return getMaterialOfType(Log.class);
     }
-
+    /**
+    * Method to get a boulder from this cube
+    * @return  A Boulder.
+    * 		| getMaterialOfType(Boulder.class)
+    */
     public Boulder getBoulder(){
         return getMaterialOfType(Boulder.class);
     }
-
+    /**
+    * Method to get a T from this cube
+    * @param material The material.
+    * @return  It will return that given material.
+    * 		| result == material.class
+    * @throws IllegalArgumentException When this cube doesn't contain a material of given type.
+    * 		|(!this.containsMaterialType(material))
+    */
     public <T extends Material> T getMaterialOfType(Class<T> material){
         if(!this.containsMaterialType(material))
             throw new IllegalArgumentException("This cube doesn't contain a material of given type.");

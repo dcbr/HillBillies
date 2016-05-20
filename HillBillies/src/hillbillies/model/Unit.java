@@ -887,6 +887,11 @@ public class Unit extends WorldObject {
 	 * 			When the given name is invalid or the given world has
 	 * 			reached its maximum number of units.
 	 * 			| !isValidName(name) || world.getNbUnits() >= world.MAX_UNITS
+     * @throws NullPointerException if the given world or position are not effective.
+     * 			|world == null || position==null
+     * @throws IllegalArgumentException * The given position is not a valid position for any
+     * 				WorldObject.
+     * 			| ! isValidPosition(getPosition())
 	 */
 	public Unit(IWorld world, String name, Vector position) throws IllegalArgumentException {
 		this(world, name, position, INITIAL_MIN_STRENGTH, INITIAL_MIN_AGILITY, INITIAL_MIN_TOUGHNESS, INITIAL_MIN_WEIGHT, INITIAL_MIN_STAMINA, INITIAL_MIN_HITPOINTS);
@@ -906,7 +911,12 @@ public class Unit extends WorldObject {
 	 * @throws IllegalArgumentException
 	 * 			When the given name is invalid or the given world has
 	 * 			reached its maximum number of units.
-	 * 			| !isValidName(name) || world.getNbUnits() >= world.MAX_UNITS    
+	 * 			| !isValidName(name) || world.getNbUnits() >= world.MAX_UNITS 
+     * @throws NullPointerException if the given world or position are not effective.
+     * 			|world == null || position==null
+     * @throws IllegalArgumentException * The given position is not a valid position for any
+     * 				WorldObject.
+     * 			| ! isValidPosition(getPosition())   
      */
 	public Unit(IWorld world, String name, Vector position, int strength, int agility, int toughness, int weight){
 		this(world, name, position, strength, agility, toughness, weight, getMaxStamina(weight, toughness), getMaxHitpoints(weight, toughness));
@@ -990,10 +1000,15 @@ public class Unit extends WorldObject {
 	 * 			When the given name is invalid or the given world has
 	 * 			reached its maximum number of units.
 	 * 			| !isValidName(name) || world.getNbUnits() >= world.MAX_UNITS
+     * @throws NullPointerException if the given world or position are not effective.
+     * 			|world == null || position==null
+     * @throws IllegalArgumentException * The given position is not a valid position for any
+     * 				WorldObject.
+     * 			| ! isValidPosition(getPosition())
 	 */
 	public Unit(IWorld world, String name, Vector position, int strength, int agility, int toughness, int weight, int stamina, int hitpoints) throws IllegalArgumentException {
 		super(world, position.add(Cube.CUBE_SIDE_LENGTH/2));
-		if(world.getNbUnits() >= World.MAX_UNITS)
+		if(world.getClass() != LobbyWorld.class && world.getNbUnits() >= World.MAX_UNITS)//TODO ik heb effe lobbyworld omzeild, ma als we abstract maken, mag dit eventueel weg
 			throw new IllegalArgumentException("The given world has reached its maximum number of units.");
 		world.addUnit(this);
 

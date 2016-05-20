@@ -40,6 +40,11 @@ public abstract class WorldObject implements IWorldObject {
      * | this.setPosition(position)
      * @post This new worldObject has no ownedMaterials yet.
      * | new.getNbOwnedMaterials() == 0
+     * @throws NullPointerException if the given world or position are not effective.
+     * |world == null || position==null
+     * @throws IllegalArgumentException * The given position is not a valid position for any
+     * WorldObject.
+     * | ! isValidPosition(getPosition())
      */
     public WorldObject(IWorld world, Vector position){
         this.setWorld(world);
@@ -130,9 +135,13 @@ public abstract class WorldObject implements IWorldObject {
      * The given world is not a valid world for any
      * WorldObject.
      * | ! isValidWorld(getWorld())
+     * @throws NullPointerException When the given world is not effective.
+     * |world ==null
      */
     @Raw
-    public void setWorld(IWorld world) throws IllegalArgumentException {
+    public void setWorld(IWorld world) throws IllegalArgumentException, NullPointerException {
+    	if(world == null)
+    		throw new NullPointerException("The given world is not effective");
         IWorld oldWorld = this.world;
         this.world = world;
         if(this.position!=null && !this.isValidPosition(this.getPosition())){

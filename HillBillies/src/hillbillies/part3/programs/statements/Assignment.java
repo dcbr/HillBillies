@@ -24,6 +24,11 @@ public class Assignment<T> extends Statement {
 
     @Override
     protected void execute() {
-        this.getRunner().assignVariable(variableName, this.runChild(value));
+        try {
+            this.getRunner().assignVariable(variableName, this.runChild(value));
+        }catch(ClassCastException e){
+            this.getCurrentTask().finish();
+            throw new IllegalArgumentException("Illegal variable assignment.", e);
+        }
     }
 }

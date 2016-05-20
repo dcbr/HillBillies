@@ -51,7 +51,9 @@ public class VariableCollection {
             this.value = value;
         }
 
-        private void assign(T newValue){
+        private void assign(T newValue) throws ClassCastException{
+            if(!this.value.getClass().isInstance(newValue))
+                throw new ClassCastException("The variable's name and type do not match.");
             this.value = newValue;
         }
 

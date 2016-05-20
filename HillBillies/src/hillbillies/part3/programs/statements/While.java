@@ -24,13 +24,15 @@ public class While extends Statement {
     @Override
     public void execute() {
         boolean resuming = this.getCurrentChild()==BODY_INDEX;
-        while(resuming || runChild(condition)){
+        while(runChild(condition) || resuming){
             resuming = false;
             runChild(body);
             if(this.getRunner().breakLoop){
                 this.getRunner().breakLoop = false;
                 break;
             }
+            if(this.getRunner().isStopping() || this.getRunner().isPausing())
+                break;
         }
     }
 

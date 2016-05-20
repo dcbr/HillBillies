@@ -28,7 +28,8 @@ public class TestHelper {
         int n = (int) (time / step);
         for (int i = 0; i < n; i++)
             world.advanceTime(step);
-        world.advanceTime(time - n * step);
+        if(time - n * step > 0)
+            world.advanceTime(time - n * step);
     }
 
     /**

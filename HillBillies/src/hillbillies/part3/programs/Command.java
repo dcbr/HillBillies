@@ -3,6 +3,8 @@ package hillbillies.part3.programs;
 import be.kuleuven.cs.som.annotate.Basic;
 import be.kuleuven.cs.som.annotate.Raw;
 import hillbillies.model.Task;
+import hillbillies.part3.programs.expressions.ReadVariable;
+import hillbillies.part3.programs.statements.Assignment;
 import hillbillies.part3.programs.statements.Statement;
 
 import java.util.*;
@@ -225,5 +227,21 @@ public abstract class Command<T> implements Iterable<Command<?>> {
     @Override
     public Iterator<Command<?>> iterator() {
         return this.children.iterator();
+    }
+
+    protected boolean checkVariableAccess(){
+        return checkVariableAccess(new HashSet<>());
+    }
+
+    protected boolean checkVariableAccess(HashSet<String> assignedVariables){
+        for(Command<?> child : this){
+            if(child instanceof ReadVariable && !assignedVariables.contains(((ReadVariable<?>)child).getVariableName()))
+                return false;
+            if(!child.checkVariableAccess(assignedVariables))
+                return false;
+            if(child instanceof Assignment)
+                assignedVariables.add(((Assignment<?>)child).getVariableName());
+        }
+        return true;
     }
 }

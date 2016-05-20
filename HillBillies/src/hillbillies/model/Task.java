@@ -245,13 +245,24 @@ public class Task implements Comparable<Task> {
      * @throws IllegalArgumentException * The given assignedUnit is not a valid assignedUnit for any
      * Task.
      * | ! isValidAssignedUnit(getAssignedUnit())
+     * @throws IllegalStateException
+     *          When this task is already running or this task's activity is not well-formed
+     *          | this.isRunning() || !this.getActivity().check()
      */
     @Raw
-    public void setAssignedUnit(Unit assignedUnit) throws IllegalArgumentException {
+    public void setAssignedUnit(Unit assignedUnit) throws IllegalArgumentException, IllegalStateException {
         if (! isValidAssignedUnit(assignedUnit))
             throw new IllegalArgumentException();
         this.assignedUnit = assignedUnit;
-        this.run();
+        try {
+            if (assignedUnit != null)
+                this.run();
+        }catch(IllegalStateException e){
+            this.assignedUnit = null;// Revert changes
+            for(Scheduler s : this.schedulers)
+                s.removeTask(this);// Remove the task from all schedulers
+            throw e;
+        }
     }
 
     /**
@@ -407,7 +418,7 @@ public class Task implements Comparable<Task> {
         return this.getPriority()-o.getPriority();
     }
 
-    private void run(){
+    private void run() throws IllegalStateException{
         if(!this.getActivity().check())
             throw new IllegalStateException("This task's activity is not well-formed.");
         if(runner!=null)

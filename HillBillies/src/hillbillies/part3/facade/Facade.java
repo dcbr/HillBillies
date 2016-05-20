@@ -116,7 +116,11 @@ public class Facade implements IFacade {
     public void advanceTime(World world, double dt) throws ModelException {
         if(world==null)
             throw new ModelException("The given world is not effective.");
-        world.advanceTime(dt);
+        try {
+            world.advanceTime(dt);
+        }catch(Exception e){
+            throw new ModelException(e);
+        }
     }
 
     /**

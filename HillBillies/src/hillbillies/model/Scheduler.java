@@ -338,11 +338,19 @@ public class Scheduler implements Iterable<Task> {
      * @throws NullPointerException
      *          When the given task or unit are not effective
      *          | task == null || unit == null
+     * @throws IllegalStateException
+     *          When the given task is already running or this task's activity is not well-formed
+     *          | task.isRunning() || !task.getActivity().check()
      */
-    public void schedule(Task task, Unit unit) throws NullPointerException{
+    public void schedule(Task task, Unit unit) throws NullPointerException, IllegalStateException{
         if(task.hasAsScheduler(this) && task.getAssignedUnit()==null && unit.getFaction().getScheduler()==this && unit.getTask()==null){
-            unit.setTask(task);
-            task.setAssignedUnit(unit);
+            try {
+                unit.setTask(task);
+                task.setAssignedUnit(unit);
+            }catch(IllegalStateException e){
+                unit.setTask(null);// Revert changes
+                throw new IllegalStateException("The given task is already running or the task is not well-formed.", e);
+            }
         }
     }
 

@@ -190,8 +190,12 @@ public abstract class Command<T> implements Iterable<Command<?>> {
     }
 
     protected void setCurrentChild(int childIndex){
-        if(childIndex>=currentChild)
-            this.currentChild = childIndex;
+        if(childIndex>=currentChild){
+            while(currentChild<childIndex){
+                this.executedChildren.add(currentChild);
+                currentChild++;// Ugly quick fix for while
+            }
+        }
     }
 
     private int currentChild = 0;

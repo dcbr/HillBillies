@@ -78,19 +78,21 @@ public class TaskFactoryTest {
         //new While(new HerePosition(),new Print(new True()));// Dit lukt niet
         new While(new False(),new Print(new False()));
 
-        Expression<Boolean> condition = f.createIsAlive(f.createThis(null),null);
+        Expression<Boolean> condition = f.createIsAlive(f.createAny(null),null);
         Statement body = f.createPrint(new LiteralPosition(0,0,0),null);
         Statement whileStmt = f.createWhile(condition, body, null);
 
-        runStatementFor(u, whileStmt, 0.2);// No exceptions
+        Unit test = w.spawnUnit(false);
+
+        runStatementFor(u, whileStmt, 0.1, 0.01);// No exceptions
 
         // Task is still running:
         assertTrue(u.getTask()!=null);
         assertEquals(1, u.getFaction().getScheduler().getNbTasks());
 
-        u.terminate();
+        test.terminate();
 
-        advanceTimeFor(w, 0.2);
+        advanceTimeFor(w, 0.1, 0.01);
 
         // Check whether task successfully finished
         assertEquals(null, u.getTask());

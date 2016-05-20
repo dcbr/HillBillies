@@ -1,5 +1,6 @@
 package hillbillies.part3.programs.statements;
 
+import hillbillies.part3.programs.Command;
 import hillbillies.part3.programs.SourceLocation;
 import hillbillies.model.Task.TaskRunner;
 import hillbillies.part3.programs.expressions.Expression;
@@ -24,7 +25,7 @@ public class While extends Statement {
     @Override
     public void execute() {
         boolean resuming = this.getCurrentChild()==BODY_INDEX;
-        while(runChild(condition) || resuming){
+        while(resuming || runChild(condition)){
             resuming = false;
             runChild(body);
             if(this.getRunner().breakLoop){
@@ -34,6 +35,11 @@ public class While extends Statement {
             if(this.getRunner().isStopping() || this.getRunner().isPausing())
                 break;
         }
+    }
+
+    @Override
+    protected <E> E runChild(Command<E> child) throws IllegalStateException, IllegalArgumentException {
+        return super.runChild(child);
     }
 
     @Override

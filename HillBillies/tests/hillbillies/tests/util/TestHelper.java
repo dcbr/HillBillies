@@ -44,7 +44,7 @@ public class TestHelper {
         advanceTimeFor(world, time, 0.2d);
     }
 
-    public static void runStatementFor(Unit unit, Statement s, double time){
+    public static void runStatementFor(Unit unit, Statement s, double time, double step){
         if(!(unit.getWorld() instanceof World))
             throw new IllegalArgumentException("Unit must be part of a valid World.");
         Task t = new Task("t", 100, s, new int[]{0,0,0});
@@ -52,7 +52,11 @@ public class TestHelper {
         unit.getFaction().getScheduler().schedule(t, unit);
         if(!unit.isDefaultActive())
             unit.startDefaultBehaviour();
-        advanceTimeFor((World)unit.getWorld(), time);
+        advanceTimeFor((World)unit.getWorld(), time, step);
+    }
+
+    public static void runStatementFor(Unit unit, Statement s, double time){
+        runStatementFor(unit, s, time, 0.2d);
     }
 
 }
